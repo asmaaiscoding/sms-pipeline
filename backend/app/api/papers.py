@@ -1,0 +1,206 @@
+"""
+app/api/papers.py
+─────────────────
+Paper listing, detail, stats, and manual updates.
+"""
+
+from __future__ import annotations
+
+import math
+from typing import Optional
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy import case, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.api.deps import PaginationParams, get_current_user
+from app.core.exceptions import ForbiddenError, NotFoundError
+from app.database import get_db
+from app.models.paper import Paper, RelevanceDecision
+from app.models.project import Project
+from app.models.user import User
+from app.schemas.paper import (
+    PaginatedPapers,
+    PaperBriefResponse,
+    PaperResponse,
+    PaperStats,
+    PaperUpdate,
+)
+
+router = APIRouter(prefix="/projects/{project_id}/papers", tags=["Papers"])
+
+
+async def _verify_project_access(project_id: UUID, user: User, db: AsyncSession):
+    result = await db.execute(select(Project).where(Project.id == project_id))
+    project = result.scalar_one_or_none()
+    if not project:
+        raise NotFoundError("Project not found")
+    if project.owner_id != user.id and not user.is_superuser:
+        raise ForbiddenError("Not your project")
+    return project
+
+
+@router.get("", response_model=PaginatedPapers)
+async def list_papers(
+    project_id: UUID,
+    pagination: PaginationParams = Depends(),
+    source: Optional[str] = Query(None),
+    year: Optional[int] = Query(None),
+    relevance: Optional[RelevanceDecision] = Query(None),
+    is_duplicate: Optional[bool] = Query(None),
+    has_pdf: Optional[bool] = Query(None),
+    search: Optional[str] = Query(None, max_length=200),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """List papers with filtering and pagination."""
+    await _verify_project_access(project_id, user, db)
+
+    q = select(Paper).where(Paper.project_id == project_id)
+
+    # Apply filters
+    if source:
+        q = q.where(Paper.source == source)
+    if year is not None:
+        q = q.where(Paper.year == year)
+    if relevance is not None:
+        q = q.where(Paper.relevance == relevance)
+    if is_duplicate is not None:
+        q = q.where(Paper.is_duplicate == is_duplicate)
+    if has_pdf is True:
+        q = q.where(Paper.pdf_link != "")
+    elif has_pdf is False:
+        q = q.where(Paper.pdf_link == "")
+    if search:
+        q = q.where(Paper.title.ilike(f"%{search}%"))
+
+    # Count
+    count_q = select(func.count()).select_from(q.subquery())
+    total = (await db.execute(count_q)).scalar() or 0
+
+    # Fetch page
+    result = await db.execute(
+        q.order_by(Paper.year.desc(), Paper.title)
+        .offset(pagination.offset)
+        .limit(pagination.per_page)
+    )
+    papers = result.scalars().all()
+
+    return PaginatedPapers(
+        items=[PaperBriefResponse.model_validate(p) for p in papers],
+        total=total,
+        page=pagination.page,
+        per_page=pagination.per_page,
+        pages=math.ceil(total / pagination.per_page) if total else 0,
+    )
+
+
+@router.get("/stats", response_model=PaperStats)
+async def get_paper_stats(
+    project_id: UUID,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return aggregate statistics for papers in this project."""
+    await _verify_project_access(project_id, user, db)
+
+    base = select(Paper).where(Paper.project_id == project_id)
+
+    # Total
+    total = (await db.execute(
+        select(func.count()).select_from(base.subquery())
+    )).scalar() or 0
+
+    # By source
+    source_q = await db.execute(
+        select(Paper.source, func.count())
+        .where(Paper.project_id == project_id)
+        .group_by(Paper.source)
+    )
+    by_source = {row[0] or "unknown": row[1] for row in source_q.all()}
+
+    # By year
+    year_q = await db.execute(
+        select(Paper.year, func.count())
+        .where(Paper.project_id == project_id)
+        .where(Paper.year.isnot(None))
+        .group_by(Paper.year)
+        .order_by(Paper.year)
+    )
+    by_year = {row[0]: row[1] for row in year_q.all()}
+
+    # By relevance
+    rel_q = await db.execute(
+        select(Paper.relevance, func.count())
+        .where(Paper.project_id == project_id)
+        .group_by(Paper.relevance)
+    )
+    by_relevance = {row[0].value: row[1] for row in rel_q.all()}
+
+    # Duplicates
+    dup_count = (await db.execute(
+        select(func.count())
+        .where(Paper.project_id == project_id)
+        .where(Paper.is_duplicate == True)  # noqa: E712
+    )).scalar() or 0
+
+    # With PDF
+    pdf_count = (await db.execute(
+        select(func.count())
+        .where(Paper.project_id == project_id)
+        .where(Paper.pdf_link != "")
+    )).scalar() or 0
+
+    return PaperStats(
+        total=total,
+        by_source=by_source,
+        by_year=by_year,
+        by_relevance=by_relevance,
+        duplicates=dup_count,
+        with_pdf=pdf_count,
+    )
+
+
+@router.get("/{paper_id}", response_model=PaperResponse)
+async def get_paper(
+    project_id: UUID,
+    paper_id: UUID,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    await _verify_project_access(project_id, user, db)
+
+    result = await db.execute(
+        select(Paper).where(Paper.id == paper_id, Paper.project_id == project_id)
+    )
+    paper = result.scalar_one_or_none()
+    if not paper:
+        raise NotFoundError("Paper not found")
+    return paper
+
+
+@router.patch("/{paper_id}", response_model=PaperResponse)
+async def update_paper(
+    project_id: UUID,
+    paper_id: UUID,
+    body: PaperUpdate,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Manually update a paper's relevance or PDF link."""
+    await _verify_project_access(project_id, user, db)
+
+    result = await db.execute(
+        select(Paper).where(Paper.id == paper_id, Paper.project_id == project_id)
+    )
+    paper = result.scalar_one_or_none()
+    if not paper:
+        raise NotFoundError("Paper not found")
+
+    for field, val in body.model_dump(exclude_unset=True).items():
+        setattr(paper, field, val)
+
+    await db.flush()
+    await db.refresh(paper)
+    return paper

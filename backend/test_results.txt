@@ -1,0 +1,167 @@
+============================================================
+  SMS Pipeline — End-to-End Integration Test
+  Simulating a real user's journey through the API
+============================================================
+
+🏥 Health & Root Endpoints
+  [92m✓[0m GET /health returns 200
+  [92m✓[0m Health status is 'healthy'
+  [92m✓[0m GET / returns app info
+
+📖 API Documentation
+  [92m✓[0m GET /docs returns 200 (Swagger UI)
+  [92m✓[0m GET /redoc returns 200 (ReDoc)
+  [92m✓[0m GET /openapi.json returns schema
+  [92m✓[0m OpenAPI has paths defined
+
+👤 User Registration
+(trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\la_no\OneDrive\Desktop\sms_pipeline\backend\.venv\lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+AttributeError: module 'bcrypt' has no attribute '__about__'
+  [92m✓[0m Register new user → 201
+  [92m✓[0m Response has user ID (UUID)
+  [92m✓[0m Email returned correctly
+  [92m✓[0m Full name returned
+  [92m✓[0m User is active
+  [92m✓[0m Duplicate email → 409 Conflict
+  [92m✓[0m Invalid data → 422 Validation Error
+
+🔐 Login & JWT Authentication
+  [92m✓[0m Login → 200
+  [92m✓[0m Response has access_token
+  [92m✓[0m Response has refresh_token
+  [92m✓[0m Token type is 'bearer'
+  [92m✓[0m Wrong password → 401
+  [92m✓[0m Unknown user → 401
+
+🔄 Token Refresh
+  [92m✓[0m Refresh token → 200 with new tokens
+  [92m✓[0m New access_token present
+  [92m✓[0m Invalid refresh token → 401
+
+👤 Get Current User (authenticated)
+  [92m✓[0m GET /auth/me → 200
+  [92m✓[0m Returns correct email
+  [92m✓[0m Returns correct name
+  [92m✓[0m GET /auth/me without token → 403
+  [92m✓[0m GET /auth/me with bad token → 401
+
+📁 Project CRUD
+  [92m✓[0m Create detection project → 201
+  [92m✓[0m Project has UUID id
+  [92m✓[0m Project name set correctly
+  [92m✓[0m Topic is 'detection'
+  [92m✓[0m Status is 'draft'
+  [92m✓[0m Year range correct
+  [92m✓[0m Sources stored
+  [92m✓[0m Preset search strings loaded (DET-1 to DET-5)
+  [92m✓[0m Search string labels: DET-1..DET-5
+  [92m✓[0m Create remediation project → 201
+  [92m✓[0m Remediation preset strings loaded (REM-1 to REM-4)
+  [92m✓[0m Create custom project → 201
+  [92m✓[0m Custom search strings saved
+
+📋 List Projects (paginated)
+  [92m✓[0m List projects → 200
+  [92m✓[0m Returns paginated response
+  [92m✓[0m Total is 3 projects
+  [92m✓[0m Page defaults to 1
+  [92m✓[0m Items list has 3 projects
+  [92m✓[0m Pagination: per_page=2 returns 2 items
+  [92m✓[0m Pagination: pages=2
+  [92m✓[0m Pagination: page 2 has 1 item
+  [92m✓[0m List projects without auth → 403
+
+🔍 Get Project Detail
+  [92m✓[0m Get project → 200
+  [92m✓[0m Returns full project with search_strings
+  [92m✓[0m Has timestamps
+  [92m✓[0m Get non-existent project → 404
+
+✏️ Update Project
+  [92m✓[0m Patch project → 200
+  [92m✓[0m Name updated
+  [92m✓[0m Year end updated to 2026
+
+📄 Papers (empty project)
+  [92m✓[0m List papers → 200
+  [92m✓[0m Papers total is 0
+  [92m✓[0m Papers items is empty list
+  [92m✓[0m Paper stats → 200
+  [92m✓[0m Stats total is 0
+  [92m✓[0m Stats has by_source
+  [92m✓[0m Stats has by_year
+  [92m✓[0m Stats has by_relevance
+  [92m✓[0m Stats has duplicates count
+  [92m✓[0m Stats has with_pdf count
+
+📥 Insert Test Papers (direct DB)
+
+📄 Papers (with data)
+  [92m✓[0m Papers now has 5 total
+  [92m✓[0m Filter source=acm → 3 papers
+  [92m✓[0m Filter source=ieee → 1 paper
+  [92m✓[0m Filter year=2023 → 2 papers
+  [92m✓[0m Filter relevance=keep → 3 papers
+  [92m✓[0m Filter relevance=remove → 1 paper
+  [92m✓[0m Filter is_duplicate=true → 1 paper
+  [92m✓[0m Filter has_pdf=true → 1 paper
+  [92m✓[0m Filter has_pdf=false → 4 papers
+  [92m✓[0m Search 'Deep Learning' → 1 paper
+  [92m✓[0m Combined filter: acm + keep → 2 papers
+  [92m✓[0m Paper pagination: 2 per page, page 1
+  [92m✓[0m Paper pagination: 3 total pages
+
+📊 Paper Stats (with data)
+  [92m✓[0m Stats total = 5
+  [92m✓[0m Stats by_source has 'acm'
+  [92m✓[0m Stats by_source['acm'] = 3
+  [92m✓[0m Stats by_year has 2023
+  [92m✓[0m Stats duplicates = 1
+  [92m✓[0m Stats with_pdf = 1
+  [92m✓[0m Stats by_relevance has 'keep'
+
+📝 Single Paper & Update
+  [92m✓[0m Get single paper → 200
+  [92m✓[0m Paper has full fields (abstract, link, doi)
+  [92m✓[0m Update paper relevance → 200
+  [92m✓[0m Update paper PDF link → 200
+
+📦 Export
+  [92m✓[0m Export CSV → 200
+  [92m✓[0m CSV content-type
+  [92m✓[0m CSV has header row
+  [92m✓[0m CSV has 4 data rows (no duplicates)
+  [92m✓[0m CSV with duplicates has 5 data rows
+  [92m✓[0m CSV with relevance_filter=keep
+  [92m✓[0m Export XLSX → 200
+  [92m✓[0m XLSX content-type
+  [92m✓[0m XLSX has content
+
+⚙️ Jobs API
+  [92m✓[0m List jobs → 200
+  [92m✓[0m Jobs returns paginated response
+  [92m✓[0m Jobs total is 0
+  [92m✓[0m Invalid job type → 422
+
+🔒 Cross-User Isolation
+  [92m✓[0m Register second user → 201
+  [92m✓[0m Bob's project list is empty
+  [92m✓[0m Bob can't access Alice's project → 403
+  [92m✓[0m Bob can't list Alice's papers → 403
+  [92m✓[0m Bob can't export Alice's data → 403
+
+🗑️ Delete Project
+  [92m✓[0m Delete project → 204
+  [92m✓[0m Deleted project → 404
+  [92m✓[0m Remaining projects = 2
+
+🔧 Middleware & Response Headers
+  [92m✓[0m X-Request-ID header present
+  [92m✓[0m X-Process-Time header present
+
+============================================================
+  ALL 114/114 TESTS PASSED
+============================================================

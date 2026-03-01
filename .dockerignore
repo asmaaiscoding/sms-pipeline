@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+.env.local
+*.egg-info/
+dist/
+build/
+node_modules/
+.vite/
+*.log
+.DS_Store
+Thumbs.db
+postgres_data/
+redis_data/
+*.xlsx
+output/
