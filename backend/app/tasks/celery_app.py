@@ -52,5 +52,5 @@ celery_app.conf.update(
     },
 )
 
-# Auto-discover tasks
-celery_app.autodiscover_tasks(["app.tasks"])
+# Explicitly import tasks so @shared_task decorators register with this app
+import app.tasks.pipeline  # noqa: F401, E402

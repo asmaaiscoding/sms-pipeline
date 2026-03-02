@@ -66,7 +66,8 @@ class Paper(Base):
         nullable=True,
     )
     relevance: Mapped[RelevanceDecision] = mapped_column(
-        Enum(RelevanceDecision), default=RelevanceDecision.PENDING
+        Enum(RelevanceDecision, values_callable=lambda e: [x.value for x in e]),
+        default=RelevanceDecision.PENDING,
     )
 
     # ── PDF link ──────────────────────────────────────────────────────────────

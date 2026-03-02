@@ -18,6 +18,9 @@ from celery import shared_task
 from sqlalchemy import create_engine, select, update
 from sqlalchemy.orm import Session, sessionmaker
 
+# IMPORTANT: import celery_app first so the app (with routing config)
+# is created before @shared_task decorators bind to it.
+from app.tasks.celery_app import celery_app  # noqa: F401
 from app.config import get_settings
 from app.models.job import Job, JobStatus
 from app.models.project import Project, ProjectStatus
@@ -44,7 +47,12 @@ _STEP_MAP = {
     "find_links": ("app.services.pdf_finder", "run_pdf_finder_sync", ProjectStatus.FINDING_LINKS),
 }
 
-_FULL_PIPELINE_ORDER = ["collect", "deduplicate", "filter", "find_links"]
+_FULL_PIPELINE_ORDER = ["collect", "deduplicate", "find_links"]
+
+
+class JobCancelled(Exception):
+    """Raised when a job is cancelled via Redis flag."""
+    pass
 
 
 def _publish_progress(job_id: str, project_id: str, status: str, progress: float, message: str):
@@ -62,9 +70,16 @@ def _publish_progress(job_id: str, project_id: str, status: str, progress: float
     _redis.setex(f"job_progress:{job_id}", 3600, payload)
 
 
+def _check_cancelled(job_id: str):
+    """Check if this job has been cancelled via Redis flag."""
+    if _redis.get(f"job_cancel:{job_id}"):
+        raise JobCancelled(f"Job {job_id} was cancelled")
+
+
 def _make_progress_cb(job_id: str, project_id: str, db: Session):
-    """Return a callback that updates both DB and Redis."""
+    """Return a callback that updates both DB and Redis, and checks for cancellation."""
     def cb(progress: float, message: str):
+        _check_cancelled(job_id)
         db.execute(
             update(Job)
             .where(Job.id == UUID(job_id))
@@ -146,6 +161,25 @@ def run_pipeline_step(self, job_id: str, project_id: str, step_type: str):
         _publish_progress(job_id, project_id, "completed", 100, "Completed successfully")
         logger.info("Job %s completed", job_id)
 
+    except JobCancelled:
+        logger.info("Job %s was cancelled", job_id)
+        db.rollback()
+        try:
+            job = db.execute(select(Job).where(Job.id == UUID(job_id))).scalar_one()
+            if job.status != JobStatus.CANCELLED:
+                job.status = JobStatus.CANCELLED
+                job.message = "Cancelled by user"
+                job.completed_at = datetime.now(timezone.utc)
+            db.execute(
+                update(Project)
+                .where(Project.id == UUID(project_id))
+                .values(status=ProjectStatus.DRAFT)
+            )
+            db.commit()
+        except Exception:
+            logger.exception("Failed to update cancelled job status")
+        _publish_progress(job_id, project_id, "cancelled", 0, "Cancelled by user")
+
     except Exception as exc:
         logger.exception("Job %s failed", job_id)
         db.rollback()
@@ -174,16 +208,24 @@ def run_pipeline_step(self, job_id: str, project_id: str, step_type: str):
 
 @shared_task(name="app.tasks.pipeline.cleanup_stale_jobs")
 def cleanup_stale_jobs():
-    """Mark jobs stuck in RUNNING for > 6 hours as FAILED."""
+    """Mark jobs stuck in RUNNING for > 6 hours or PENDING for > 10 min as FAILED."""
     db = SyncSession()
     try:
         from datetime import timedelta
-        cutoff = datetime.now(timezone.utc) - timedelta(hours=6)
+        cutoff_running = datetime.now(timezone.utc) - timedelta(hours=6)
+        cutoff_pending = datetime.now(timezone.utc) - timedelta(minutes=10)
 
         stale = db.execute(
             select(Job).where(
                 Job.status == JobStatus.RUNNING,
-                Job.started_at < cutoff,
+                Job.started_at < cutoff_running,
+            )
+        ).scalars().all()
+
+        stale_pending = db.execute(
+            select(Job).where(
+                Job.status == JobStatus.PENDING,
+                Job.created_at < cutoff_pending,
             )
         ).scalars().all()
 
@@ -191,7 +233,13 @@ def cleanup_stale_jobs():
             job.status = JobStatus.FAILED
             job.error_message = "Job timed out (>6h)"
             job.completed_at = datetime.now(timezone.utc)
-            logger.warning("Marked stale job %s as failed", job.id)
+            logger.warning("Marked stale running job %s as failed", job.id)
+
+        for job in stale_pending:
+            job.status = JobStatus.FAILED
+            job.error_message = "Job never started (stale pending)"
+            job.completed_at = datetime.now(timezone.utc)
+            logger.warning("Marked stale pending job %s as failed", job.id)
 
         db.commit()
 

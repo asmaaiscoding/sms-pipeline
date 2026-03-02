@@ -46,7 +46,8 @@ class Project(Base):
     name: Mapped[str] = mapped_column(String(512), nullable=False)
     description: Mapped[str] = mapped_column(Text, default="")
     topic: Mapped[TopicEnum] = mapped_column(
-        Enum(TopicEnum), default=TopicEnum.DETECTION
+        Enum(TopicEnum, values_callable=lambda e: [x.value for x in e]),
+        default=TopicEnum.DETECTION
     )
     year_start: Mapped[int] = mapped_column(Integer, default=2000)
     year_end: Mapped[int] = mapped_column(Integer, default=2026)
@@ -55,7 +56,8 @@ class Project(Base):
         comment="Comma-separated list of sources"
     )
     status: Mapped[ProjectStatus] = mapped_column(
-        Enum(ProjectStatus), default=ProjectStatus.DRAFT
+        Enum(ProjectStatus, values_callable=lambda e: [x.value for x in e]),
+        default=ProjectStatus.DRAFT
     )
 
     # Aggregate stats (updated after each step)

@@ -72,6 +72,11 @@ export const papersApi = {
 
   stats: (projectId: string) =>
     api.get<PaperStats>(`/projects/${projectId}/papers/stats`),
+
+  filteringPrompt: (projectId: string) =>
+    api.get<{ prompt: string; total_papers: number; instructions: string }>(
+      `/projects/${projectId}/papers/filtering-prompt`
+    ),
 };
 
 // ── Jobs ─────────────────────────────────────────────────────────────────────

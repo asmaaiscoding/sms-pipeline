@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.models.project import ProjectStatus, TopicEnum
 
@@ -42,6 +42,13 @@ class ProjectCreate(BaseModel):
     sources: List[str] = Field(default=["acm", "ieee", "springer"])
     search_strings: Optional[List[SearchStringCreate]] = None
     use_preset_strings: bool = True
+
+    @field_validator("sources", mode="before")
+    @classmethod
+    def _parse_sources(cls, v):
+        if isinstance(v, str):
+            return [s.strip() for s in v.split(",") if s.strip()]
+        return v
 
 
 class ProjectUpdate(BaseModel):

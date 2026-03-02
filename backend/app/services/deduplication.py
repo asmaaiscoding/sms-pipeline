@@ -20,6 +20,7 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.models.paper import Paper
 from app.models.project import Project
+from app.core.pipeline_logger import get_pipeline_logger
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -62,6 +63,9 @@ def run_deduplication_sync(
         select(Project).where(Project.id == project_id)
     ).scalar_one()
 
+    flog = get_pipeline_logger("deduplication", project.name)
+    flog.info("=== Deduplication started for project '%s' ===", project.name)
+
     papers = db.execute(
         select(Paper)
         .where(Paper.project_id == project_id, Paper.is_duplicate == False)  # noqa: E712
@@ -69,11 +73,12 @@ def run_deduplication_sync(
     ).scalars().all()
 
     if not papers:
+        flog.info("No papers to deduplicate")
         return {"total": 0, "doi_removed": 0, "title_removed": 0}
 
     total = len(papers)
     if progress_cb:
-        progress_cb(5, f"Deduplicating {total} papers…")
+        progress_cb(5, f"Deduplicating {total} papers — Pass 1: DOI matching…")
 
     # ── Pass 1: DOI-based ────────────────────────────────────────────────────
     doi_groups: dict[str, list[Paper]] = {}
@@ -83,7 +88,7 @@ def run_deduplication_sync(
             doi_groups.setdefault(ndoi, []).append(p)
 
     doi_removed = 0
-    for group in doi_groups.values():
+    for ndoi, group in doi_groups.items():
         if len(group) <= 1:
             continue
         best = max(group, key=_completeness)
@@ -92,12 +97,15 @@ def run_deduplication_sync(
                 p.is_duplicate = True
                 p.duplicate_of_id = best.id
                 doi_removed += 1
+                flog.info("  DOI dup: '%s' (doi=%s) — duplicate of '%s'", p.title, ndoi, best.title)
 
     db.flush()
+    flog.info("--- DOI pass done: %d duplicates found ---", doi_removed)
     logger.info("DOI dedup removed %d", doi_removed)
 
     if progress_cb:
-        progress_cb(40, f"DOI pass done — {doi_removed} duplicates. Running title similarity…")
+        remaining_count = total - doi_removed
+        progress_cb(40, f"DOI pass: {doi_removed} duplicates found — {remaining_count} remaining. Pass 2: title similarity…")
 
     # ── Pass 2: Title similarity (TF-IDF cosine) ────────────────────────────
     remaining = [p for p in papers if not p.is_duplicate]
@@ -131,10 +139,12 @@ def run_deduplication_sync(
                     loser.duplicate_of_id = winner.id
                     marked.add(loser.id)
                     title_removed += 1
+                    flog.info("  Title dup: '%s' ~ '%s' (sim=%.3f)", loser.title, winner.title, sim[i, j])
                     if loser.id == remaining[i].id:
                         break
 
     db.flush()
+    flog.info("--- Title pass done: %d duplicates found ---", title_removed)
     logger.info("Title dedup removed %d", title_removed)
 
     # Update project stats
@@ -142,8 +152,14 @@ def run_deduplication_sync(
     project.total_after_dedup = non_dup_count
     db.commit()
 
+    flog.info("=== Dedup complete — %d unique (removed %d DOI + %d title) ===", non_dup_count, doi_removed, title_removed)
+
     if progress_cb:
-        progress_cb(100, f"Dedup complete — {non_dup_count} unique papers")
+        progress_cb(
+            100,
+            f"Dedup complete — {non_dup_count} unique papers "
+            f"(removed {doi_removed} by DOI + {title_removed} by title similarity)"
+        )
 
     return {
         "total": total,

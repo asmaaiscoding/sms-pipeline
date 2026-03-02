@@ -22,6 +22,7 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.models.paper import Paper, RelevanceDecision
 from app.models.project import Project
+from app.core.pipeline_logger import get_pipeline_logger
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -225,6 +226,9 @@ def run_pdf_finder_sync(
         select(Project).where(Project.id == project_id)
     ).scalar_one()
 
+    flog = get_pipeline_logger("pdf_finder", project.name)
+    flog.info("=== PDF finder started for project '%s' ===", project.name)
+
     papers = db.execute(
         select(Paper)
         .where(
@@ -237,6 +241,7 @@ def run_pdf_finder_sync(
     ).scalars().all()
 
     if not papers:
+        flog.info("No papers need PDF links")
         if progress_cb:
             progress_cb(100, "No papers need PDF links")
         return {"total": 0, "found": 0}
@@ -247,8 +252,12 @@ def run_pdf_finder_sync(
     save_every = 50
 
     for i, paper in enumerate(papers):
-        if progress_cb and i % 10 == 0:
-            progress_cb((i / total) * 95, f"Searching PDFs… {i}/{total}")
+        if progress_cb and i % 5 == 0:
+            pct = (i / total) * 95
+            progress_cb(
+                pct,
+                f"Searching PDFs… {i}/{total} checked, {found} found so far"
+            )
 
         url, source = _search_pdf(paper.title, paper.doi)
         if url:
@@ -256,6 +265,9 @@ def run_pdf_finder_sync(
             paper.pdf_source = source
             found += 1
             stats[source] = stats.get(source, 0) + 1
+            flog.info("  #%d FOUND  '%s' — %s (%s)", i + 1, paper.title, source, url)
+        else:
+            flog.info("  #%d MISS   '%s'", i + 1, paper.title)
 
         if (i + 1) % save_every == 0:
             db.flush()
@@ -287,9 +299,16 @@ def run_pdf_finder_sync(
     project.total_with_pdf = total_with_pdf
     db.commit()
 
+    flog.info("=== PDF search complete — %d/%d found (%s) ===", found, total,
+             ", ".join(f"{k}: {v}" for k, v in stats.items()) if stats else "none")
+
     if progress_cb:
-        pct = f"{found / total * 100:.1f}" if total else "0"
-        progress_cb(100, f"PDF search complete — {found}/{total} found ({pct}%)")
+        pct_str = f"{found / total * 100:.1f}" if total else "0"
+        src_summary = ", ".join(f"{k}: {v}" for k, v in stats.items()) if stats else "none"
+        progress_cb(
+            100,
+            f"PDF search complete — {found}/{total} found ({pct_str}%) — Sources: {src_summary}"
+        )
 
     return {
         "total": total,

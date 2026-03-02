@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   # ── PostgreSQL ──────────────────────────────────────────────────────────────
   postgres:
@@ -42,6 +40,7 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-sms}:${POSTGRES_PASSWORD:-sms_secret}@postgres:5432/${POSTGRES_DB:-sms_pipeline}
+      DATABASE_URL_SYNC: postgresql+psycopg2://${POSTGRES_USER:-sms}:${POSTGRES_PASSWORD:-sms_secret}@postgres:5432/${POSTGRES_DB:-sms_pipeline}
       REDIS_URL: redis://redis:6379/0
       CELERY_BROKER_URL: redis://redis:6379/1
       CELERY_RESULT_BACKEND: redis://redis:6379/2
@@ -50,6 +49,7 @@ services:
     volumes:
       - ./backend:/app
       - scraper_data:/app/data
+      - ./logs:/app/logs
     depends_on:
       postgres:
         condition: service_healthy
@@ -75,12 +75,13 @@ services:
     volumes:
       - ./backend:/app
       - scraper_data:/app/data
+      - ./logs:/app/logs
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: celery -A app.tasks.celery_app worker --loglevel=info --concurrency=2 -Q default,scraping,processing
+    command: celery -A app.tasks.celery_app worker --loglevel=info --concurrency=2 -Q celery,default,scraping,processing
 
   # ── Celery Beat (scheduler) ────────────────────────────────────────────────
   celery_beat:

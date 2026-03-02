@@ -34,4 +34,7 @@ declare module "lucide-react" {
   export const ChevronRight: LucideIcon;
   export const Search: LucideIcon;
   export const XCircle: LucideIcon;
+  export const ClipboardCopy: LucideIcon;
+  export const MessageSquare: LucideIcon;
+  export const StopCircle: LucideIcon;
 }

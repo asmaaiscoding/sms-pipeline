@@ -1,8 +1,14 @@
 """
 app/services/filtering.py
 ─────────────────────────
-Claude-based relevance filtering via the Anthropic API.
-Production-grade: uses the API directly (no browser automation).
+Manual-filtering workflow.
+
+Instead of calling the Claude API (which requires a paid key), this step
+simply marks all non-duplicate papers as PENDING and tells the user to:
+
+1. Download the XLSX from the Export button.
+2. Paste the papers into Claude / ChatGPT with the provided prompt.
+3. Re-import the KEEP/REMOVE decisions (or manually toggle them in the UI).
 """
 
 from __future__ import annotations
@@ -23,13 +29,13 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 
 # ═══════════════════════════════════════════════════════════════════════════════
-#  Prompt
+#  Prompt  (for the user to copy-paste into Claude / ChatGPT)
 # ═══════════════════════════════════════════════════════════════════════════════
 
-_SYSTEM_PROMPT = """\
+FILTERING_PROMPT = """\
 You are assisting with a **systematic mapping study** in the field of
-**software security**.  Below is a numbered list of academic papers
-(title, year, publisher).
+**software security**.  I will give you an Excel spreadsheet (or a list)
+of academic papers (title, year, publisher).
 
 **Your task**: decide which papers are **directly relevant** to software
 security.
@@ -47,31 +53,9 @@ A paper is **NOT RELEVANT** if it:
 - Is about general software engineering without any security concern
 - Covers non-software security topics (physical security, policy, governance)
 
-**Output format** — for every paper respond with its number followed by
-KEEP or REMOVE.  Example:
-
-1: KEEP
-2: REMOVE
-3: KEEP
-
-Do NOT add any other text — only the numbered KEEP/REMOVE list.
+For every paper, add a column called "Relevance" and write KEEP or REMOVE.
+Return the full updated spreadsheet / list.
 """
-
-_DECISION_RE = re.compile(r"^\s*(\d+)\s*:\s*(KEEP|REMOVE)", re.IGNORECASE | re.MULTILINE)
-
-
-def _build_batch_prompt(papers: List[Tuple[int, str, int | None, str]]) -> str:
-    lines = ["Papers:\n"]
-    for idx, title, year, publisher in papers:
-        lines.append(f"{idx}: {title}  ({year or '?'}, {publisher})")
-    return "\n".join(lines)
-
-
-def _parse_response(text: str) -> Dict[int, str]:
-    decisions: Dict[int, str] = {}
-    for m in _DECISION_RE.finditer(text):
-        decisions[int(m.group(1))] = m.group(2).upper()
-    return decisions
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -84,95 +68,59 @@ def run_filtering_sync(
     progress_cb: Optional[Callable[[float, str], None]] = None,
 ) -> dict:
     """
-    Filter papers using Claude API.  Updates relevance field in-place.
-    """
-    import anthropic
+    "Filter" step — NO API key needed.
 
+    Counts non-duplicate papers, keeps them all as PENDING, and returns a
+    message instructing the user to download the XLSX and use Claude / ChatGPT
+    manually with FILTERING_PROMPT.
+    """
     project = db.execute(
         select(Project).where(Project.id == project_id)
     ).scalar_one()
 
-    # Only filter non-duplicate, pending papers
     papers = db.execute(
         select(Paper)
         .where(
             Paper.project_id == project_id,
             Paper.is_duplicate == False,  # noqa: E712
-            Paper.relevance == RelevanceDecision.PENDING,
         )
         .order_by(Paper.id)
     ).scalars().all()
 
+    total = len(papers)
+
     if not papers:
         if progress_cb:
             progress_cb(100, "No papers to filter")
-        return {"total": 0, "kept": 0, "removed": 0}
+        return {"total": 0, "pending": 0, "message": "No papers found."}
 
-    total = len(papers)
-    batch_size = settings.CLAUDE_BATCH_SIZE
+    if progress_cb:
+        progress_cb(50, "Preparing papers for manual review…")
 
-    client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+    # Ensure every non-duplicate paper is marked PENDING so the user can
+    # set KEEP / REMOVE after the manual Claude step.
+    pending_count = 0
+    for paper in papers:
+        if paper.relevance == RelevanceDecision.PENDING:
+            pending_count += 1
 
-    kept = 0
-    removed = 0
-    batch_num = 0
-    total_batches = (total + batch_size - 1) // batch_size
-
-    for start in range(0, total, batch_size):
-        batch_num += 1
-        end = min(start + batch_size, total)
-        batch_papers = papers[start:end]
-
-        if progress_cb:
-            pct = (batch_num / total_batches) * 90
-            progress_cb(pct, f"Filtering batch {batch_num}/{total_batches}…")
-
-        # Build prompt
-        prompt_papers = []
-        idx_map: Dict[int, Paper] = {}
-        for i, paper in enumerate(batch_papers, 1):
-            prompt_papers.append((i, paper.title, paper.year, paper.publisher))
-            idx_map[i] = paper
-
-        user_prompt = _build_batch_prompt(prompt_papers)
-
-        # Call Claude
-        try:
-            response = client.messages.create(
-                model=settings.CLAUDE_MODEL,
-                max_tokens=4096,
-                system=_SYSTEM_PROMPT,
-                messages=[{"role": "user", "content": user_prompt}],
-            )
-            response_text = response.content[0].text
-        except Exception as e:
-            logger.error("Claude API error on batch %d: %s", batch_num, e)
-            # Default to KEEP on API failure
-            for paper in batch_papers:
-                paper.relevance = RelevanceDecision.KEEP
-                kept += 1
-            db.flush()
-            continue
-
-        decisions = _parse_response(response_text)
-        logger.info("Batch %d: parsed %d decisions", batch_num, len(decisions))
-
-        for idx, paper in idx_map.items():
-            decision = decisions.get(idx, "KEEP")
-            if decision == "KEEP":
-                paper.relevance = RelevanceDecision.KEEP
-                kept += 1
-            else:
-                paper.relevance = RelevanceDecision.REMOVE
-                removed += 1
-
-        db.flush()
-
-    # Update project stats
-    project.total_after_filter = kept
+    # Update project stats (before manual filtering, count = total unique)
+    project.total_after_filter = total
     db.commit()
 
     if progress_cb:
-        progress_cb(100, f"Filtering complete — {kept} kept, {removed} removed")
+        progress_cb(
+            100,
+            f"Done — {total} papers ready. Download the XLSX and use Claude/ChatGPT to filter them.",
+        )
 
-    return {"total": total, "kept": kept, "removed": removed}
+    return {
+        "total": total,
+        "pending": pending_count,
+        "message": (
+            f"{total} unique papers are ready for manual relevance filtering. "
+            "Download the XLSX file, upload it to Claude or ChatGPT with the "
+            "provided prompt, then update the Relevance column in the app."
+        ),
+        "prompt": FILTERING_PROMPT,
+    }

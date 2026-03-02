@@ -46,11 +46,6 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
     ALGORITHM: str = "HS256"
 
-    # ── Claude ────────────────────────────────────────────────────────────────
-    ANTHROPIC_API_KEY: str = ""
-    CLAUDE_MODEL: str = "claude-sonnet-4-20250514"
-    CLAUDE_BATCH_SIZE: int = 40
-
     # ── Scraping ──────────────────────────────────────────────────────────────
     SELENIUM_HEADLESS: bool = True
     SCRAPE_DELAY_MIN: float = 2.0

@@ -204,3 +204,72 @@ async def update_paper(
     await db.flush()
     await db.refresh(paper)
     return paper
+
+
+@router.get("/filtering-prompt", response_model=dict)
+async def get_filtering_prompt(
+    project_id: UUID,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return the prompt the user should paste into Claude / ChatGPT."""
+    await _verify_project_access(project_id, user, db)
+
+    from app.services.filtering import FILTERING_PROMPT
+
+    # Count non-duplicate papers
+    total = (await db.execute(
+        select(func.count())
+        .where(Paper.project_id == project_id)
+        .where(Paper.is_duplicate == False)  # noqa: E712
+    )).scalar() or 0
+
+    return {
+        "prompt": FILTERING_PROMPT,
+        "total_papers": total,
+        "instructions": (
+            "1. Click 'Download XLSX' to export your papers.\n"
+            "2. Open Claude (claude.ai) or ChatGPT.\n"
+            "3. Upload the XLSX file and paste the prompt below.\n"
+            "4. Claude/ChatGPT will mark each paper as KEEP or REMOVE.\n"
+            "5. Come back here and update each paper's relevance, "
+            "or use the bulk import below."
+        ),
+    }
+
+
+@router.post("/import-relevance")
+async def import_relevance(
+    project_id: UUID,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    decisions: list[dict] = [],
+):
+    """
+    Bulk import KEEP/REMOVE decisions.
+    Body: [{"title": "...", "relevance": "keep"}, ...]
+    """
+    project = await _verify_project_access(project_id, user, db)
+
+    updated = 0
+    for item in decisions:
+        title = item.get("title", "").strip()
+        rel = item.get("relevance", "").strip().lower()
+        if not title or rel not in ("keep", "remove"):
+            continue
+
+        result = await db.execute(
+            select(Paper).where(
+                Paper.project_id == project_id,
+                Paper.title.ilike(title),
+            )
+        )
+        paper = result.scalar_one_or_none()
+        if paper:
+            paper.relevance = (
+                RelevanceDecision.KEEP if rel == "keep" else RelevanceDecision.REMOVE
+            )
+            updated += 1
+
+    await db.commit()
+    return {"updated": updated, "total_submitted": len(decisions)}

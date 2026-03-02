@@ -9,6 +9,7 @@ from __future__ import annotations
 import math
 from uuid import UUID
 
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -96,10 +97,16 @@ async def create_job(
     await db.flush()
     await db.refresh(job)
 
+    # Commit BEFORE dispatching to Celery — the sync worker session
+    # needs the row to be visible in the DB.
+    await db.commit()
+
     # Dispatch to Celery
     task = run_pipeline_step.delay(str(job.id), str(project_id), body.job_type.value)
+
+    # Update celery_task_id
     job.celery_task_id = task.id
-    await db.flush()
+    await db.commit()
 
     return job
 
@@ -146,8 +153,28 @@ async def cancel_job(
         from app.tasks.celery_app import celery_app
         celery_app.control.revoke(job.celery_task_id, terminate=True)
 
+    # Set a Redis flag so the running task can detect cancellation
+    import redis as _redis
+    from app.config import get_settings as _gs
+    _r = _redis.Redis.from_url(_gs().REDIS_URL, decode_responses=True)
+    _r.setex(f"job_cancel:{job_id}", 3600, "1")
+
     job.status = JobStatus.CANCELLED
     job.message = "Cancelled by user"
+    job.completed_at = datetime.now(timezone.utc)
+
+    # Reset project status so user can launch another job
+    from app.models.project import ProjectStatus
+    await db.execute(
+        select(Project).where(Project.id == project_id)  # just to verify
+    )
+    from sqlalchemy import update as sql_update
+    await db.execute(
+        sql_update(Project)
+        .where(Project.id == project_id)
+        .values(status=ProjectStatus.DRAFT)
+    )
+
     await db.flush()
     await db.refresh(job)
     return job

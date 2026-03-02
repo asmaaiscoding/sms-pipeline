@@ -95,10 +95,26 @@ class IEEEScraper:
             f"?queryText={encoded}"
             f"&ranges={year}_{year}_Year"
         )
-        self.driver.get(url)
-        random_delay(4, 6)
-        ensure_page_ready(self.driver, self._first_visit)
-        self._first_visit = False
+
+        # Retry if we hit a rate-limit / block page
+        for attempt in range(3):
+            self.driver.get(url)
+            random_delay(4, 6)
+            ensure_page_ready(self.driver, self._first_visit)
+            self._first_visit = False
+
+            if has_captcha(self.driver):
+                wait_secs = 30 * (attempt + 1)
+                logger.warning(
+                    "[IEEE] Page blocked (attempt %d/3) — waiting %ds",
+                    attempt + 1, wait_secs,
+                )
+                time.sleep(wait_secs)
+                continue
+            break
+        else:
+            logger.error("[IEEE] Still blocked after 3 retries")
+            return 0
 
         try:
             elems = self.driver.find_elements(
@@ -115,10 +131,19 @@ class IEEEScraper:
         return self._get_total_count() or 0
 
     def _get_total_count(self) -> Optional[int]:
+        # Strategy 1: try body text "Showing X-Y of Z results"
+        try:
+            body_text = self.driver.find_element(By.TAG_NAME, "body").text
+            m = re.search(r"Showing\s+\d+-\d+\s+of\s+([\d,]+)\s+results?", body_text, re.I)
+            if m:
+                return int(m.group(1).replace(",", ""))
+        except Exception:
+            pass
+
+        # Strategy 2: try specific selectors
         selectors = [
             "//span[contains(@class,'result-count')] | //span[contains(@class,'results-count')]",
             "//div[contains(@class,'Dashboard-header')]//span[contains(text(),'results')]",
-            "//*[contains(text(),'results') or contains(text(),'Results')]",
         ]
         for sel in selectors:
             try:
@@ -129,6 +154,18 @@ class IEEEScraper:
                     return int(m.group(1).replace(",", ""))
             except Exception:
                 continue
+
+        # Strategy 3: count result items on page as fallback
+        try:
+            items = self.driver.find_elements(
+                By.XPATH, "//xpl-results-item | //div[contains(@class,'result-item')]"
+            )
+            if items:
+                logger.info("[IEEE] Count from selectors failed — found %d items on page", len(items))
+                return len(items)
+        except Exception:
+            pass
+
         return None
 
     def _scrape_all_pages(self, target_year: int, expected: int) -> List[dict]:

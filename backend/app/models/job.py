@@ -47,9 +47,13 @@ class Job(Base):
         index=True,
     )
 
-    job_type: Mapped[JobType] = mapped_column(Enum(JobType), nullable=False)
+    job_type: Mapped[JobType] = mapped_column(
+        Enum(JobType, values_callable=lambda e: [x.value for x in e]),
+        nullable=False,
+    )
     status: Mapped[JobStatus] = mapped_column(
-        Enum(JobStatus), default=JobStatus.PENDING
+        Enum(JobStatus, values_callable=lambda e: [x.value for x in e]),
+        default=JobStatus.PENDING,
     )
 
     # ── Progress tracking ─────────────────────────────────────────────────────

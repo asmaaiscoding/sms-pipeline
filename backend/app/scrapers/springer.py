@@ -131,11 +131,31 @@ class SpringerScraper:
 
     def _get_total_results(self) -> int:
         time.sleep(2)
+
+        # Strategy 1: look for body text like "1,234 results" or "Showing 1-20 of 1,234"
+        try:
+            body_text = self.driver.find_element(By.TAG_NAME, "body").text
+            for pat in [
+                r"([\d,]+)\s+results?\b",
+                r"of\s+([\d,]+)\s+results?",
+                r"Showing\s+\d+[-–]\d+\s+of\s+([\d,]+)",
+            ]:
+                m = re.search(pat, body_text, re.I)
+                if m:
+                    val = int(m.group(1).replace(",", ""))
+                    if val > 0:
+                        logger.debug("[Springer] total from body text: %d", val)
+                        return val
+        except Exception:
+            pass
+
+        # Strategy 2: XPath selectors for known Springer elements
         selectors = [
             "//h1[contains(@class,'number-of-search-results')]",
             "//h1[contains(text(),'result')]",
             "//*[@id='number-of-search-results-and-search-terms']",
             "//strong[@class='number-of-search-results']",
+            "//*[contains(@class,'search-results-number')]",
         ]
         for sel in selectors:
             try:
@@ -145,6 +165,19 @@ class SpringerScraper:
                     return int(m.group(1).replace(",", ""))
             except Exception:
                 continue
+
+        # Strategy 3: count article links on page as minimum estimate
+        try:
+            links = self.driver.find_elements(
+                By.XPATH, "//a[contains(@href,'/article/10.')]"
+            )
+            if links:
+                count = len(links)
+                logger.debug("[Springer] No result count found, but %d article links present", count)
+                return count
+        except Exception:
+            pass
+
         return 0
 
     def _scrape_all_pages(self) -> List[dict]:

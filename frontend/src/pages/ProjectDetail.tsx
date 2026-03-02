@@ -29,6 +29,10 @@ import {
   ChevronRight,
   Search,
   XCircle,
+  ClipboardCopy,
+  MessageSquare,
+  StopCircle,
+  Trash2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import type { ProgressEvent, JobType, PaperFilters } from "@/types";
@@ -36,7 +40,6 @@ import type { ProgressEvent, JobType, PaperFilters } from "@/types";
 const PIPELINE_STEPS: { type: JobType; label: string; icon: React.ElementType; desc: string }[] = [
   { type: "collect", label: "Collect", icon: Layers, desc: "Scrape papers from selected sources" },
   { type: "deduplicate", label: "Deduplicate", icon: Copy, desc: "Find and mark duplicates" },
-  { type: "filter", label: "Filter", icon: Filter, desc: "AI-powered relevance filtering" },
   { type: "find_links", label: "Find PDFs", icon: LinkIcon, desc: "Locate open-access PDF links" },
 ];
 
@@ -57,6 +60,7 @@ export default function ProjectDetail() {
   const [paperPage, setPaperPage] = useState(1);
   const [filters, setFilters] = useState<PaperFilters>({});
   const [searchInput, setSearchInput] = useState("");
+  const [showFilterPrompt, setShowFilterPrompt] = useState(false);
 
   // ── Queries ──────────────────────────────────────────────────────────────
   const projectQuery = useQuery({
@@ -80,6 +84,13 @@ export default function ProjectDetail() {
     enabled: !!id,
   });
 
+  const promptQuery = useQuery({
+    queryKey: ["filtering-prompt", id],
+    queryFn: () => papersApi.filteringPrompt(id!),
+    select: (res) => res.data,
+    enabled: !!id && showFilterPrompt,
+  });
+
   const jobsQuery = useQuery({
     queryKey: ["jobs", id],
     queryFn: () => jobsApi.list(id!, 1, 10),
@@ -97,7 +108,7 @@ export default function ProjectDetail() {
           : prev
       );
 
-      if (event.status === "completed" || event.status === "failed") {
+      if (event.status === "completed" || event.status === "failed" || event.status === "cancelled") {
         queryClient.invalidateQueries({ queryKey: ["project", id] });
         queryClient.invalidateQueries({ queryKey: ["papers", id] });
         queryClient.invalidateQueries({ queryKey: ["paper-stats", id] });
@@ -105,6 +116,8 @@ export default function ProjectDetail() {
 
         if (event.status === "completed") {
           toast.success(`Job completed: ${event.message}`);
+        } else if (event.status === "cancelled") {
+          toast("Job cancelled", { icon: "\u{1F6D1}" });
         } else {
           toast.error(`Job failed: ${event.message}`);
         }
@@ -137,6 +150,35 @@ export default function ProjectDetail() {
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   });
+
+  const cancelJob = useMutation({
+    mutationFn: () => {
+      if (!activeJob) throw new Error("No active job");
+      return jobsApi.cancel(id!, activeJob.id);
+    },
+    onSuccess: () => {
+      setActiveJob(null);
+      queryClient.invalidateQueries({ queryKey: ["project", id] });
+      queryClient.invalidateQueries({ queryKey: ["jobs", id] });
+      toast("Job cancelled", { icon: "\u{1F6D1}" });
+    },
+    onError: (err) => toast.error(getErrorMessage(err)),
+  });
+
+  const deleteProject = useMutation({
+    mutationFn: () => projectsApi.delete(id!),
+    onSuccess: () => {
+      toast.success("Project deleted");
+      navigate("/projects");
+    },
+    onError: (err) => toast.error(getErrorMessage(err)),
+  });
+
+  const handleDeleteProject = () => {
+    if (confirm(`Delete project "${projectQuery.data?.name}"? All data will be permanently lost.`)) {
+      deleteProject.mutate();
+    }
+  };
 
   // ── Handlers ─────────────────────────────────────────────────────────────
   const handleExport = async (format: "xlsx" | "csv") => {
@@ -201,6 +243,14 @@ export default function ProjectDetail() {
             <Download className="h-4 w-4" />
             CSV
           </button>
+          <button
+            onClick={handleDeleteProject}
+            disabled={deleteProject.isPending}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 hover:border-red-300 transition-colors disabled:opacity-50"
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete
+          </button>
         </div>
       </div>
 
@@ -222,14 +272,25 @@ export default function ProjectDetail() {
               <span className="font-medium text-brand-900">
                 Running: {activeJob.type.replace(/_/g, " ")}
               </span>
-              <span className="text-brand-600">{Math.round(activeJob.progress)}%</span>
+              <div className="flex items-center gap-3">
+                <span className="text-brand-600">{Math.round(activeJob.progress)}%</span>
+                <button
+                  onClick={() => cancelJob.mutate()}
+                  disabled={cancelJob.isPending}
+                  className="inline-flex items-center gap-1 rounded-md bg-red-100 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-200 transition-colors disabled:opacity-50"
+                  title="Cancel this job"
+                >
+                  <StopCircle className="h-3.5 w-3.5" />
+                  Cancel
+                </button>
+              </div>
             </div>
             <ProgressBar value={activeJob.progress} />
             <p className="text-xs text-brand-700">{activeJob.message}</p>
           </div>
         )}
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {PIPELINE_STEPS.map((step) => (
             <button
               key={step.type}
@@ -248,6 +309,76 @@ export default function ProjectDetail() {
           ))}
         </div>
 
+        {/* Manual Filtering Workflow */}
+        <div className="mt-6 rounded-lg border-2 border-dashed border-amber-300 bg-amber-50 p-5">
+          <div className="flex items-start gap-3">
+            <div className="rounded-lg bg-amber-100 p-2">
+              <Filter className="h-5 w-5 text-amber-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-amber-900">
+                Step 3: Manual Relevance Filtering
+              </h3>
+              <p className="text-xs text-amber-700 mt-1 leading-relaxed">
+                After collecting and deduplicating, download the XLSX file and
+                upload it to <strong>Claude</strong> (claude.ai) or{" "}
+                <strong>ChatGPT</strong> with the prompt below. The AI will mark
+                each paper as KEEP or REMOVE based on software security relevance.
+              </p>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  onClick={() => handleExport("xlsx")}
+                  className="inline-flex items-center gap-1.5 rounded-md bg-amber-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-700 transition-colors"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Download XLSX
+                </button>
+                <button
+                  onClick={() => setShowFilterPrompt(!showFilterPrompt)}
+                  className="inline-flex items-center gap-1.5 rounded-md bg-white border border-amber-300 px-3 py-1.5 text-xs font-medium text-amber-800 hover:bg-amber-100 transition-colors"
+                >
+                  <MessageSquare className="h-3.5 w-3.5" />
+                  {showFilterPrompt ? "Hide Prompt" : "Show Prompt for Claude/ChatGPT"}
+                </button>
+              </div>
+
+              {showFilterPrompt && promptQuery.data && (
+                <div className="mt-4 space-y-3">
+                  <div className="rounded-md bg-white border border-amber-200 p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-semibold text-amber-900 uppercase tracking-wide">
+                        Prompt to paste
+                      </span>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(promptQuery.data.prompt);
+                          toast.success("Prompt copied to clipboard!");
+                        }}
+                        className="inline-flex items-center gap-1 rounded bg-amber-100 px-2 py-1 text-xs text-amber-700 hover:bg-amber-200 transition-colors"
+                      >
+                        <ClipboardCopy className="h-3 w-3" />
+                        Copy
+                      </button>
+                    </div>
+                    <pre className="whitespace-pre-wrap text-xs text-gray-700 leading-relaxed font-mono bg-gray-50 rounded p-3 max-h-64 overflow-y-auto">
+                      {promptQuery.data.prompt}
+                    </pre>
+                  </div>
+                  <div className="rounded-md bg-white border border-amber-200 p-4">
+                    <span className="text-xs font-semibold text-amber-900 uppercase tracking-wide">
+                      Instructions
+                    </span>
+                    <pre className="whitespace-pre-wrap text-xs text-gray-700 leading-relaxed mt-2">
+                      {promptQuery.data.instructions}
+                    </pre>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* Full pipeline button */}
         <div className="mt-4 flex justify-center">
           <button
@@ -256,7 +387,7 @@ export default function ProjectDetail() {
             className="btn-primary"
           >
             <Play className="h-4 w-4" />
-            Run Full Pipeline
+            Run Full Pipeline (Collect + Dedup + Find PDFs)
           </button>
         </div>
       </div>

@@ -94,20 +94,58 @@ def retry(func: Callable, retries: int = 3, *args: Any, **kwargs: Any) -> Any:
 #  CAPTCHA helpers
 # ═══════════════════════════════════════════════════════════════════════════════
 
-_CAPTCHA_KEYWORDS = [
-    "captcha", "recaptcha", "hcaptcha",
-    "challenge-running", "cf-browser-verification",
-    "verify you are human", "security check",
-    "please verify", "access denied",
+# Keywords that strongly indicate a CAPTCHA/block page (matched against page title + visible text)
+_BLOCK_TITLE_KEYWORDS = [
+    "just a moment",
+    "access denied",
+    "attention required",
+    "request rejected",
+]
+
+# Keywords matched against the visible body text (not page source) to avoid
+# false positives from embedded reCAPTCHA scripts in working pages
+_BLOCK_BODY_KEYWORDS = [
+    "verify you are human",
+    "please verify",
     "unusual traffic",
+    "performing security verification",
+    "challenge-running",
 ]
 
 
 def has_captcha(driver: webdriver.Chrome) -> bool:
-    """Heuristic: return True if the page looks like a CAPTCHA / block page."""
+    """Heuristic: return True if the page looks like a CAPTCHA / block page.
+
+    Uses page title + visible body text (not page source) to avoid false
+    positives from embedded reCAPTCHA JavaScript on legitimate result pages.
+    """
     try:
-        src = driver.page_source.lower()
-        return any(kw in src for kw in _CAPTCHA_KEYWORDS)
+        title = (driver.title or "").lower()
+        if any(kw in title for kw in _BLOCK_TITLE_KEYWORDS):
+            return True
+
+        # Check visible body text for block indicators
+        try:
+            body_text = driver.find_element(
+                webdriver.common.by.By.TAG_NAME, "body"
+            ).text.lower()
+        except Exception:
+            body_text = ""
+
+        if any(kw in body_text for kw in _BLOCK_BODY_KEYWORDS):
+            return True
+
+        # If the page has very little visible text AND mentions captcha/cloudflare
+        # in the source, it's likely a block page
+        if len(body_text) < 200:
+            src = driver.page_source.lower()
+            if any(kw in src for kw in [
+                "cf-browser-verification", "challenge-platform",
+                "captcha", "hcaptcha",
+            ]):
+                return True
+
+        return False
     except Exception:
         return False
 

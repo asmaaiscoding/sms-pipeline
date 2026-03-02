@@ -58,7 +58,7 @@ app = FastAPI(
     description=(
         "Production-grade Systematic Mapping Study pipeline. "
         "Collect papers from ACM, IEEE, and Springer, deduplicate, "
-        "filter with Claude AI, and find PDF links."
+        "export for manual AI filtering, and find PDF links."
     ),
     docs_url="/docs",
     redoc_url="/redoc",
