@@ -56,6 +56,7 @@ Suggested screenshots:
 - [Security](#security)
 - [Deployment](#deployment)
 - [Troubleshooting](#troubleshooting)
+- [Roadmap](#roadmap)
 - [Contributing](#contributing)
 
 ---
@@ -832,6 +833,33 @@ docker-compose exec backend alembic upgrade head
 **Out of memory (Celery worker)**
 - Workers are lightweight since they only make API calls (no browser)
 - If processing very large datasets, scale horizontally instead of adding more concurrent tasks
+
+---
+
+## Roadmap
+
+### More Data Sources
+
+The current 9 sources cover the most common academic publishers, but there are many more worth integrating:
+
+- **PubMed / MEDLINE** — Biomedical and life sciences literature (free NLM API)
+- **arXiv** — Preprint server for CS, physics, math (free API)
+- **DBLP** — Computer science bibliography (free XML API)
+- **Semantic Scholar** — AI-powered academic search (free API, 200 req/s)
+- **NASA ADS** — Astrophysics + CS literature (free API)
+- **CORE** — Aggregates open-access papers from repositories worldwide (free API)
+- **BASE (Bielefeld)** — Largest academic search engine for open-access content (free API)
+
+### User-Defined Data Sources
+
+A planned feature is to let users **plug in their own data sources** directly from the UI or config, without touching the codebase. The envisioned design:
+
+- **Custom API connector** — User provides a base URL, authentication (API key / OAuth token), and a field-mapping schema (title, DOI, year, abstract…). The platform normalizes the response into the standard paper format.
+- **Institutional access** — Users with paid Scopus, Web of Science, or Dimensions API credentials could enter their API key through project settings and query those sources directly.
+- **File import** — Upload a BibTeX / RIS / CSV export from any source (e.g., PubMed export, Scopus export) and have it ingested into the pipeline as a virtual "source".
+- **Plugin interface** — A documented Python base class (`APIScraperBase`) already exists — power users can implement a subclass and register it without modifying core code.
+
+Contributions toward any of these are very welcome — see [Contributing](#contributing) below.
 
 ---
 
