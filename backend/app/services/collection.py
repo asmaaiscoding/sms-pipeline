@@ -27,6 +27,12 @@ _SCRAPER_MAP = {
     "acm": "app.scrapers.acm.ACMScraper",
     "ieee": "app.scrapers.ieee.IEEEScraper",
     "springer": "app.scrapers.springer.SpringerScraper",
+    "wiley": "app.scrapers.wiley.WileyScraper",
+    "elsevier": "app.scrapers.elsevier.ElsevierScraper",
+    "taylor_francis": "app.scrapers.taylor_francis.TaylorFrancisScraper",
+    "mdpi": "app.scrapers.mdpi.MDPIScraper",
+    "sage": "app.scrapers.sage.SageScraper",
+    "scopus": "app.scrapers.scopus.ScopusScraper",
 }
 
 
@@ -88,13 +94,9 @@ def run_collection_sync(
     completed_tasks = 0
     stats: dict = {}
 
-    flog.info("--- Setting up Selenium WebDriver ---")
-    try:
-        driver = setup_driver(headless=True, flog=flog)
-        flog.info("WebDriver created successfully")
-    except Exception as exc:
-        flog.error("FAILED to create WebDriver: %s", exc, exc_info=True)
-        raise
+    # API-based scrapers don't need Selenium — driver is optional
+    driver = None
+    flog.info("--- All scrapers are API-based — no Selenium WebDriver needed ---")
 
     try:
         for src_idx, src in enumerate(sources):
@@ -218,12 +220,15 @@ def run_collection_sync(
         db.rollback()
         raise
     finally:
-        flog.info("Shutting down WebDriver...")
-        try:
-            driver.quit()
-            flog.info("WebDriver closed.")
-        except Exception as exc:
-            flog.warning("WebDriver quit error (non-fatal): %s", exc)
+        if driver:
+            flog.info("Shutting down WebDriver...")
+            try:
+                driver.quit()
+                flog.info("WebDriver closed.")
+            except Exception as exc:
+                flog.warning("WebDriver quit error (non-fatal): %s", exc)
+        else:
+            flog.info("No WebDriver to shut down (API-based scrapers).")
 
 
 def _safe_int(val) -> Optional[int]:

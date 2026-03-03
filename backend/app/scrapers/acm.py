@@ -1,96 +1,62 @@
-"""
+﻿"""
 app/scrapers/acm.py
-───────────────────
-Scraper for ACM Digital Library.
+-------------------
+Scraper for ACM Digital Library -- **API-based** (no web scraping).
 
-Multi-strategy approach to bypass Cloudflare:
-  1. cloudscraper HTTP session (handles Cloudflare JS challenges)
-  2. Plain requests fallback (if cloudscraper not installed)
-  3. Selenium headless fallback (may be blocked)
+Uses free academic APIs that index ACM papers, completely avoiding
+Cloudflare / CAPTCHA issues:
 
-HTML is parsed with BeautifulSoup when available, else regex.
+  1. OpenAlex API   (primary)  -- excellent coverage, no auth required
+  2. CrossRef API   (fallback) -- indexes every DOI minted by ACM
+
+The Selenium driver parameter is accepted for interface compatibility
+with the other scrapers but is NOT used.
 """
 
 from __future__ import annotations
 
 import html as html_mod
 import logging
-import re
 import time
 from typing import Dict, List, Optional
-from urllib.parse import quote_plus
+from urllib.parse import quote, quote_plus
 
 import pandas as pd
-from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException
+import requests
 
-from app.scrapers.base import random_delay, ensure_page_ready, has_captcha, retry, _get_null_logger
+from app.scrapers.base import random_delay, _get_null_logger
 
 logger = logging.getLogger(__name__)
 
-# ── HTTP session ──────────────────────────────────────────────────────────────
-try:
-    import cloudscraper
-
-    _SESSION = cloudscraper.create_scraper(
-        browser={"browser": "chrome", "platform": "windows", "desktop": True},
-    )
-    logger.info("[ACM] Using cloudscraper for Cloudflare bypass")
-except ImportError:
-    import requests as _requests
-
-    _SESSION = _requests.Session()
-    logger.warning(
-        "[ACM] cloudscraper not installed — ACM scraping may be blocked by Cloudflare"
-    )
-
+# -- Shared HTTP session ---
+_SESSION = requests.Session()
 _SESSION.headers.update(
     {
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/124.0.0.0 Safari/537.36"
-        ),
-        "Accept": (
-            "text/html,application/xhtml+xml,application/xml;"
-            "q=0.9,image/avif,image/webp,*/*;q=0.8"
-        ),
-        "Accept-Language": "en-US,en;q=0.9",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Connection": "keep-alive",
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Site": "none",
-        "Sec-Fetch-User": "?1",
-        "Upgrade-Insecure-Requests": "1",
+        "User-Agent": "SMSPipeline/1.0 (academic-review-tool; mailto:noreply@example.com)",
+        "Accept": "application/json",
     }
 )
 
-# ── Optional BeautifulSoup ────────────────────────────────────────────────────
-try:
-    from bs4 import BeautifulSoup
+# OpenAlex polite pool -- add an email to get faster rate limits
+_OPENALEX_MAILTO = "mailto=sms-pipeline@example.com"
 
-    _HAS_BS4 = True
-except ImportError:
-    _HAS_BS4 = False
+# ACMs CrossRef DOI prefix
+_ACM_DOI_PREFIX = "10.1145"
 
 
 class ACMScraper:
-    """Scrape papers from ACM Digital Library year-by-year."""
+    """Collect ACM Digital Library papers via free academic APIs."""
 
     SOURCE_NAME = "ACM Digital Library"
     PUBLISHER = "ACM"
 
-    def __init__(self, driver, flog: Optional[logging.Logger] = None):
+    def __init__(self, driver=None, flog: Optional[logging.Logger] = None):
+        # driver kept for interface compat -- unused
         self.driver = driver
-        self._first_visit = True
-        self._http_consecutive_fails = 0
-        self._selenium_blocked = False
         self.flog = flog or _get_null_logger()
-        self.flog.info("[ACM] Scraper initialised  (BS4=%s, cloudscraper=%s)",
-                       _HAS_BS4, "cloudscraper" in str(type(_SESSION)))
+        self.flog.info("[ACM] Scraper initialised (API-based -- no Selenium/CAPTCHA)")
 
-    # ── public entry point ────────────────────────────────────────────────────
+    # -- public entry point ---
 
     def scrape(
         self,
@@ -99,29 +65,39 @@ class ACMScraper:
         year_end: int,
     ) -> pd.DataFrame:
         all_papers: List[dict] = []
-        self.flog.info("[ACM] scrape() called — %d search strings, years %d–%d",
-                       len(search_strings), year_start, year_end)
+        self.flog.info(
+            "[ACM] scrape() called -- %d search strings, years %d-%d",
+            len(search_strings), year_start, year_end,
+        )
 
         for sname, query in search_strings.items():
             for year in range(year_start, year_end + 1):
-                self.flog.info("[ACM] ── %s | year %d ──", sname, year)
+                self.flog.info("[ACM] -- %s | year %d --", sname, year)
                 logger.info("[ACM] %s | year %d", sname, year)
 
                 try:
                     papers = self._collect(query, sname, year)
                 except Exception as exc:
-                    self.flog.error("[ACM] _collect() EXCEPTION for %s/%d: %s", sname, year, exc, exc_info=True)
+                    self.flog.error(
+                        "[ACM] _collect() EXCEPTION for %s/%d: %s",
+                        sname, year, exc, exc_info=True,
+                    )
                     papers = []
 
                 for p in papers:
                     p["Search_String"] = sname
                 all_papers.extend(papers)
 
-                self.flog.info("[ACM] %s | %d: %d papers collected", sname, year, len(papers))
+                self.flog.info(
+                    "[ACM] %s | %d: %d papers collected", sname, year, len(papers)
+                )
                 logger.info("[ACM] %s | %d: %d papers", sname, year, len(papers))
-                random_delay(1, 3)
+                random_delay(0.3, 0.8)
 
-        self.flog.info("[ACM] scrape() finished — total %d papers across all strings/years", len(all_papers))
+        self.flog.info(
+            "[ACM] scrape() finished -- total %d papers across all strings/years",
+            len(all_papers),
+        )
 
         if not all_papers:
             return pd.DataFrame(
@@ -132,503 +108,242 @@ class ACMScraper:
             )
         return pd.DataFrame(all_papers)
 
-    # ── orchestrator ──────────────────────────────────────────────────────────
+    # -- orchestrator ---
 
     def _collect(self, query: str, sname: str, year: int) -> List[dict]:
-        """Try HTTP first, fallback to Selenium."""
-        self.flog.debug("[ACM] _collect(%s, %d) — http_consecutive_fails=%d, selenium_blocked=%s",
-                        sname, year, self._http_consecutive_fails, self._selenium_blocked)
+        """Try OpenAlex first, fall back to CrossRef."""
+        self.flog.debug("[ACM] _collect(%s, %d) -- trying OpenAlex first", sname, year)
 
-        if self._http_consecutive_fails < 5:
-            self.flog.debug("[ACM] Trying HTTP approach first...")
-            papers = self._scrape_via_http(query, year)
-            if papers:
-                self._http_consecutive_fails = 0
-                self.flog.info("[ACM] HTTP approach succeeded: %d papers", len(papers))
-                return papers
-            self._http_consecutive_fails += 1
-            self.flog.info("[ACM] HTTP returned 0 for %s/%d (consecutive fails now %d) — trying Selenium",
-                           sname, year, self._http_consecutive_fails)
-            logger.info("[ACM] HTTP returned 0 for %s/%d — trying Selenium", sname, year)
-        else:
-            self.flog.debug("[ACM] Skipping HTTP (consecutive fails=%d >= 5)", self._http_consecutive_fails)
+        papers = self._scrape_via_openalex(query, year)
+        if papers:
+            self.flog.info("[ACM] OpenAlex returned %d papers", len(papers))
+            return papers
 
-        if not self._selenium_blocked:
-            self.flog.debug("[ACM] Trying Selenium approach...")
-            papers = self._scrape_via_selenium(query, year)
-            if papers:
-                self.flog.info("[ACM] Selenium approach succeeded: %d papers", len(papers))
-                return papers
-            self.flog.warning("[ACM] Selenium approach returned 0 papers")
-        else:
-            self.flog.debug("[ACM] Skipping Selenium (blocked=True)")
+        self.flog.info("[ACM] OpenAlex returned 0 -- trying CrossRef fallback")
+        papers = self._scrape_via_crossref(query, year)
+        if papers:
+            self.flog.info("[ACM] CrossRef returned %d papers", len(papers))
+            return papers
 
-        self.flog.warning("[ACM] %s | %d: ALL approaches failed — returning empty", sname, year)
-        logger.warning("[ACM] %s | %d: all approaches failed", sname, year)
+        self.flog.warning("[ACM] %s | %d: ALL API approaches returned 0", sname, year)
         return []
 
-    # ══════════════════════════════════════════════════════════════════════════
-    #  HTTP-BASED SCRAPING (primary)
-    # ══════════════════════════════════════════════════════════════════════════
+    # ==================================================================
+    #  OPENALEX API  (primary)
+    # ==================================================================
 
-    def _scrape_via_http(self, query: str, year: int) -> List[dict]:
+    def _scrape_via_openalex(self, query: str, year: int) -> List[dict]:
+        """
+        Query OpenAlex for ACM-published works matching the search string.
+
+        OpenAlex docs: https://docs.openalex.org/api-entities/works
+        """
         papers: List[dict] = []
-        page_size = 50
-        max_pages = 40
+        seen_dois: set = set()
+        per_page = 200
+        cursor = "*"
+        page_num = 0
+        max_pages = 50
 
-        for page_num in range(max_pages):
+        base_filter = f"publication_year:{year},locations.source.publisher:ACM"
+
+        while cursor and page_num < max_pages:
+            page_num += 1
+            url = (
+                f"https://api.openalex.org/works"
+                f"?search={quote(query)}"
+                f"&filter={quote(base_filter)}"
+                f"&per_page={per_page}"
+                f"&cursor={cursor}"
+                f"&{_OPENALEX_MAILTO}"
+            )
+            self.flog.debug("[ACM-OA] GET page %d: %s", page_num, url)
+
             try:
-                url = (
-                    f"https://dl.acm.org/action/doSearch"
-                    f"?fillQuickSearch=false&target=advanced"
-                    f"&AllField={quote_plus(query)}"
-                    f"&AfterYear={year}&BeforeYear={year}"
-                    f"&startPage={page_num}&pageSize={page_size}"
-                )
-                self.flog.debug("[ACM-HTTP] GET page %d: %s", page_num + 1, url)
                 resp = _SESSION.get(url, timeout=30)
-
-                self.flog.debug("[ACM-HTTP] Response: status=%d, content-length=%d, content-type=%s",
-                                resp.status_code, len(resp.text),
-                                resp.headers.get("Content-Type", "?"))
-
-                if resp.status_code == 403:
-                    self.flog.warning("[ACM-HTTP] HTTP 403 — Cloudflare block. Headers: %s",
-                                     dict(resp.headers))
-                    logger.warning("[ACM] HTTP 403 — Cloudflare block")
-                    return papers
-
-                if resp.status_code != 200:
-                    self.flog.warning("[ACM-HTTP] HTTP %d (expected 200). URL=%s", resp.status_code, url)
-                    logger.warning("[ACM] HTTP %d", resp.status_code)
-                    return papers
-
-                if self._is_cloudflare_page(resp.text):
-                    self.flog.warning("[ACM-HTTP] Cloudflare challenge page detected (response length=%d)", len(resp.text))
-                    logger.warning("[ACM] Cloudflare challenge page detected")
-                    return papers
-
-                page_papers = self._parse_html(resp.text, year)
-                self.flog.debug("[ACM-HTTP] Parsed page %d: %d papers found", page_num + 1, len(page_papers))
-
-                if not page_papers:
-                    self.flog.debug("[ACM-HTTP] No papers on page %d — stopping pagination", page_num + 1)
-                    break
-
-                papers.extend(page_papers)
-                self.flog.info("[ACM-HTTP] Page %d: +%d papers (running total %d)", page_num + 1, len(page_papers), len(papers))
-                logger.info("[ACM] HTTP page %d: +%d papers (total %d)", page_num + 1, len(page_papers), len(papers))
-
-                if len(page_papers) < page_size:
-                    self.flog.debug("[ACM-HTTP] Got %d < page_size %d — last page", len(page_papers), page_size)
-                    break
-
-                random_delay(2, 4)
-
             except Exception as exc:
-                self.flog.error("[ACM-HTTP] Request EXCEPTION on page %d: %s", page_num + 1, exc, exc_info=True)
-                logger.warning("[ACM] HTTP request failed: %s", exc)
+                self.flog.error("[ACM-OA] Request failed: %s", exc)
                 break
 
-        self.flog.info("[ACM-HTTP] Finished — %d papers total", len(papers))
-        return papers
-
-    @staticmethod
-    def _is_cloudflare_page(text: str) -> bool:
-        lower = text.lower()
-        indicators = [
-            "just a moment",
-            "cf-browser-verification",
-            "challenge-platform",
-            "turnstile",
-            "checking your browser",
-        ]
-        return any(ind in lower for ind in indicators) and len(text) < 30000
-
-    # ── HTML parsing ──────────────────────────────────────────────────────────
-
-    def _parse_html(self, raw_html: str, year: int) -> List[dict]:
-        self.flog.debug("[ACM-PARSE] HTML length=%d, using BS4=%s", len(raw_html), _HAS_BS4)
-        if _HAS_BS4:
-            result = self._parse_with_bs4(raw_html, year)
-        else:
-            result = self._parse_with_regex(raw_html, year)
-        self.flog.debug("[ACM-PARSE] Parsed %d papers from HTML", len(result))
-        return result
-
-    def _parse_with_bs4(self, raw_html: str, year: int) -> List[dict]:
-        soup = BeautifulSoup(raw_html, "html.parser")
-        papers: List[dict] = []
-        seen: set = set()
-
-        # Strategy 1: structured search-result items
-        items = soup.select(
-            "li.search__item, "
-            "div.issue-item, "
-            "div.search-result, "
-            "div.issue-item-container"
-        )
-        self.flog.debug("[ACM-BS4] Strategy 1: found %d structured result items", len(items))
-        if items:
-            for item in items:
-                paper = self._extract_item_bs4(item, year, seen)
-                if paper:
-                    papers.append(paper)
-            if papers:
-                self.flog.debug("[ACM-BS4] Strategy 1 yielded %d papers", len(papers))
-                return papers
-            self.flog.debug("[ACM-BS4] Strategy 1 items found but 0 papers extracted")
-
-        # Strategy 2: find all DOI title links directly
-        self.flog.debug("[ACM-BS4] Strategy 2: searching for DOI title links")
-        title_selectors = [
-            'h5.issue-item__title a[href*="/doi/"]',
-            'span.hlFld-Title a[href*="/doi/10."]',
-            'a.issue-item__title[href*="/doi/"]',
-            'h5 a[href*="/doi/10."]',
-        ]
-        for sel in title_selectors:
-            for a_tag in soup.select(sel):
-                href = a_tag.get("href", "")
-                title = html_mod.unescape(a_tag.get_text(strip=True))
-
-                if not title or len(title) < 10 or href in seen:
+            if resp.status_code != 200:
+                self.flog.warning(
+                    "[ACM-OA] HTTP %d -- body: %s",
+                    resp.status_code, resp.text[:500],
+                )
+                if resp.status_code == 429:
+                    self.flog.info("[ACM-OA] Rate limited -- waiting 5s")
+                    time.sleep(5)
                     continue
-                seen.add(href)
+                break
 
-                doi = href.replace("/doi/", "").split("?")[0]
-                link = (
-                    f"https://dl.acm.org{href}"
-                    if not href.startswith("http")
-                    else href
-                )
-                authors = self._find_authors_bs4(a_tag)
+            data = resp.json()
+            results = data.get("results", [])
+            meta = data.get("meta", {})
 
-                papers.append(
-                    {
-                        "Title": title,
-                        "Authors": authors,
-                        "Year": str(year),
-                        "Publisher": self.PUBLISHER,
-                        "DOI": doi,
-                        "Link": link,
-                        "Source": self.SOURCE_NAME,
-                    }
-                )
+            self.flog.debug(
+                "[ACM-OA] Page %d: %d results (total_count=%s)",
+                page_num, len(results), meta.get("count", "?"),
+            )
 
+            if not results:
+                break
+
+            for work in results:
+                paper = self._openalex_to_paper(work, year)
+                if paper:
+                    doi_key = paper["DOI"].lower()
+                    if doi_key and doi_key in seen_dois:
+                        continue
+                    if doi_key:
+                        seen_dois.add(doi_key)
+                    papers.append(paper)
+
+            cursor = meta.get("next_cursor")
+            if not cursor:
+                break
+
+            random_delay(0.2, 0.5)
+
+        self.flog.info("[ACM-OA] Finished -- %d papers total", len(papers))
         return papers
 
-    def _extract_item_bs4(
-        self, item, year: int, seen: set
-    ) -> Optional[dict]:
-        """Extract a paper from a search result item (BS4 element)."""
-        title_el = (
-            item.select_one('h5.issue-item__title a[href*="/doi/"]')
-            or item.select_one('span.hlFld-Title a[href*="/doi/"]')
-            or item.select_one('a[href*="/doi/10."]')
-        )
-        if not title_el:
+    def _openalex_to_paper(self, work: dict, year: int) -> Optional[dict]:
+        """Convert an OpenAlex work object to our paper dict."""
+        title = (work.get("title") or "").strip()
+        if not title or len(title) < 5:
             return None
 
-        href = title_el.get("href", "")
-        title = html_mod.unescape(title_el.get_text(strip=True))
+        doi_url = work.get("doi") or ""
+        doi = doi_url.replace("https://doi.org/", "").replace("http://doi.org/", "")
 
-        if not title or len(title) < 10 or href in seen:
-            return None
-        seen.add(href)
+        link = doi_url or work.get("id", "")
+        if doi and not link.startswith("http"):
+            link = f"https://doi.org/{doi}"
 
-        doi = (
-            href.replace("/doi/", "").split("?")[0] if "/doi/" in href else ""
-        )
-        link = (
-            f"https://dl.acm.org{href}"
-            if not href.startswith("http")
-            else href
-        )
-
-        # Authors
-        author_els = item.select(
-            'ul[aria-label*="author"] a, '
-            "span.hlFld-ContribAuthor a, "
-            "li.loa__item a span, "
-            "li.loa__item a"
-        )
+        authorships = work.get("authorships", [])
         authors = "; ".join(
-            html_mod.unescape(a.get_text(strip=True))
-            for a in author_els
-            if a.get_text(strip=True) and len(a.get_text(strip=True)) > 2
+            a.get("author", {}).get("display_name", "")
+            for a in authorships
+            if a.get("author", {}).get("display_name")
         )
 
-        # Year from item text
-        yr = str(year)
-        year_match = re.search(r"\b(20\d{2})\b", item.get_text())
-        if year_match:
-            yr = year_match.group(1)
+        yr = work.get("publication_year") or year
 
         return {
-            "Title": title,
+            "Title": html_mod.unescape(title),
             "Authors": authors,
-            "Year": yr,
+            "Year": str(yr),
             "Publisher": self.PUBLISHER,
             "DOI": doi,
             "Link": link,
             "Source": self.SOURCE_NAME,
         }
 
-    @staticmethod
-    def _find_authors_bs4(a_tag) -> str:
-        """Walk up from a title link to find author elements."""
-        parent = a_tag
-        for _ in range(7):
-            parent = parent.parent
-            if parent is None:
-                break
-            authors = parent.select(
-                "span.hlFld-ContribAuthor a, "
-                'ul[aria-label*="author"] a, '
-                "li.loa__item a span, "
-                "li.loa__item a"
-            )
-            if authors:
-                names = [
-                    html_mod.unescape(a.get_text(strip=True))
-                    for a in authors
-                    if a.get_text(strip=True) and len(a.get_text(strip=True)) > 2
-                ]
-                return "; ".join(names[:20])
-        return ""
+    # ==================================================================
+    #  CROSSREF API  (fallback)
+    # ==================================================================
 
-    # ── Regex parsing fallback ────────────────────────────────────────────────
-
-    def _parse_with_regex(self, raw_html: str, year: int) -> List[dict]:
+    def _scrape_via_crossref(self, query: str, year: int) -> List[dict]:
+        """
+        Query CrossRef for ACM DOIs matching the search string.
+        Filters by ACM DOI prefix 10.1145 and publication year.
+        """
         papers: List[dict] = []
-        seen: set = set()
+        seen_dois: set = set()
+        rows_per_page = 100
+        offset = 0
+        max_results = 2000
 
-        patterns = [
-            re.compile(
-                r'<h5[^>]*class="[^"]*issue-item__title[^"]*"[^>]*>\s*'
-                r'<a[^>]*href="(/doi/[^"]+)"[^>]*>\s*([^<]+)',
-                re.I | re.S,
-            ),
-            re.compile(
-                r"<span[^>]*class=\"[^\"]*hlFld-Title[^\"]*\"[^>]*>.*?"
-                r'<a[^>]*href="(/doi/10\.[^"]+)"[^>]*>\s*([^<]+)',
-                re.I | re.S,
-            ),
-            re.compile(
-                r'<a[^>]*href="(/doi/10\.[^"]+)"[^>]*class="[^"]*hlFld-Title[^"]*"[^>]*>\s*([^<]+)',
-                re.I | re.S,
-            ),
-        ]
+        while offset < max_results:
+            url = (
+                f"https://api.crossref.org/prefixes/{_ACM_DOI_PREFIX}/works"
+                f"?query={quote_plus(query)}"
+                f"&filter=from-pub-date:{year},until-pub-date:{year}"
+                f"&rows={rows_per_page}"
+                f"&offset={offset}"
+                f"&sort=relevance"
+                f"&order=desc"
+            )
+            self.flog.debug("[ACM-CR] GET offset=%d: %s", offset, url)
 
-        for pattern in patterns:
-            for match in pattern.finditer(raw_html):
-                doi_path = match.group(1).strip()
-                title = html_mod.unescape(match.group(2).strip())
-
-                if not title or len(title) < 10 or doi_path in seen:
-                    continue
-                seen.add(doi_path)
-
-                doi = doi_path.replace("/doi/", "").split("?")[0]
-                link = f"https://dl.acm.org{doi_path}"
-                authors = self._find_authors_regex(raw_html, doi_path)
-
-                papers.append(
-                    {
-                        "Title": title,
-                        "Authors": authors,
-                        "Year": str(year),
-                        "Publisher": self.PUBLISHER,
-                        "DOI": doi,
-                        "Link": link,
-                        "Source": self.SOURCE_NAME,
-                    }
-                )
-
-        return papers
-
-    @staticmethod
-    def _find_authors_regex(raw_html: str, doi_path: str) -> str:
-        idx = raw_html.find(doi_path)
-        if idx < 0:
-            return ""
-        window = raw_html[idx : idx + 3000]
-        pat = re.compile(
-            r"<span[^>]*class=\"[^\"]*hlFld-ContribAuthor[^\"]*\"[^>]*>\s*"
-            r"<a[^>]*>\s*([^<]+)",
-            re.I | re.S,
-        )
-        authors = [
-            html_mod.unescape(m.group(1).strip()) for m in pat.finditer(window)
-        ]
-        return "; ".join(authors[:20])
-
-    # ══════════════════════════════════════════════════════════════════════════
-    #  SELENIUM FALLBACK
-    # ══════════════════════════════════════════════════════════════════════════
-
-    def _scrape_via_selenium(self, query: str, year: int) -> List[dict]:
-        encoded = quote_plus(query)
-        url = (
-            f"https://dl.acm.org/action/doSearch"
-            f"?fillQuickSearch=false&target=advanced"
-            f"&AllField={encoded}"
-            f"&AfterYear={year}&BeforeYear={year}"
-        )
-        self.flog.info("[ACM-SEL] Navigating to %s", url)
-
-        for attempt in range(3):
             try:
-                self.driver.get(url)
-                self.flog.debug("[ACM-SEL] Page loaded (attempt %d/3), current URL=%s", attempt + 1, self.driver.current_url)
+                resp = _SESSION.get(url, timeout=45)
             except Exception as exc:
-                self.flog.error("[ACM-SEL] driver.get() FAILED (attempt %d/3): %s", attempt + 1, exc, exc_info=True)
-                continue
+                self.flog.error("[ACM-CR] Request failed: %s", exc)
+                break
 
-            random_delay(4, 7)
-            ensure_page_ready(self.driver, self._first_visit, flog=self.flog)
-            self._first_visit = False
+            if resp.status_code != 200:
+                self.flog.warning("[ACM-CR] HTTP %d", resp.status_code)
+                if resp.status_code == 429:
+                    self.flog.info("[ACM-CR] Rate limited -- waiting 10s")
+                    time.sleep(10)
+                    continue
+                break
 
-            if has_captcha(self.driver, flog=self.flog):
-                wait_secs = 30 * (attempt + 1)
-                self.flog.warning("[ACM-SEL] CAPTCHA/block detected (attempt %d/3) — waiting %ds", attempt + 1, wait_secs)
-                logger.warning("[ACM] Selenium blocked (attempt %d/3) — waiting %ds", attempt + 1, wait_secs)
-                time.sleep(wait_secs)
-                continue
-            self.flog.debug("[ACM-SEL] No CAPTCHA — proceeding to scrape pages")
-            break
-        else:
-            self.flog.error("[ACM-SEL] Still blocked after 3 retries — marking selenium as blocked")
-            logger.error("[ACM] Selenium still blocked after 3 retries")
-            self._selenium_blocked = True
-            return []
+            data = resp.json()
+            items = data.get("message", {}).get("items", [])
 
-        return self._selenium_scrape_pages(year)
-
-    def _selenium_scrape_pages(self, year: int) -> List[dict]:
-        papers: List[dict] = []
-        seen: set = set()
-        page = 1
-        stale = 0
-        self.flog.debug("[ACM-SEL] Starting page scraping loop for year %d", year)
-
-        while True:
-            random_delay(2, 4)
-
-            links = self.driver.find_elements(
-                By.XPATH, "//a[contains(@href, '/doi/10.')]"
+            self.flog.debug(
+                "[ACM-CR] Got %d items (total-results=%s)",
+                len(items),
+                data.get("message", {}).get("total-results", "?"),
             )
-            self.flog.debug("[ACM-SEL] Page %d: found %d DOI links on page", page, len(links))
 
-            if not links:
-                if has_captcha(self.driver, flog=self.flog):
-                    self.flog.warning("[ACM-SEL] CAPTCHA on page %d — waiting 30s", page)
-                    logger.warning("[ACM] CAPTCHA on page %d — waiting", page)
-                    time.sleep(30)
-                    stale += 1
-                    if stale >= 3:
-                        self.flog.warning("[ACM-SEL] 3 stale CAPTCHA pages — giving up")
-                        break
-                    continue
-                self.flog.debug("[ACM-SEL] No links and no CAPTCHA — end of results")
+            if not items:
                 break
 
-            new_count = 0
-            for el in links:
-                try:
-                    href = el.get_attribute("href")
-                    if not href or href in seen:
+            for item in items:
+                paper = self._crossref_to_paper(item, year)
+                if paper:
+                    doi_key = paper["DOI"].lower()
+                    if doi_key and doi_key in seen_dois:
                         continue
-                    title = el.text.strip()
-                    if not title or len(title) < 10:
-                        continue
+                    if doi_key:
+                        seen_dois.add(doi_key)
+                    papers.append(paper)
 
-                    seen.add(href)
-                    doi = (
-                        href.split("/doi/")[-1].split("?")[0]
-                        if "/doi/" in href
-                        else ""
-                    )
-                    authors = self._selenium_extract_authors(el)
+            offset += rows_per_page
 
-                    papers.append(
-                        {
-                            "Title": title,
-                            "Authors": authors,
-                            "Year": str(year),
-                            "Publisher": self.PUBLISHER,
-                            "DOI": doi,
-                            "Link": href,
-                            "Source": self.SOURCE_NAME,
-                        }
-                    )
-                    new_count += 1
-                except Exception as exc:
-                    self.flog.debug("[ACM-SEL] Error extracting paper from element: %s", exc)
-                    continue
-
-            self.flog.debug("[ACM-SEL] Page %d: extracted %d new papers (total %d)", page, new_count, len(papers))
-
-            if new_count == 0:
-                stale += 1
-                if stale >= 3:
-                    self.flog.debug("[ACM-SEL] 3 stale pages with no new papers — stopping")
-                    break
-            else:
-                stale = 0
-
-            if not self._selenium_next_page():
+            if len(items) < rows_per_page:
                 break
-            page += 1
 
+            random_delay(0.5, 1.0)
+
+        self.flog.info("[ACM-CR] Finished -- %d papers total", len(papers))
         return papers
 
-    @staticmethod
-    def _selenium_extract_authors(link_el) -> str:
-        try:
-            parent = link_el
-            for _ in range(5):
-                parent = parent.find_element(By.XPATH, "..")
-                try:
-                    els = parent.find_elements(
-                        By.XPATH,
-                        ".//*[contains(@class,'author')]//a | "
-                        ".//ul[contains(@aria-label,'author')]//a | "
-                        ".//li[contains(@class,'loa')]//a",
-                    )
-                    names = [
-                        a.text.strip()
-                        for a in els
-                        if a.text.strip() and len(a.text.strip()) > 2
-                    ]
-                    if names:
-                        return "; ".join(names[:20])
-                except Exception:
-                    pass
-        except Exception:
-            pass
-        return ""
+    def _crossref_to_paper(self, item: dict, year: int) -> Optional[dict]:
+        """Convert a CrossRef work item to our paper dict."""
+        titles = item.get("title", [])
+        title = titles[0].strip() if titles else ""
+        if not title or len(title) < 5:
+            return None
 
-    def _selenium_next_page(self) -> bool:
-        try:
-            btn = self.driver.find_element(
-                By.XPATH,
-                "//a[@aria-label='Next page'] | "
-                "//a[contains(@class,'pagination__btn--next')] | "
-                "//button[contains(@class,'pagination__btn--next')] | "
-                "//li[@class='pagination__item--next']//a",
-            )
-            classes = (btn.get_attribute("class") or "").lower()
-            if (
-                "disabled" in classes
-                or btn.get_attribute("aria-disabled") == "true"
-            ):
-                return False
-            self.driver.execute_script("arguments[0].scrollIntoView();", btn)
-            time.sleep(1)
-            self.driver.execute_script("arguments[0].click();", btn)
-            random_delay(2, 4)
-            return True
-        except NoSuchElementException:
-            return False
+        doi = item.get("DOI", "")
+        link = f"https://doi.org/{doi}" if doi else item.get("URL", "")
+
+        author_list = item.get("author", [])
+        authors = "; ".join(
+            f"{a.get('given', '')} {a.get('family', '')}".strip()
+            for a in author_list
+            if a.get("family")
+        )
+
+        yr = year
+        for date_key in ("published-print", "published-online", "created"):
+            date_info = item.get(date_key)
+            if date_info:
+                parts = date_info.get("date-parts", [[]])[0]
+                if parts and parts[0]:
+                    yr = parts[0]
+                    break
+
+        return {
+            "Title": html_mod.unescape(title),
+            "Authors": authors,
+            "Year": str(yr),
+            "Publisher": self.PUBLISHER,
+            "DOI": doi,
+            "Link": link,
+            "Source": self.SOURCE_NAME,
+        }

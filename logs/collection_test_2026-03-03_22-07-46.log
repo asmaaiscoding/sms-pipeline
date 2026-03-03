@@ -1,0 +1,685 @@
+2026-03-03 22:07:46 | INFO    | ======================================================================
+2026-03-03 22:07:46 | INFO    | PIPELINE STEP: COLLECTION
+2026-03-03 22:07:46 | INFO    | Project: test
+2026-03-03 22:07:46 | INFO    | Started: 2026-03-03_22-07-46 UTC
+2026-03-03 22:07:46 | INFO    | Log file: /app/logs/collection_test_2026-03-03_22-07-46.log
+2026-03-03 22:07:46 | INFO    | Python: 3.12.12 (main, Feb 24 2026, 19:45:37) [GCC 14.2.0]
+2026-03-03 22:07:46 | INFO    | Platform: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.41
+2026-03-03 22:07:46 | INFO    | PID: 8
+2026-03-03 22:07:46 | INFO    | ======================================================================
+2026-03-03 22:07:46 | INFO    | ======================================================================
+2026-03-03 22:07:46 | INFO    | COLLECTION STARTED
+2026-03-03 22:07:46 | INFO    |   Project name : test
+2026-03-03 22:07:46 | INFO    |   Project ID   : 9c854b98-e53c-420f-8bb6-8e284169983c
+2026-03-03 22:07:46 | INFO    | ======================================================================
+2026-03-03 22:07:46 | INFO    | Configuration:
+2026-03-03 22:07:46 | INFO    |   Sources          : ACM, IEEE, SPRINGER
+2026-03-03 22:07:46 | INFO    |   Search strings   : 4
+2026-03-03 22:07:46 | INFO    |     [REM-1] → ("vulnerability" OR "vulnerabilities" OR "security flaw" OR "security weakness") AND ("remediation" OR "mitigation" OR "fix" OR "fixing" OR "repair" OR "patch" OR "patching") AND ("software" OR "code" OR "application" OR "source code")
+2026-03-03 22:07:46 | INFO    |     [REM-2] → ("security refactoring" OR "secure refactoring" OR "refactoring") AND ("vulnerability" OR "security") AND ("software" OR "code" OR "application")
+2026-03-03 22:07:46 | INFO    |     [REM-3] → ("automated" OR "automatic" OR "semi-automated") AND ("vulnerability remediation" OR "vulnerability mitigation" OR "security fix") AND ("software" OR "application")
+2026-03-03 22:07:46 | INFO    |     [REM-4] → ("code transformation" OR "program transformation" OR "security hardening") AND ("vulnerability" OR "security flaw") AND ("remediation" OR "mitigation" OR "fix")
+2026-03-03 22:07:46 | INFO    |   Year range       : 2026 – 2026
+2026-03-03 22:07:46 | INFO    |   Total year span  : 1 years
+2026-03-03 22:07:46 | INFO    | Estimated task count: 12 (sources × strings × years)
+2026-03-03 22:07:46 | INFO    | --- Setting up Selenium WebDriver ---
+2026-03-03 22:07:46 | INFO    | [DRIVER] Setting up Chrome WebDriver (headless=True)
+2026-03-03 22:07:46 | DEBUG   | [DRIVER] CHROMEDRIVER_PATH=/usr/bin/chromedriver
+2026-03-03 22:07:46 | DEBUG   | [DRIVER] CHROME_BIN=/usr/bin/chromium
+2026-03-03 22:07:47 | INFO    | [DRIVER] Chrome WebDriver created successfully
+2026-03-03 22:07:47 | DEBUG   | [DRIVER] Anti-detection CDP command injected
+2026-03-03 22:07:47 | DEBUG   | [DRIVER] Page load timeout set to 60s
+2026-03-03 22:07:47 | INFO    | [DRIVER] WebDriver ready
+2026-03-03 22:07:47 | INFO    | WebDriver created successfully
+2026-03-03 22:07:47 | INFO    | 
+2026-03-03 22:07:47 | INFO    | ============================================================
+2026-03-03 22:07:47 | INFO    | [1/3] SOURCE: ACM
+2026-03-03 22:07:47 | INFO    |   Scraper class: app.scrapers.acm.ACMScraper
+2026-03-03 22:07:47 | INFO    | ============================================================
+2026-03-03 22:07:47 | DEBUG   |   Scraper class imported: <class 'app.scrapers.acm.ACMScraper'>
+2026-03-03 22:07:47 | INFO    | [ACM] Scraper initialised (API-based -- no Selenium/CAPTCHA)
+2026-03-03 22:07:47 | DEBUG   |   Scraper instance created
+2026-03-03 22:07:47 | INFO    |   Calling scraper.scrape() with 4 search strings, years 2026–2026
+2026-03-03 22:07:47 | INFO    | [ACM] scrape() called -- 4 search strings, years 2026-2026
+2026-03-03 22:07:47 | INFO    | [ACM] -- REM-1 | year 2026 --
+2026-03-03 22:07:47 | DEBUG   | [ACM] _collect(REM-1, 2026) -- trying OpenAlex first
+2026-03-03 22:07:47 | DEBUG   | [ACM-OA] GET page 1: https://api.openalex.org/works?search=%28%22vulnerability%22%20OR%20%22vulnerabilities%22%20OR%20%22security%20flaw%22%20OR%20%22security%20weakness%22%29%20AND%20%28%22remediation%22%20OR%20%22mitigation%22%20OR%20%22fix%22%20OR%20%22fixing%22%20OR%20%22repair%22%20OR%20%22patch%22%20OR%20%22patching%22%29%20AND%20%28%22software%22%20OR%20%22code%22%20OR%20%22application%22%20OR%20%22source%20code%22%29&filter=publication_year%3A2026%2Clocations.source.publisher%3AACM&per_page=200&cursor=*&mailto=sms-pipeline@example.com
+2026-03-03 22:07:47 | WARNING | [ACM-OA] HTTP 400 -- body: {"error":"Invalid query parameters error.","message":"locations.source.publisher is not a valid field. Valid fields are underscore or hyphenated versions of: abstract.search, abstract.search.exact, apc_list.currency, apc_list.provenance, apc_list.value, apc_list.value_usd, apc_paid.currency, apc_paid.provenance, apc_paid.value, apc_paid.value_usd, author.id, author.orcid, authors_count, authorships.affiliations.institution_ids, authorships.author.id, authorships.author.orcid, authorships.countri
+2026-03-03 22:07:47 | INFO    | [ACM-OA] Finished -- 0 papers total
+2026-03-03 22:07:47 | INFO    | [ACM] OpenAlex returned 0 -- trying CrossRef fallback
+2026-03-03 22:07:47 | DEBUG   | [ACM-CR] GET offset=0: https://api.crossref.org/prefixes/10.1145/works?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&filter=from-pub-date:2026,until-pub-date:2026&rows=100&offset=0&sort=relevance&order=desc
+2026-03-03 22:07:48 | DEBUG   | [ACM-CR] Got 33 items (total-results=33)
+2026-03-03 22:07:48 | INFO    | [ACM-CR] Finished -- 33 papers total
+2026-03-03 22:07:48 | INFO    | [ACM] CrossRef returned 33 papers
+2026-03-03 22:07:48 | INFO    | [ACM] REM-1 | 2026: 33 papers collected
+2026-03-03 22:07:49 | INFO    | [ACM] -- REM-2 | year 2026 --
+2026-03-03 22:07:49 | DEBUG   | [ACM] _collect(REM-2, 2026) -- trying OpenAlex first
+2026-03-03 22:07:49 | DEBUG   | [ACM-OA] GET page 1: https://api.openalex.org/works?search=%28%22security%20refactoring%22%20OR%20%22secure%20refactoring%22%20OR%20%22refactoring%22%29%20AND%20%28%22vulnerability%22%20OR%20%22security%22%29%20AND%20%28%22software%22%20OR%20%22code%22%20OR%20%22application%22%29&filter=publication_year%3A2026%2Clocations.source.publisher%3AACM&per_page=200&cursor=*&mailto=sms-pipeline@example.com
+2026-03-03 22:07:49 | WARNING | [ACM-OA] HTTP 400 -- body: {"error":"Invalid query parameters error.","message":"locations.source.publisher is not a valid field. Valid fields are underscore or hyphenated versions of: abstract.search, abstract.search.exact, apc_list.currency, apc_list.provenance, apc_list.value, apc_list.value_usd, apc_paid.currency, apc_paid.provenance, apc_paid.value, apc_paid.value_usd, author.id, author.orcid, authors_count, authorships.affiliations.institution_ids, authorships.author.id, authorships.author.orcid, authorships.countri
+2026-03-03 22:07:49 | INFO    | [ACM-OA] Finished -- 0 papers total
+2026-03-03 22:07:49 | INFO    | [ACM] OpenAlex returned 0 -- trying CrossRef fallback
+2026-03-03 22:07:49 | DEBUG   | [ACM-CR] GET offset=0: https://api.crossref.org/prefixes/10.1145/works?query=%28%22security+refactoring%22+OR+%22secure+refactoring%22+OR+%22refactoring%22%29+AND+%28%22vulnerability%22+OR+%22security%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22%29&filter=from-pub-date:2026,until-pub-date:2026&rows=100&offset=0&sort=relevance&order=desc
+2026-03-03 22:07:50 | DEBUG   | [ACM-CR] Got 81 items (total-results=81)
+2026-03-03 22:07:50 | INFO    | [ACM-CR] Finished -- 81 papers total
+2026-03-03 22:07:50 | INFO    | [ACM] CrossRef returned 81 papers
+2026-03-03 22:07:50 | INFO    | [ACM] REM-2 | 2026: 81 papers collected
+2026-03-03 22:07:50 | INFO    | [ACM] -- REM-3 | year 2026 --
+2026-03-03 22:07:50 | DEBUG   | [ACM] _collect(REM-3, 2026) -- trying OpenAlex first
+2026-03-03 22:07:50 | DEBUG   | [ACM-OA] GET page 1: https://api.openalex.org/works?search=%28%22automated%22%20OR%20%22automatic%22%20OR%20%22semi-automated%22%29%20AND%20%28%22vulnerability%20remediation%22%20OR%20%22vulnerability%20mitigation%22%20OR%20%22security%20fix%22%29%20AND%20%28%22software%22%20OR%20%22application%22%29&filter=publication_year%3A2026%2Clocations.source.publisher%3AACM&per_page=200&cursor=*&mailto=sms-pipeline@example.com
+2026-03-03 22:07:51 | WARNING | [ACM-OA] HTTP 400 -- body: {"error":"Invalid query parameters error.","message":"locations.source.publisher is not a valid field. Valid fields are underscore or hyphenated versions of: abstract.search, abstract.search.exact, apc_list.currency, apc_list.provenance, apc_list.value, apc_list.value_usd, apc_paid.currency, apc_paid.provenance, apc_paid.value, apc_paid.value_usd, author.id, author.orcid, authors_count, authorships.affiliations.institution_ids, authorships.author.id, authorships.author.orcid, authorships.countri
+2026-03-03 22:07:51 | INFO    | [ACM-OA] Finished -- 0 papers total
+2026-03-03 22:07:51 | INFO    | [ACM] OpenAlex returned 0 -- trying CrossRef fallback
+2026-03-03 22:07:51 | DEBUG   | [ACM-CR] GET offset=0: https://api.crossref.org/prefixes/10.1145/works?query=%28%22automated%22+OR+%22automatic%22+OR+%22semi-automated%22%29+AND+%28%22vulnerability+remediation%22+OR+%22vulnerability+mitigation%22+OR+%22security+fix%22%29+AND+%28%22software%22+OR+%22application%22%29&filter=from-pub-date:2026,until-pub-date:2026&rows=100&offset=0&sort=relevance&order=desc
+2026-03-03 22:07:51 | DEBUG   | [ACM-CR] Got 51 items (total-results=51)
+2026-03-03 22:07:51 | INFO    | [ACM-CR] Finished -- 51 papers total
+2026-03-03 22:07:51 | INFO    | [ACM] CrossRef returned 51 papers
+2026-03-03 22:07:51 | INFO    | [ACM] REM-3 | 2026: 51 papers collected
+2026-03-03 22:07:52 | INFO    | [ACM] -- REM-4 | year 2026 --
+2026-03-03 22:07:52 | DEBUG   | [ACM] _collect(REM-4, 2026) -- trying OpenAlex first
+2026-03-03 22:07:52 | DEBUG   | [ACM-OA] GET page 1: https://api.openalex.org/works?search=%28%22code%20transformation%22%20OR%20%22program%20transformation%22%20OR%20%22security%20hardening%22%29%20AND%20%28%22vulnerability%22%20OR%20%22security%20flaw%22%29%20AND%20%28%22remediation%22%20OR%20%22mitigation%22%20OR%20%22fix%22%29&filter=publication_year%3A2026%2Clocations.source.publisher%3AACM&per_page=200&cursor=*&mailto=sms-pipeline@example.com
+2026-03-03 22:07:52 | WARNING | [ACM-OA] HTTP 400 -- body: {"error":"Invalid query parameters error.","message":"locations.source.publisher is not a valid field. Valid fields are underscore or hyphenated versions of: abstract.search, abstract.search.exact, apc_list.currency, apc_list.provenance, apc_list.value, apc_list.value_usd, apc_paid.currency, apc_paid.provenance, apc_paid.value, apc_paid.value_usd, author.id, author.orcid, authors_count, authorships.affiliations.institution_ids, authorships.author.id, authorships.author.orcid, authorships.countri
+2026-03-03 22:07:52 | INFO    | [ACM-OA] Finished -- 0 papers total
+2026-03-03 22:07:52 | INFO    | [ACM] OpenAlex returned 0 -- trying CrossRef fallback
+2026-03-03 22:07:52 | DEBUG   | [ACM-CR] GET offset=0: https://api.crossref.org/prefixes/10.1145/works?query=%28%22code+transformation%22+OR+%22program+transformation%22+OR+%22security+hardening%22%29+AND+%28%22vulnerability%22+OR+%22security+flaw%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22%29&filter=from-pub-date:2026,until-pub-date:2026&rows=100&offset=0&sort=relevance&order=desc
+2026-03-03 22:07:53 | DEBUG   | [ACM-CR] Got 64 items (total-results=64)
+2026-03-03 22:07:53 | INFO    | [ACM-CR] Finished -- 64 papers total
+2026-03-03 22:07:53 | INFO    | [ACM] CrossRef returned 64 papers
+2026-03-03 22:07:53 | INFO    | [ACM] REM-4 | 2026: 64 papers collected
+2026-03-03 22:07:53 | INFO    | [ACM] scrape() finished -- total 229 papers across all strings/years
+2026-03-03 22:07:53 | INFO    |   scraper.scrape() returned DataFrame with 229 rows, columns=['Title', 'Authors', 'Year', 'Publisher', 'DOI', 'Link', 'Source', 'Search_String']
+2026-03-03 22:07:53 | DEBUG   |   saved #1  Fix Pattern-Aware Vulnerability Patch Generation via In-Context Learning  (year=2026, doi=10.1145/3796512, link=https://doi.org/10.1145/3796512)
+2026-03-03 22:07:53 | DEBUG   |   saved #2  Boosting Aggregation Repair with All Available Nodes in Erasure-Coded Storage  (year=2026, doi=10.1145/3787105, link=https://doi.org/10.1145/3787105)
+2026-03-03 22:07:53 | DEBUG   |   saved #3  Exploring Multi-Lingual Bias of Large Code Models in Code Generation  (year=2026, doi=10.1145/3786793, link=https://doi.org/10.1145/3786793)
+2026-03-03 22:07:53 | DEBUG   |   saved #4  Does Your Neural Code Completion Model Use My Code? A Membership Inference Appro  (year=2026, doi=10.1145/3742785, link=https://doi.org/10.1145/3742785)
+2026-03-03 22:07:53 | DEBUG   |   saved #5  AutoAdapt: On the Application of AutoML for Parameter-Efficient Fine-Tuning of P  (year=2026, doi=10.1145/3734867, link=https://doi.org/10.1145/3734867)
+2026-03-03 22:07:53 | DEBUG   |   saved #6  Abstract Interpretation-based Verification for Confidentiality: Information Hidi  (year=2026, doi=10.1145/3786347, link=https://doi.org/10.1145/3786347)
+2026-03-03 22:07:53 | DEBUG   |   saved #7  An Empirical Study on the Characteristics of Reusable Code Clones  (year=2026, doi=10.1145/3793251, link=https://doi.org/10.1145/3793251)
+2026-03-03 22:07:53 | DEBUG   |   saved #8  Understanding Self-Admitted Technical Debt in Test Code: An Empirical Study  (year=2026, doi=10.1145/3786791, link=https://doi.org/10.1145/3786791)
+2026-03-03 22:07:53 | DEBUG   |   saved #9  Unmasking the Type Inference Capabilities of LLMs for Java Code Snippets  (year=2026, doi=10.1145/3790099, link=https://doi.org/10.1145/3790099)
+2026-03-03 22:07:53 | DEBUG   |   saved #10  A Systematic Literature Review of Parameter-Efficient Fine-Tuning for Large Code  (year=2026, doi=10.1145/3796522, link=https://doi.org/10.1145/3796522)
+2026-03-03 22:07:53 | DEBUG   |   saved #11  Code-Enhanced Cross-Perspective Bug Question Retrieval  (year=2026, doi=10.1145/3789667, link=https://doi.org/10.1145/3789667)
+2026-03-03 22:07:53 | DEBUG   |   saved #12  Just-In-Time Quality Assurance with Assistance of Automated Defect Prediction an  (year=2026, doi=10.1145/3779653, link=https://doi.org/10.1145/3779653)
+2026-03-03 22:07:53 | DEBUG   |   saved #13  Automated Program Repair of Uncompilable Student Code  (year=2026, doi=10.1145/3770761.3777323, link=https://doi.org/10.1145/3770761.3777323)
+2026-03-03 22:07:53 | DEBUG   |   saved #14  POS Tagging on Code Identifiers: How Far Are We?  (year=2026, doi=10.1145/3744919, link=https://doi.org/10.1145/3744919)
+2026-03-03 22:07:53 | DEBUG   |   saved #15  A Survey on Large Language Models for Code Generation  (year=2026, doi=10.1145/3747588, link=https://doi.org/10.1145/3747588)
+2026-03-03 22:07:53 | DEBUG   |   saved #16  <scp>ComCat</scp>
+                    : Expertise-Guided Context Generation to E  (year=2026, doi=10.1145/3742475, link=https://doi.org/10.1145/3742475)
+2026-03-03 22:07:53 | DEBUG   |   saved #17  Clean Code, Better Models: Enhancing LLM Performance with Smell-Cleaned Dataset  (year=2026, doi=10.1145/3793252, link=https://doi.org/10.1145/3793252)
+2026-03-03 22:07:53 | DEBUG   |   saved #18  Can Emulating Semantic Translation Help LLMs with Code Translation? A Study Base  (year=2026, doi=10.1145/3790101, link=https://doi.org/10.1145/3790101)
+2026-03-03 22:07:53 | DEBUG   |   saved #19  Your Disclosure Is Important To Us: An Analysis of Coordinated Vulnerability Dis  (year=2026, doi=10.1145/3798280, link=https://doi.org/10.1145/3798280)
+2026-03-03 22:07:53 | DEBUG   |   saved #20  Process Management for Learning from Professional Source Code: Cultivating Exper  (year=2026, doi=10.1145/3796525, link=https://doi.org/10.1145/3796525)
+2026-03-03 22:07:53 | DEBUG   |   saved #21  Pitfalls in Language Models for Code Intelligence: A Taxonomy and Survey  (year=2026, doi=10.1145/3748647, link=https://doi.org/10.1145/3748647)
+2026-03-03 22:07:53 | DEBUG   |   saved #22  Model Context Protocol (MCP): Landscape, Security Threats, and Future Research D  (year=2026, doi=10.1145/3796519, link=https://doi.org/10.1145/3796519)
+2026-03-03 22:07:53 | DEBUG   |   saved #23  Securing the Foundation of AI: A Deep Dive into Dependency Management and Securi  (year=2026, doi=10.1145/3798048, link=https://doi.org/10.1145/3798048)
+2026-03-03 22:07:53 | DEBUG   |   saved #24  Too Many Issues: Automatically Prioritizing Analyzer Findings by Tracing Securit  (year=2026, doi=10.1145/3744708, link=https://doi.org/10.1145/3744708)
+2026-03-03 22:07:53 | DEBUG   |   saved #25  <scp>MORepair</scp>
+                    : Teaching LLMs to Repair Code via Multi  (year=2026, doi=10.1145/3735129, link=https://doi.org/10.1145/3735129)
+2026-03-03 22:07:53 | DEBUG   |   saved #26  Fuzzing: On Benchmarking Outcome as a Function of Benchmark Properties  (year=2026, doi=10.1145/3732936, link=https://doi.org/10.1145/3732936)
+2026-03-03 22:07:53 | DEBUG   |   saved #27  Defending Code Language Models against Backdoor Attacks with Deceptive Cross-Ent  (year=2026, doi=10.1145/3728639, link=https://doi.org/10.1145/3728639)
+2026-03-03 22:07:53 | DEBUG   |   saved #28  Less Is More: DocString Compression in Code Generation  (year=2026, doi=10.1145/3735636, link=https://doi.org/10.1145/3735636)
+2026-03-03 22:07:53 | DEBUG   |   saved #29  Bipartite-Grammar–Aware Pretraining for XML-SQL Code Updating  (year=2026, doi=10.1145/3731752, link=https://doi.org/10.1145/3731752)
+2026-03-03 22:07:53 | DEBUG   |   saved #30  Not All Paths Are Equal: Multi-path Optimization for Directed Hybrid Fuzzing  (year=2026, doi=10.1145/3735555, link=https://doi.org/10.1145/3735555)
+2026-03-03 22:07:53 | DEBUG   |   saved #31  Integrating Heterogeneous Spatio-Temporal Interactions for Traffic Speed Predict  (year=2026, doi=10.1145/3783987, link=https://doi.org/10.1145/3783987)
+2026-03-03 22:07:53 | DEBUG   |   saved #32  Enabling Efficient Synergistic Multi-view Inference Across Heterogeneous Edge De  (year=2026, doi=10.1145/3785358, link=https://doi.org/10.1145/3785358)
+2026-03-03 22:07:53 | DEBUG   |   saved #33  Towards Fair Graph Representation Learning by Overcoming Social Homophily  (year=2026, doi=10.1145/3785503, link=https://doi.org/10.1145/3785503)
+2026-03-03 22:07:53 | DEBUG   |   saved #34  What Were You Thinking? An LLM-Driven Large-Scale Study of Refactoring Motivatio  (year=2026, doi=10.1145/3799717, link=https://doi.org/10.1145/3799717)
+2026-03-03 22:07:53 | DEBUG   |   saved #35  AgRefactor: Refactoring for HLS Compatibility with a Self-Evolving Agentic Workf  (year=2026, doi=10.1145/3748173.3779566, link=https://doi.org/10.1145/3748173.3779566)
+2026-03-03 22:07:53 | DEBUG   |   saved #36  Your Disclosure Is Important To Us: An Analysis of Coordinated Vulnerability Dis  (year=2026, doi=10.1145/3798280, link=https://doi.org/10.1145/3798280)
+2026-03-03 22:07:53 | DEBUG   |   saved #37  Model Context Protocol (MCP): Landscape, Security Threats, and Future Research D  (year=2026, doi=10.1145/3796519, link=https://doi.org/10.1145/3796519)
+2026-03-03 22:07:53 | DEBUG   |   saved #38  Securing the Foundation of AI: A Deep Dive into Dependency Management and Securi  (year=2026, doi=10.1145/3798048, link=https://doi.org/10.1145/3798048)
+2026-03-03 22:07:53 | DEBUG   |   saved #39  Too Many Issues: Automatically Prioritizing Analyzer Findings by Tracing Securit  (year=2026, doi=10.1145/3744708, link=https://doi.org/10.1145/3744708)
+2026-03-03 22:07:53 | DEBUG   |   saved #40  Abstract Interpretation-based Verification for Confidentiality: Information Hidi  (year=2026, doi=10.1145/3786347, link=https://doi.org/10.1145/3786347)
+2026-03-03 22:07:53 | DEBUG   |   saved #41  AutoAdapt: On the Application of AutoML for Parameter-Efficient Fine-Tuning of P  (year=2026, doi=10.1145/3734867, link=https://doi.org/10.1145/3734867)
+2026-03-03 22:07:53 | DEBUG   |   saved #42  Empirical Insights into the Operational Dynamics of DNS-Reliant Security Protoco  (year=2026, doi=10.1145/3788882.3788902, link=https://doi.org/10.1145/3788882.3788902)
+2026-03-03 22:07:53 | DEBUG   |   saved #43  Exploring Multi-Lingual Bias of Large Code Models in Code Generation  (year=2026, doi=10.1145/3786793, link=https://doi.org/10.1145/3786793)
+2026-03-03 22:07:53 | DEBUG   |   saved #44  Fuzzing: On Benchmarking Outcome as a Function of Benchmark Properties  (year=2026, doi=10.1145/3732936, link=https://doi.org/10.1145/3732936)
+2026-03-03 22:07:53 | DEBUG   |   saved #45  Does Your Neural Code Completion Model Use My Code? A Membership Inference Appro  (year=2026, doi=10.1145/3742785, link=https://doi.org/10.1145/3742785)
+2026-03-03 22:07:53 | DEBUG   |   saved #46  Fix Pattern-Aware Vulnerability Patch Generation via In-Context Learning  (year=2026, doi=10.1145/3796512, link=https://doi.org/10.1145/3796512)
+2026-03-03 22:07:53 | DEBUG   |   saved #47  Separate Bombs from Firecrackers: Intention-guided Vulnerability Assessment via   (year=2026, doi=10.1145/3797896, link=https://doi.org/10.1145/3797896)
+2026-03-03 22:07:53 | DEBUG   |   saved #48  VulDeNoise: Outlier Detection to Reduce Label Noises for Effective Vulnerability  (year=2026, doi=10.1145/3787972, link=https://doi.org/10.1145/3787972)
+2026-03-03 22:07:53 | DEBUG   |   saved #49  <scp>Vital</scp>
+                    : Vulnerability-Oriented Symbolic Execution  (year=2026, doi=10.1145/3786795, link=https://doi.org/10.1145/3786795)
+2026-03-03 22:07:53 | DEBUG   |   saved #50  Embedding Security into Business Processes  (year=2026, doi=10.1145/3779575, link=https://doi.org/10.1145/3779575)
+2026-03-03 22:07:53 | DEBUG   |   saved #51  An Empirical Study on the Characteristics of Reusable Code Clones  (year=2026, doi=10.1145/3793251, link=https://doi.org/10.1145/3793251)
+2026-03-03 22:07:53 | DEBUG   |   saved #52  Understanding Self-Admitted Technical Debt in Test Code: An Empirical Study  (year=2026, doi=10.1145/3786791, link=https://doi.org/10.1145/3786791)
+2026-03-03 22:07:53 | DEBUG   |   saved #53  Unmasking the Type Inference Capabilities of LLMs for Java Code Snippets  (year=2026, doi=10.1145/3790099, link=https://doi.org/10.1145/3790099)
+2026-03-03 22:07:53 | DEBUG   |   saved #54  A Systematic Literature Review of Parameter-Efficient Fine-Tuning for Large Code  (year=2026, doi=10.1145/3796522, link=https://doi.org/10.1145/3796522)
+2026-03-03 22:07:53 | DEBUG   |   saved #55  Code-Enhanced Cross-Perspective Bug Question Retrieval  (year=2026, doi=10.1145/3789667, link=https://doi.org/10.1145/3789667)
+2026-03-03 22:07:53 | DEBUG   |   saved #56  Just-In-Time Quality Assurance with Assistance of Automated Defect Prediction an  (year=2026, doi=10.1145/3779653, link=https://doi.org/10.1145/3779653)
+2026-03-03 22:07:53 | DEBUG   |   saved #57  A Blockchain-Assisted Revocable and Efficient ABSE Scheme for Secure Medical Dat  (year=2026, doi=10.1145/3771992, link=https://doi.org/10.1145/3771992)
+2026-03-03 22:07:53 | DEBUG   |   saved #58  Password Security  (year=2026, doi=10.1145/3770761.3777015, link=https://doi.org/10.1145/3770761.3777015)
+2026-03-03 22:07:53 | DEBUG   |   saved #59  POS Tagging on Code Identifiers: How Far Are We?  (year=2026, doi=10.1145/3744919, link=https://doi.org/10.1145/3744919)
+2026-03-03 22:07:53 | DEBUG   |   saved #60  A Survey on Large Language Models for Code Generation  (year=2026, doi=10.1145/3747588, link=https://doi.org/10.1145/3747588)
+2026-03-03 22:07:53 | DEBUG   |   saved #61  Seldom: An Anonymity Network with Selective Deanonymization  (year=2026, doi=10.1145/3794848, link=https://doi.org/10.1145/3794848)
+2026-03-03 22:07:53 | DEBUG   |   saved #62  Towards Zero Trust Network Security via Programmable Data Planes  (year=2026, doi=10.1145/3788882.3788898, link=https://doi.org/10.1145/3788882.3788898)
+2026-03-03 22:07:53 | DEBUG   |   saved #63  <scp>ComCat</scp>
+                    : Expertise-Guided Context Generation to E  (year=2026, doi=10.1145/3742475, link=https://doi.org/10.1145/3742475)
+2026-03-03 22:07:53 | DEBUG   |   saved #64  Limited Choices, Greater Engagement: Involving Cyber Security Students in Inclus  (year=2026, doi=10.1145/3772338.3772346, link=https://doi.org/10.1145/3772338.3772346)
+2026-03-03 22:07:53 | DEBUG   |   saved #65  Clean Code, Better Models: Enhancing LLM Performance with Smell-Cleaned Dataset  (year=2026, doi=10.1145/3793252, link=https://doi.org/10.1145/3793252)
+2026-03-03 22:07:53 | DEBUG   |   saved #66  Can Emulating Semantic Translation Help LLMs with Code Translation? A Study Base  (year=2026, doi=10.1145/3790101, link=https://doi.org/10.1145/3790101)
+2026-03-03 22:07:53 | DEBUG   |   saved #67  Who Shares What? An Empirical Analysis of Security Conference Content Across Aca  (year=2026, doi=10.1145/3788676, link=https://doi.org/10.1145/3788676)
+2026-03-03 22:07:53 | DEBUG   |   saved #68  Vul-RAG: Enhancing LLM-based Vulnerability Detection via Knowledge-level RAG  (year=2026, doi=10.1145/3797277, link=https://doi.org/10.1145/3797277)
+2026-03-03 22:07:53 | DEBUG   |   saved #69  AIoT-Driven Health Behavioral Security: Vision and Challenges  (year=2026, doi=10.1145/3771551, link=https://doi.org/10.1145/3771551)
+2026-03-03 22:07:53 | DEBUG   |   saved #70  Addressing Data Scarcity with Synthetic Data: A Secure and GDPR-Compliant Cloud-  (year=2026, doi=10.1145/3732937, link=https://doi.org/10.1145/3732937)
+2026-03-03 22:07:53 | DEBUG   |   saved #71  Integrating Adversarial Computing into Foundational CS Education: Teaching Secur  (year=2026, doi=10.1145/3770761.3777306, link=https://doi.org/10.1145/3770761.3777306)
+2026-03-03 22:07:53 | DEBUG   |   saved #72  Mutation-based Evaluation of Cryptographic API Misuse Detectors  (year=2026, doi=10.1145/3796221, link=https://doi.org/10.1145/3796221)
+2026-03-03 22:07:53 | DEBUG   |   saved #73  Not All Paths Are Equal: Multi-path Optimization for Directed Hybrid Fuzzing  (year=2026, doi=10.1145/3735555, link=https://doi.org/10.1145/3735555)
+2026-03-03 22:07:53 | DEBUG   |   saved #74  Pitfalls in Language Models for Code Intelligence: A Taxonomy and Survey  (year=2026, doi=10.1145/3748647, link=https://doi.org/10.1145/3748647)
+2026-03-03 22:07:53 | DEBUG   |   saved #75  Understanding the Security Landscape of Embedded Non-Volatile Memories: A Compre  (year=2026, doi=10.1145/3799251, link=https://doi.org/10.1145/3799251)
+2026-03-03 22:07:53 | DEBUG   |   saved #76  TinyML Security: Attacks, Defenses, and Open Challenges in Resource-Constrained   (year=2026, doi=10.1145/3793197, link=https://doi.org/10.1145/3793197)
+2026-03-03 22:07:53 | DEBUG   |   saved #77  Adversarial Machine Learning in IoT Security: A Comprehensive Survey  (year=2026, doi=10.1145/3785665, link=https://doi.org/10.1145/3785665)
+2026-03-03 22:07:53 | DEBUG   |   saved #78  A Semantic Threat Model to Evaluate Security Threats in Cyber-Physical Systems  (year=2026, doi=10.1145/3777450, link=https://doi.org/10.1145/3777450)
+2026-03-03 22:07:53 | DEBUG   |   saved #79  Integrating Heterogeneous Spatio-Temporal Interactions for Traffic Speed Predict  (year=2026, doi=10.1145/3783987, link=https://doi.org/10.1145/3783987)
+2026-03-03 22:07:53 | DEBUG   |   saved #80  A Formal Lens on Android Permissions System: Modeling, Verification, and Exploit  (year=2026, doi=10.1145/3799897, link=https://doi.org/10.1145/3799897)
+2026-03-03 22:07:53 | DEBUG   |   saved #81  Resilience Meets Security in Cyber-Physical Systems and Critical Infrastructures  (year=2026, doi=10.1145/3768169, link=https://doi.org/10.1145/3768169)
+2026-03-03 22:07:53 | DEBUG   |   saved #82  Scalability via Sparsity in Stackelberg Security Games: An Augmented Decision Sp  (year=2026, doi=10.1145/3799431, link=https://doi.org/10.1145/3799431)
+2026-03-03 22:07:53 | DEBUG   |   saved #83  BWAFSQLi: Bypassing Web Application Firewall with Adversarial SQL Injections  (year=2026, doi=10.1145/3788286, link=https://doi.org/10.1145/3788286)
+2026-03-03 22:07:53 | DEBUG   |   saved #84  IEDL-IDS: An Image-Enhanced Encoder-Based Deep Learning Scheme for Intrusion Det  (year=2026, doi=10.1145/3779432, link=https://doi.org/10.1145/3779432)
+2026-03-03 22:07:53 | DEBUG   |   saved #85  Enhancing Digital Security: A Novel Dual-Paradigm Approach for Robust Deepfake D  (year=2026, doi=10.1145/3794846, link=https://doi.org/10.1145/3794846)
+2026-03-03 22:07:53 | DEBUG   |   saved #86  Exploring Visual Explanations for Defending Federated Learning against Poisoning  (year=2026, doi=10.1145/3799892, link=https://doi.org/10.1145/3799892)
+2026-03-03 22:07:53 | DEBUG   |   saved #87  GAEDM: Genetic Algorithm-Enhanced Static Analysis for Detection of API Hashing O  (year=2026, doi=10.1145/3793198, link=https://doi.org/10.1145/3793198)
+2026-03-03 22:07:53 | DEBUG   |   saved #88  Resilient Dynamic Analysis for Windows Malware Technique Discovery against Behav  (year=2026, doi=10.1145/3799692, link=https://doi.org/10.1145/3799692)
+2026-03-03 22:07:53 | DEBUG   |   saved #89  Introduction to Special Issue on Security and Privacy in Safety-Critical Cyber-P  (year=2026, doi=10.1145/3790255, link=https://doi.org/10.1145/3790255)
+2026-03-03 22:07:53 | DEBUG   |   saved #90  Defending Code Language Models against Backdoor Attacks with Deceptive Cross-Ent  (year=2026, doi=10.1145/3728639, link=https://doi.org/10.1145/3728639)
+2026-03-03 22:07:53 | DEBUG   |   saved #91  Security Reasoning via Substructural Dependency Tracking  (year=2026, doi=10.1145/3776669, link=https://doi.org/10.1145/3776669)
+2026-03-03 22:07:53 | DEBUG   |   saved #92  On Enhancing the Security of Streaming Scan Network through Dual-Functional TDR  (year=2026, doi=10.1145/3779438, link=https://doi.org/10.1145/3779438)
+2026-03-03 22:07:53 | DEBUG   |   saved #93  Less Is More: DocString Compression in Code Generation  (year=2026, doi=10.1145/3735636, link=https://doi.org/10.1145/3735636)
+2026-03-03 22:07:53 | DEBUG   |   saved #94  Enabling Efficient Synergistic Multi-view Inference Across Heterogeneous Edge De  (year=2026, doi=10.1145/3785358, link=https://doi.org/10.1145/3785358)
+2026-03-03 22:07:53 | DEBUG   |   saved #95  Novel Security Threats in Multi-Tenant FPGAs: Phase Tuning for Voltage Sensors i  (year=2026, doi=10.1145/3779437, link=https://doi.org/10.1145/3779437)
+2026-03-03 22:07:53 | DEBUG   |   saved #96  A Comprehensive Survey and Taxonomy of Cybersecurity Challenges and Proactive Me  (year=2026, doi=10.1145/3785658, link=https://doi.org/10.1145/3785658)
+2026-03-03 22:07:53 | DEBUG   |   saved #97  Towards Multifaceted Graph Condensation in Discrete Realm  (year=2026, doi=10.1145/3773966.3777965, link=https://doi.org/10.1145/3773966.3777965)
+2026-03-03 22:07:53 | DEBUG   |   saved #98  Deepfake Video Detection Based on Improved EfficientNetV2S and Transformer Netwo  (year=2026, doi=10.1145/3777412, link=https://doi.org/10.1145/3777412)
+2026-03-03 22:07:53 | DEBUG   |   saved #99  On the Use of Artificial Intelligence in Software Testing: State of the Art and   (year=2026, doi=10.1145/3783988, link=https://doi.org/10.1145/3783988)
+2026-03-03 22:07:53 | DEBUG   |   saved #100  A Constraint-Based Approach to Optimise QoS- and Energy-Aware Cloud-Edge Applica  (year=2026, doi=10.1145/3757061, link=https://doi.org/10.1145/3757061)
+2026-03-03 22:07:53 | DEBUG   |   saved #101  From 5G to 6G: A Survey on Security, Privacy, and Standardization Pathways  (year=2026, doi=10.1145/3785467, link=https://doi.org/10.1145/3785467)
+2026-03-03 22:07:53 | DEBUG   |   saved #102  Unlearning Inversion Attacks for Graph Neural Networks  (year=2026, doi=10.1145/3773966.3777929, link=https://doi.org/10.1145/3773966.3777929)
+2026-03-03 22:07:53 | DEBUG   |   saved #103  Bipartite-Grammar–Aware Pretraining for XML-SQL Code Updating  (year=2026, doi=10.1145/3731752, link=https://doi.org/10.1145/3731752)
+2026-03-03 22:07:53 | DEBUG   |   saved #104  Abundant Modalities Offer More Nutrients: Multi-Modal-Based Function-Level Vulne  (year=2026, doi=10.1145/3731557, link=https://doi.org/10.1145/3731557)
+2026-03-03 22:07:53 | DEBUG   |   saved #105  CSI-Based NTC Using Ambient WiFi: Channel Selection, Topology Control and Traffi  (year=2026, doi=10.1145/3787495, link=https://doi.org/10.1145/3787495)
+2026-03-03 22:07:53 | DEBUG   |   saved #106  Optimal Preemption Policy for Age of Information Minimization with Random Arriva  (year=2026, doi=10.1145/3794849, link=https://doi.org/10.1145/3794849)
+2026-03-03 22:07:54 | DEBUG   |   saved #107  TLD-SCA: A Transformer-LSTM Detection Model against Side-Channel Attack in Block  (year=2026, doi=10.1145/3771990, link=https://doi.org/10.1145/3771990)
+2026-03-03 22:07:54 | DEBUG   |   saved #108  VoiceFormer: Fusing Non-Acoustic Motion Sensors for High-Fidelity Voice Synthesi  (year=2026, doi=10.1145/3779062, link=https://doi.org/10.1145/3779062)
+2026-03-03 22:07:54 | DEBUG   |   saved #109  A Hands-On Platform for Medical Device Security Education  (year=2026, doi=10.1145/3770761.3777308, link=https://doi.org/10.1145/3770761.3777308)
+2026-03-03 22:07:54 | DEBUG   |   saved #110  <scp>MORepair</scp>
+                    : Teaching LLMs to Repair Code via Multi  (year=2026, doi=10.1145/3735129, link=https://doi.org/10.1145/3735129)
+2026-03-03 22:07:54 | DEBUG   |   saved #111  ArchSem: Reusable Rigorous Semantics of Relaxed Architectures  (year=2026, doi=10.1145/3776650, link=https://doi.org/10.1145/3776650)
+2026-03-03 22:07:54 | DEBUG   |   saved #112  From Fragmentation to Correlation: Reliable LoRa Reception over Weak Marine Link  (year=2026, doi=10.1145/3774326, link=https://doi.org/10.1145/3774326)
+2026-03-03 22:07:54 | DEBUG   |   saved #113  Towards Contactless Data-Model Matching  (year=2026, doi=10.1145/3774939, link=https://doi.org/10.1145/3774939)
+2026-03-03 22:07:54 | DEBUG   |   saved #114  Towards Fair Graph Representation Learning by Overcoming Social Homophily  (year=2026, doi=10.1145/3785503, link=https://doi.org/10.1145/3785503)
+2026-03-03 22:07:54 | DEBUG   |   saved #115  Fix Pattern-Aware Vulnerability Patch Generation via In-Context Learning  (year=2026, doi=10.1145/3796512, link=https://doi.org/10.1145/3796512)
+2026-03-03 22:07:54 | DEBUG   |   saved #116  Automated C Vulnerability Detection via Structure-Enhanced Graph Transformer and  (year=2026, doi=10.1145/3773966.3778005, link=https://doi.org/10.1145/3773966.3778005)
+2026-03-03 22:07:54 | DEBUG   |   saved #117  Separate Bombs from Firecrackers: Intention-guided Vulnerability Assessment via   (year=2026, doi=10.1145/3797896, link=https://doi.org/10.1145/3797896)
+2026-03-03 22:07:54 | DEBUG   |   saved #118  VulDeNoise: Outlier Detection to Reduce Label Noises for Effective Vulnerability  (year=2026, doi=10.1145/3787972, link=https://doi.org/10.1145/3787972)
+2026-03-03 22:07:54 | DEBUG   |   saved #119  <scp>Vital</scp>
+                    : Vulnerability-Oriented Symbolic Execution  (year=2026, doi=10.1145/3786795, link=https://doi.org/10.1145/3786795)
+2026-03-03 22:07:54 | DEBUG   |   saved #120  Your Disclosure Is Important To Us: An Analysis of Coordinated Vulnerability Dis  (year=2026, doi=10.1145/3798280, link=https://doi.org/10.1145/3798280)
+2026-03-03 22:07:54 | DEBUG   |   saved #121  Just-In-Time Quality Assurance with Assistance of Automated Defect Prediction an  (year=2026, doi=10.1145/3779653, link=https://doi.org/10.1145/3779653)
+2026-03-03 22:07:54 | DEBUG   |   saved #122  A Large-Scale Empirical Evaluation of LLMs for Automated Self-Admitted Technical  (year=2026, doi=10.1145/3796704, link=https://doi.org/10.1145/3796704)
+2026-03-03 22:07:54 | DEBUG   |   saved #123  Large Language Models for Automated Web-Form-Test Generation: An Empirical Study  (year=2026, doi=10.1145/3797275, link=https://doi.org/10.1145/3797275)
+2026-03-03 22:07:54 | DEBUG   |   saved #124  Vul-RAG: Enhancing LLM-based Vulnerability Detection via Knowledge-level RAG  (year=2026, doi=10.1145/3797277, link=https://doi.org/10.1145/3797277)
+2026-03-03 22:07:54 | DEBUG   |   saved #125  A Systematic Literature Review on Large Language Models for Automated Program Re  (year=2026, doi=10.1145/3799693, link=https://doi.org/10.1145/3799693)
+2026-03-03 22:07:54 | DEBUG   |   saved #126  Judge: Effective State Abstraction for Guiding Automated Web GUI Testing  (year=2026, doi=10.1145/3736162, link=https://doi.org/10.1145/3736162)
+2026-03-03 22:07:54 | DEBUG   |   saved #127  Automated Abstract Transformer Synthesis for Reduced Product Domains  (year=2026, doi=10.1145/3733716, link=https://doi.org/10.1145/3733716)
+2026-03-03 22:07:54 | DEBUG   |   saved #128  Keeper: Automated Testing and Fixing of Machine Learning Software—RCR Report  (year=2026, doi=10.1145/3737284, link=https://doi.org/10.1145/3737284)
+2026-03-03 22:07:54 | DEBUG   |   saved #129  Vulnerability of LLM Outputs to Heuristics-Inducing Prompt Structures  (year=2026, doi=10.1145/3742413.3789108, link=https://doi.org/10.1145/3742413.3789108)
+2026-03-03 22:07:54 | DEBUG   |   saved #130  Vulnerability Analysis for Safe Reinforcement Learning in Cyber-Physical Systems  (year=2026, doi=10.1145/3788281, link=https://doi.org/10.1145/3788281)
+2026-03-03 22:07:54 | DEBUG   |   saved #131  Large Language Models for Automated Web-Form-Test Generation: An Empirical Study  (year=2026, doi=10.1145/3735553, link=https://doi.org/10.1145/3735553)
+2026-03-03 22:07:54 | DEBUG   |   saved #132  OptRCA: A More Efficient and Accurate Approach for Automated Root Cause Analysis  (year=2026, doi=10.1145/3736718, link=https://doi.org/10.1145/3736718)
+2026-03-03 22:07:54 | DEBUG   |   saved #133  Generative Vulnerability Assessment for Cyber-Physical Systems  (year=2026, doi=10.1145/3776543, link=https://doi.org/10.1145/3776543)
+2026-03-03 22:07:54 | DEBUG   |   saved #134  Scaling Assessment Innovation: From Immediate Feedback MCQs to Automated Questio  (year=2026, doi=10.1145/3772338.3772353, link=https://doi.org/10.1145/3772338.3772353)
+2026-03-03 22:07:54 | DEBUG   |   saved #135  Automated Assessment Tools: Feedback to and from Students  (year=2026, doi=10.1145/3770761.3777144, link=https://doi.org/10.1145/3770761.3777144)
+2026-03-03 22:07:54 | DEBUG   |   saved #136  Abundant Modalities Offer More Nutrients: Multi-Modal-Based Function-Level Vulne  (year=2026, doi=10.1145/3731557, link=https://doi.org/10.1145/3731557)
+2026-03-03 22:07:54 | DEBUG   |   saved #137  Clause-Driven Automated Grading of SQL's DDL and DML Statements  (year=2026, doi=10.1145/3770762.3772599, link=https://doi.org/10.1145/3770762.3772599)
+2026-03-03 22:07:54 | DEBUG   |   saved #138  Automated Detection and Quantitative Assessment of Dental Plaque in Intraoral Im  (year=2026, doi=10.1145/3788680, link=https://doi.org/10.1145/3788680)
+2026-03-03 22:07:54 | DEBUG   |   saved #139  Multi-Agent AI Framework for Threat Mitigation and Resilience in Machine Learnin  (year=2026, doi=10.1145/3780095, link=https://doi.org/10.1145/3780095)
+2026-03-03 22:07:54 | DEBUG   |   saved #140  A New Model for Educational Program Assessments Using Automated Collective Conce  (year=2026, doi=10.1145/3770761.3777317, link=https://doi.org/10.1145/3770761.3777317)
+2026-03-03 22:07:54 | DEBUG   |   saved #141  Adversarial Beats: Feasibility Study of Spoofed Arrhythmia in Automated Electroc  (year=2026, doi=10.1145/3777452, link=https://doi.org/10.1145/3777452)
+2026-03-03 22:07:54 | DEBUG   |   saved #142  Towards Automated River Water Level Monitoring using Visual IoT Cameras  (year=2026, doi=10.1145/3737611.3776626, link=https://doi.org/10.1145/3737611.3776626)
+2026-03-03 22:07:54 | DEBUG   |   saved #143  A2H-MAS: An Algorithm-to-HLS Multi-Agent System for Automated and Reliable FPGA   (year=2026, doi=10.1145/3748173.3779557, link=https://doi.org/10.1145/3748173.3779557)
+2026-03-03 22:07:54 | DEBUG   |   saved #144  Automated Program Repair of Uncompilable Student Code  (year=2026, doi=10.1145/3770761.3777323, link=https://doi.org/10.1145/3770761.3777323)
+2026-03-03 22:07:54 | DEBUG   |   saved #145  Towards Automated RAN Configuration Tuning in Cellular Networks with Causal Lear  (year=2026, doi=10.1145/3789514.3792052, link=https://doi.org/10.1145/3789514.3792052)
+2026-03-03 22:07:54 | DEBUG   |   saved #146  A Compression-Based Approach to Detecting Automated and Coordinated Behavior on   (year=2026, doi=10.1145/3778356, link=https://doi.org/10.1145/3778356)
+2026-03-03 22:07:54 | DEBUG   |   saved #147  VectorWeaver: A Stage-Aware Automated Optimization Framework for LLM Inference o  (year=2026, doi=10.1145/3799719, link=https://doi.org/10.1145/3799719)
+2026-03-03 22:07:54 | DEBUG   |   saved #148  Model Context Protocol (MCP): Landscape, Security Threats, and Future Research D  (year=2026, doi=10.1145/3796519, link=https://doi.org/10.1145/3796519)
+2026-03-03 22:07:54 | DEBUG   |   saved #149  Explainable AI-Guided Genetic Algorithms for Efficient Software Automatic Tuning  (year=2026, doi=10.1145/3784828.3785252, link=https://doi.org/10.1145/3784828.3785252)
+2026-03-03 22:07:54 | DEBUG   |   saved #150  CDRPE: A Combined Deep Learning and Self-Attention Enhanced Reinforcement Learni  (year=2026, doi=10.1145/3795797, link=https://doi.org/10.1145/3795797)
+2026-03-03 22:07:54 | DEBUG   |   saved #151  Legitimate Power, Illegitimate Automation: The problem of ignoring legitimacy in  (year=2026, doi=10.1145/3725858, link=https://doi.org/10.1145/3725858)
+2026-03-03 22:07:54 | DEBUG   |   saved #152  Securing the Foundation of AI: A Deep Dive into Dependency Management and Securi  (year=2026, doi=10.1145/3798048, link=https://doi.org/10.1145/3798048)
+2026-03-03 22:07:54 | DEBUG   |   saved #153  When Graph Contrastive Learning Backfires: Spectral Vulnerability and Defense in  (year=2026, doi=10.1145/3779448, link=https://doi.org/10.1145/3779448)
+2026-03-03 22:07:54 | DEBUG   |   saved #154  Automated Information Flow Selection for Multi-scenario Multi-task Recommendatio  (year=2026, doi=10.1145/3773966.3777992, link=https://doi.org/10.1145/3773966.3777992)
+2026-03-03 22:07:54 | DEBUG   |   saved #155  BWAFSQLi: Bypassing Web Application Firewall with Adversarial SQL Injections  (year=2026, doi=10.1145/3788286, link=https://doi.org/10.1145/3788286)
+2026-03-03 22:07:54 | DEBUG   |   saved #156  Too Many Issues: Automatically Prioritizing Analyzer Findings by Tracing Securit  (year=2026, doi=10.1145/3744708, link=https://doi.org/10.1145/3744708)
+2026-03-03 22:07:54 | DEBUG   |   saved #157  Characterizing Personality from Eye-Tracking: The Role of Gaze and Its Absence i  (year=2026, doi=10.1145/3786304.3788842, link=https://doi.org/10.1145/3786304.3788842)
+2026-03-03 22:07:54 | DEBUG   |   saved #158  AutoCLC: Towards Automated Assessment and Feedback on Closed-Loop Communication   (year=2026, doi=10.1145/3768164, link=https://doi.org/10.1145/3768164)
+2026-03-03 22:07:54 | DEBUG   |   saved #159  Fuzzing: On Benchmarking Outcome as a Function of Benchmark Properties  (year=2026, doi=10.1145/3732936, link=https://doi.org/10.1145/3732936)
+2026-03-03 22:07:54 | DEBUG   |   saved #160  AutoAdapt: On the Application of AutoML for Parameter-Efficient Fine-Tuning of P  (year=2026, doi=10.1145/3734867, link=https://doi.org/10.1145/3734867)
+2026-03-03 22:07:54 | DEBUG   |   saved #161  On the Use of Artificial Intelligence in Software Testing: State of the Art and   (year=2026, doi=10.1145/3783988, link=https://doi.org/10.1145/3783988)
+2026-03-03 22:07:54 | DEBUG   |   saved #162  A Constraint-Based Approach to Optimise QoS- and Energy-Aware Cloud-Edge Applica  (year=2026, doi=10.1145/3757061, link=https://doi.org/10.1145/3757061)
+2026-03-03 22:07:54 | DEBUG   |   saved #163  Not All Paths Are Equal: Multi-path Optimization for Directed Hybrid Fuzzing  (year=2026, doi=10.1145/3735555, link=https://doi.org/10.1145/3735555)
+2026-03-03 22:07:54 | DEBUG   |   saved #164  Integrating Heterogeneous Spatio-Temporal Interactions for Traffic Speed Predict  (year=2026, doi=10.1145/3783987, link=https://doi.org/10.1145/3783987)
+2026-03-03 22:07:54 | DEBUG   |   saved #165  Enabling Efficient Synergistic Multi-view Inference Across Heterogeneous Edge De  (year=2026, doi=10.1145/3785358, link=https://doi.org/10.1145/3785358)
+2026-03-03 22:07:54 | DEBUG   |   saved #166  MatXtract: Sparsity-Aware Matrix Transformation via Cascaded Compute Density EXt  (year=2026, doi=10.1145/3793864, link=https://doi.org/10.1145/3793864)
+2026-03-03 22:07:54 | DEBUG   |   saved #167  Your Disclosure Is Important To Us: An Analysis of Coordinated Vulnerability Dis  (year=2026, doi=10.1145/3798280, link=https://doi.org/10.1145/3798280)
+2026-03-03 22:07:54 | DEBUG   |   saved #168  WaSC: Hardening WebAssembly Sandboxes via System Interface Decoupling  (year=2026, doi=10.1145/3795882, link=https://doi.org/10.1145/3795882)
+2026-03-03 22:07:54 | DEBUG   |   saved #169  Fix Pattern-Aware Vulnerability Patch Generation via In-Context Learning  (year=2026, doi=10.1145/3796512, link=https://doi.org/10.1145/3796512)
+2026-03-03 22:07:54 | DEBUG   |   saved #170  When Graph Contrastive Learning Backfires: Spectral Vulnerability and Defense in  (year=2026, doi=10.1145/3779448, link=https://doi.org/10.1145/3779448)
+2026-03-03 22:07:54 | DEBUG   |   saved #171  Abstract Interpretation-based Verification for Confidentiality: Information Hidi  (year=2026, doi=10.1145/3786347, link=https://doi.org/10.1145/3786347)
+2026-03-03 22:07:54 | DEBUG   |   saved #172  Empirical Insights into the Operational Dynamics of DNS-Reliant Security Protoco  (year=2026, doi=10.1145/3788882.3788902, link=https://doi.org/10.1145/3788882.3788902)
+2026-03-03 22:07:54 | DEBUG   |   saved #173  Security Reasoning via Substructural Dependency Tracking  (year=2026, doi=10.1145/3776669, link=https://doi.org/10.1145/3776669)
+2026-03-03 22:07:54 | DEBUG   |   saved #174  Embedding Security into Business Processes  (year=2026, doi=10.1145/3779575, link=https://doi.org/10.1145/3779575)
+2026-03-03 22:07:54 | DEBUG   |   saved #175  Deepfake Video Detection Based on Improved EfficientNetV2S and Transformer Netwo  (year=2026, doi=10.1145/3777412, link=https://doi.org/10.1145/3777412)
+2026-03-03 22:07:54 | DEBUG   |   saved #176  Hyperbolic-Based Cross-Modal Semantic Remodeling Network for Zero-Shot Sketch-Ba  (year=2026, doi=10.1145/3777371, link=https://doi.org/10.1145/3777371)
+2026-03-03 22:07:54 | DEBUG   |   saved #177  VoiceFormer: Fusing Non-Acoustic Motion Sensors for High-Fidelity Voice Synthesi  (year=2026, doi=10.1145/3779062, link=https://doi.org/10.1145/3779062)
+2026-03-03 22:07:54 | DEBUG   |   saved #178  Password Security  (year=2026, doi=10.1145/3770761.3777015, link=https://doi.org/10.1145/3770761.3777015)
+2026-03-03 22:07:54 | DEBUG   |   saved #179  Seldom: An Anonymity Network with Selective Deanonymization  (year=2026, doi=10.1145/3794848, link=https://doi.org/10.1145/3794848)
+2026-03-03 22:07:54 | DEBUG   |   saved #180  Towards Zero Trust Network Security via Programmable Data Planes  (year=2026, doi=10.1145/3788882.3788898, link=https://doi.org/10.1145/3788882.3788898)
+2026-03-03 22:07:54 | DEBUG   |   saved #181  Limited Choices, Greater Engagement: Involving Cyber Security Students in Inclus  (year=2026, doi=10.1145/3772338.3772346, link=https://doi.org/10.1145/3772338.3772346)
+2026-03-03 22:07:54 | DEBUG   |   saved #182  Towards Contactless Data-Model Matching  (year=2026, doi=10.1145/3774939, link=https://doi.org/10.1145/3774939)
+2026-03-03 22:07:54 | DEBUG   |   saved #183  Optimal Preemption Policy for Age of Information Minimization with Random Arriva  (year=2026, doi=10.1145/3794849, link=https://doi.org/10.1145/3794849)
+2026-03-03 22:07:54 | DEBUG   |   saved #184  Who Shares What? An Empirical Analysis of Security Conference Content Across Aca  (year=2026, doi=10.1145/3788676, link=https://doi.org/10.1145/3788676)
+2026-03-03 22:07:54 | DEBUG   |   saved #185  Infrared Object Tracking via Complementary Dual-domain Interaction with Target-g  (year=2026, doi=10.1145/3787979, link=https://doi.org/10.1145/3787979)
+2026-03-03 22:07:54 | DEBUG   |   saved #186  Towards Fair Graph Representation Learning by Overcoming Social Homophily  (year=2026, doi=10.1145/3785503, link=https://doi.org/10.1145/3785503)
+2026-03-03 22:07:54 | DEBUG   |   saved #187  ArchSem: Reusable Rigorous Semantics of Relaxed Architectures  (year=2026, doi=10.1145/3776650, link=https://doi.org/10.1145/3776650)
+2026-03-03 22:07:54 | DEBUG   |   saved #188  AIoT-Driven Health Behavioral Security: Vision and Challenges  (year=2026, doi=10.1145/3771551, link=https://doi.org/10.1145/3771551)
+2026-03-03 22:07:54 | DEBUG   |   saved #189  Integrating Adversarial Computing into Foundational CS Education: Teaching Secur  (year=2026, doi=10.1145/3770761.3777306, link=https://doi.org/10.1145/3770761.3777306)
+2026-03-03 22:07:54 | DEBUG   |   saved #190  Mutation-based Evaluation of Cryptographic API Misuse Detectors  (year=2026, doi=10.1145/3796221, link=https://doi.org/10.1145/3796221)
+2026-03-03 22:07:54 | DEBUG   |   saved #191  Understanding the Security Landscape of Embedded Non-Volatile Memories: A Compre  (year=2026, doi=10.1145/3799251, link=https://doi.org/10.1145/3799251)
+2026-03-03 22:07:54 | DEBUG   |   saved #192  Model Context Protocol (MCP): Landscape, Security Threats, and Future Research D  (year=2026, doi=10.1145/3796519, link=https://doi.org/10.1145/3796519)
+2026-03-03 22:07:54 | DEBUG   |   saved #193  TinyML Security: Attacks, Defenses, and Open Challenges in Resource-Constrained   (year=2026, doi=10.1145/3793197, link=https://doi.org/10.1145/3793197)
+2026-03-03 22:07:54 | DEBUG   |   saved #194  Adversarial Machine Learning in IoT Security: A Comprehensive Survey  (year=2026, doi=10.1145/3785665, link=https://doi.org/10.1145/3785665)
+2026-03-03 22:07:54 | DEBUG   |   saved #195  A Semantic Threat Model to Evaluate Security Threats in Cyber-Physical Systems  (year=2026, doi=10.1145/3777450, link=https://doi.org/10.1145/3777450)
+2026-03-03 22:07:54 | DEBUG   |   saved #196  Beyond the Singularity Myth: Artificial General Intelligence as Cumulative Infra  (year=2026, doi=10.1145/3779133, link=https://doi.org/10.1145/3779133)
+2026-03-03 22:07:54 | DEBUG   |   saved #197  A Formal Lens on Android Permissions System: Modeling, Verification, and Exploit  (year=2026, doi=10.1145/3799897, link=https://doi.org/10.1145/3799897)
+2026-03-03 22:07:54 | DEBUG   |   saved #198  Resilience Meets Security in Cyber-Physical Systems and Critical Infrastructures  (year=2026, doi=10.1145/3768169, link=https://doi.org/10.1145/3768169)
+2026-03-03 22:07:54 | DEBUG   |   saved #199  Scalability via Sparsity in Stackelberg Security Games: An Augmented Decision Sp  (year=2026, doi=10.1145/3799431, link=https://doi.org/10.1145/3799431)
+2026-03-03 22:07:54 | DEBUG   |   saved #200  Automated Program Repair of Uncompilable Student Code  (year=2026, doi=10.1145/3770761.3777323, link=https://doi.org/10.1145/3770761.3777323)
+2026-03-03 22:07:54 | DEBUG   |   saved #201  IEDL-IDS: An Image-Enhanced Encoder-Based Deep Learning Scheme for Intrusion Det  (year=2026, doi=10.1145/3779432, link=https://doi.org/10.1145/3779432)
+2026-03-03 22:07:54 | DEBUG   |   saved #202  Enhancing Digital Security: A Novel Dual-Paradigm Approach for Robust Deepfake D  (year=2026, doi=10.1145/3794846, link=https://doi.org/10.1145/3794846)
+2026-03-03 22:07:54 | DEBUG   |   saved #203  Exploring Visual Explanations for Defending Federated Learning against Poisoning  (year=2026, doi=10.1145/3799892, link=https://doi.org/10.1145/3799892)
+2026-03-03 22:07:54 | DEBUG   |   saved #204  GAEDM: Genetic Algorithm-Enhanced Static Analysis for Detection of API Hashing O  (year=2026, doi=10.1145/3793198, link=https://doi.org/10.1145/3793198)
+2026-03-03 22:07:54 | DEBUG   |   saved #205  Securing the Foundation of AI: A Deep Dive into Dependency Management and Securi  (year=2026, doi=10.1145/3798048, link=https://doi.org/10.1145/3798048)
+2026-03-03 22:07:54 | DEBUG   |   saved #206  Resilient Dynamic Analysis for Windows Malware Technique Discovery against Behav  (year=2026, doi=10.1145/3799692, link=https://doi.org/10.1145/3799692)
+2026-03-03 22:07:54 | DEBUG   |   saved #207  Introduction to Special Issue on Security and Privacy in Safety-Critical Cyber-P  (year=2026, doi=10.1145/3790255, link=https://doi.org/10.1145/3790255)
+2026-03-03 22:07:54 | DEBUG   |   saved #208  Enabling Efficient Synergistic Multi-view Inference Across Heterogeneous Edge De  (year=2026, doi=10.1145/3785358, link=https://doi.org/10.1145/3785358)
+2026-03-03 22:07:54 | DEBUG   |   saved #209  A Blockchain-Assisted Revocable and Efficient ABSE Scheme for Secure Medical Dat  (year=2026, doi=10.1145/3771992, link=https://doi.org/10.1145/3771992)
+2026-03-03 22:07:54 | DEBUG   |   saved #210  Too Many Issues: Automatically Prioritizing Analyzer Findings by Tracing Securit  (year=2026, doi=10.1145/3744708, link=https://doi.org/10.1145/3744708)
+2026-03-03 22:07:54 | DEBUG   |   saved #211  On Enhancing the Security of Streaming Scan Network through Dual-Functional TDR  (year=2026, doi=10.1145/3779438, link=https://doi.org/10.1145/3779438)
+2026-03-03 22:07:54 | DEBUG   |   saved #212  Not All Paths Are Equal: Multi-path Optimization for Directed Hybrid Fuzzing  (year=2026, doi=10.1145/3735555, link=https://doi.org/10.1145/3735555)
+2026-03-03 22:07:54 | DEBUG   |   saved #213  Novel Security Threats in Multi-Tenant FPGAs: Phase Tuning for Voltage Sensors i  (year=2026, doi=10.1145/3779437, link=https://doi.org/10.1145/3779437)
+2026-03-03 22:07:54 | DEBUG   |   saved #214  A Comprehensive Survey and Taxonomy of Cybersecurity Challenges and Proactive Me  (year=2026, doi=10.1145/3785658, link=https://doi.org/10.1145/3785658)
+2026-03-03 22:07:54 | DEBUG   |   saved #215  Fuzzing: On Benchmarking Outcome as a Function of Benchmark Properties  (year=2026, doi=10.1145/3732936, link=https://doi.org/10.1145/3732936)
+2026-03-03 22:07:54 | DEBUG   |   saved #216  Towards Multifaceted Graph Condensation in Discrete Realm  (year=2026, doi=10.1145/3773966.3777965, link=https://doi.org/10.1145/3773966.3777965)
+2026-03-03 22:07:54 | DEBUG   |   saved #217  From 5G to 6G: A Survey on Security, Privacy, and Standardization Pathways  (year=2026, doi=10.1145/3785467, link=https://doi.org/10.1145/3785467)
+2026-03-03 22:07:54 | DEBUG   |   saved #218  Unlearning Inversion Attacks for Graph Neural Networks  (year=2026, doi=10.1145/3773966.3777929, link=https://doi.org/10.1145/3773966.3777929)
+2026-03-03 22:07:54 | DEBUG   |   saved #219  CSI-Based NTC Using Ambient WiFi: Channel Selection, Topology Control and Traffi  (year=2026, doi=10.1145/3787495, link=https://doi.org/10.1145/3787495)
+2026-03-03 22:07:54 | DEBUG   |   saved #220  Bridging the Abstraction Gap: A Systematic Approach to Rule-Based Transformation  (year=2026, doi=10.1145/3714412, link=https://doi.org/10.1145/3714412)
+2026-03-03 22:07:54 | DEBUG   |   saved #221  TLD-SCA: A Transformer-LSTM Detection Model against Side-Channel Attack in Block  (year=2026, doi=10.1145/3771990, link=https://doi.org/10.1145/3771990)
+2026-03-03 22:07:54 | DEBUG   |   saved #222  A Hands-On Platform for Medical Device Security Education  (year=2026, doi=10.1145/3770761.3777308, link=https://doi.org/10.1145/3770761.3777308)
+2026-03-03 22:07:54 | DEBUG   |   saved #223  Abundant Modalities Offer More Nutrients: Multi-Modal-Based Function-Level Vulne  (year=2026, doi=10.1145/3731557, link=https://doi.org/10.1145/3731557)
+2026-03-03 22:07:54 | DEBUG   |   saved #224  Bipartite-Grammar–Aware Pretraining for XML-SQL Code Updating  (year=2026, doi=10.1145/3731752, link=https://doi.org/10.1145/3731752)
+2026-03-03 22:07:54 | DEBUG   |   saved #225  Less Is More: DocString Compression in Code Generation  (year=2026, doi=10.1145/3735636, link=https://doi.org/10.1145/3735636)
+2026-03-03 22:07:54 | DEBUG   |   saved #226  Integrating Heterogeneous Spatio-Temporal Interactions for Traffic Speed Predict  (year=2026, doi=10.1145/3783987, link=https://doi.org/10.1145/3783987)
+2026-03-03 22:07:54 | DEBUG   |   saved #227  From Fragmentation to Correlation: Reliable LoRa Reception over Weak Marine Link  (year=2026, doi=10.1145/3774326, link=https://doi.org/10.1145/3774326)
+2026-03-03 22:07:54 | DEBUG   |   saved #228  <scp>MORepair</scp>
+                    : Teaching LLMs to Repair Code via Multi  (year=2026, doi=10.1145/3735129, link=https://doi.org/10.1145/3735129)
+2026-03-03 22:07:54 | DEBUG   |   saved #229  Defending Code Language Models against Backdoor Attacks with Deceptive Cross-Ent  (year=2026, doi=10.1145/3728639, link=https://doi.org/10.1145/3728639)
+2026-03-03 22:07:54 | INFO    |   DB flush OK — 229 papers from ACM
+2026-03-03 22:07:54 | INFO    | --- ACM finished: 229 papers ---
+2026-03-03 22:07:54 | INFO    | 
+2026-03-03 22:07:54 | INFO    | ============================================================
+2026-03-03 22:07:54 | INFO    | [2/3] SOURCE: IEEE
+2026-03-03 22:07:54 | INFO    |   Scraper class: app.scrapers.ieee.IEEEScraper
+2026-03-03 22:07:54 | INFO    | ============================================================
+2026-03-03 22:07:54 | DEBUG   |   Scraper class imported: <class 'app.scrapers.ieee.IEEEScraper'>
+2026-03-03 22:07:54 | INFO    | [IEEE] Scraper initialised
+2026-03-03 22:07:54 | DEBUG   |   Scraper instance created
+2026-03-03 22:07:54 | INFO    |   Calling scraper.scrape() with 4 search strings, years 2026–2026
+2026-03-03 22:07:54 | INFO    | [IEEE] scrape() called — 4 search strings, years 2026–2026
+2026-03-03 22:07:54 | INFO    | [IEEE] ── YEAR 2026 ──
+2026-03-03 22:07:54 | INFO    | [IEEE] REM-1 | year 2026 — navigating...
+2026-03-03 22:07:54 | DEBUG   | [IEEE-NAV] URL: https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&ranges=2026_2026_Year
+2026-03-03 22:07:54 | DEBUG   | [IEEE-NAV] Loading page (attempt 1/3)...
+2026-03-03 22:07:59 | DEBUG   | [IEEE-NAV] Page loaded, current URL=https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=(%22vulnerability%22%20OR%20%22vulnerabilities%22%20OR%20%22security%20flaw%22%20OR%20%22security%20weakness%22)%20AND%20(%22remediation%22%20OR%20%22mitigation%22%20OR%20%22fix%22%20OR%20%22fixing%22%20OR%20%22repair%22%20OR%20%22patch%22%20OR%20%22patching%22)%20AND%20(%22software%22%20OR%20%22code%22%20OR%20%22application%22%20OR%20%22source%20code%22)&ranges=2026_2026_Year
+2026-03-03 22:08:06 | DEBUG   | [CAPTCHA-CHECK] URL=https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=(%22vulnerability%22%20OR%20%22vulnerabilities%22%20OR%20%22security%20flaw%22%20OR%20%22security%20weakness%22)%20AND%20(%22remediation%22%20OR%20%22mitigation%22%20OR%20%22fix%22%20OR%20%22fixing%22%20OR%20%22repair%22%20OR%20%22patch%22%20OR%20%22patching%22)%20AND%20(%22software%22%20OR%20%22code%22%20OR%20%22application%22%20OR%20%22source%20code%22)&ranges=2026_2026_Year  title='ieee xplore search results'
+2026-03-03 22:08:08 | DEBUG   | [CAPTCHA-CHECK] Body text length: 8934 chars
+2026-03-03 22:08:08 | DEBUG   | [CAPTCHA-CHECK] No CAPTCHA detected
+2026-03-03 22:08:08 | INFO    | [PAGE-READY] First visit — page loaded successfully. URL=https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=(%22vulnerability%22%20OR%20%22vulnerabilities%22%20OR%20%22security%20flaw%22%20OR%20%22security%20weakness%22)%20AND%20(%22remediation%22%20OR%20%22mitigation%22%20OR%20%22fix%22%20OR%20%22fixing%22%20OR%20%22repair%22%20OR%20%22patch%22%20OR%20%22patching%22)%20AND%20(%22software%22%20OR%20%22code%22%20OR%20%22application%22%20OR%20%22source%20code%22)&ranges=2026_2026_Year
+2026-03-03 22:08:08 | DEBUG   | [CAPTCHA-CHECK] URL=https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=(%22vulnerability%22%20OR%20%22vulnerabilities%22%20OR%20%22security%20flaw%22%20OR%20%22security%20weakness%22)%20AND%20(%22remediation%22%20OR%20%22mitigation%22%20OR%20%22fix%22%20OR%20%22fixing%22%20OR%20%22repair%22%20OR%20%22patch%22%20OR%20%22patching%22)%20AND%20(%22software%22%20OR%20%22code%22%20OR%20%22application%22%20OR%20%22source%20code%22)&ranges=2026_2026_Year  title='ieee xplore search results'
+2026-03-03 22:08:09 | DEBUG   | [CAPTCHA-CHECK] Body text length: 8893 chars
+2026-03-03 22:08:09 | DEBUG   | [CAPTCHA-CHECK] No CAPTCHA detected
+2026-03-03 22:08:09 | DEBUG   | [IEEE-NAV] No CAPTCHA detected
+2026-03-03 22:08:10 | DEBUG   | [IEEE-COUNT] Body text length: 8893 chars
+2026-03-03 22:08:10 | DEBUG   | [IEEE-COUNT] Strategy 1 (body text regex): 47
+2026-03-03 22:08:10 | INFO    | [IEEE-NAV] Total result count: 47
+2026-03-03 22:08:10 | INFO    | [IEEE] REM-1 | 2026 — navigation OK, expected results: 47
+2026-03-03 22:08:10 | DEBUG   | [IEEE] REM-1 | 2026: scraping all pages (expected=47)...
+2026-03-03 22:08:10 | DEBUG   | [IEEE-PAGES] Starting pagination (expected=47)
+2026-03-03 22:08:10 | DEBUG   | [IEEE-PAGES] Page 1 — waiting for results...
+2026-03-03 22:08:14 | DEBUG   | [IEEE-PAGES] Page 1 — results container appeared
+2026-03-03 22:08:15 | DEBUG   | [IEEE-PAGES] Page 1: found 50 result elements
+2026-03-03 22:08:28 | DEBUG   | [IEEE-PAGES] Page 1: +25 new papers (total 25 / expected 47)
+2026-03-03 22:08:36 | DEBUG   | [IEEE-PAGES] Page 2 — waiting for results...
+2026-03-03 22:08:38 | DEBUG   | [IEEE-PAGES] Page 2 — results container appeared
+2026-03-03 22:08:38 | DEBUG   | [IEEE-PAGES] Page 2: found 44 result elements
+2026-03-03 22:08:48 | DEBUG   | [IEEE-PAGES] Page 2: +22 new papers (total 47 / expected 47)
+2026-03-03 22:08:48 | DEBUG   | [IEEE-PAGES] Reached expected count — stopping
+2026-03-03 22:08:48 | INFO    | [IEEE-PAGES] Pagination done: 47 papers collected over 2 pages
+2026-03-03 22:08:48 | INFO    | [IEEE] REM-1 | 2026: scraped 47 papers (expected 47)
+2026-03-03 22:08:52 | INFO    | [IEEE] REM-2 | year 2026 — navigating...
+2026-03-03 22:08:52 | DEBUG   | [IEEE-NAV] URL: https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=%28%22security+refactoring%22+OR+%22secure+refactoring%22+OR+%22refactoring%22%29+AND+%28%22vulnerability%22+OR+%22security%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22%29&ranges=2026_2026_Year
+2026-03-03 22:08:52 | DEBUG   | [IEEE-NAV] Loading page (attempt 1/3)...
+2026-03-03 22:08:54 | DEBUG   | [IEEE-NAV] Page loaded, current URL=https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=(%22security%20refactoring%22%20OR%20%22secure%20refactoring%22%20OR%20%22refactoring%22)%20AND%20(%22vulnerability%22%20OR%20%22security%22)%20AND%20(%22software%22%20OR%20%22code%22%20OR%20%22application%22)&ranges=2026_2026_Year
+2026-03-03 22:09:00 | DEBUG   | [CAPTCHA-CHECK] URL=https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=(%22security%20refactoring%22%20OR%20%22secure%20refactoring%22%20OR%20%22refactoring%22)%20AND%20(%22vulnerability%22%20OR%20%22security%22)%20AND%20(%22software%22%20OR%20%22code%22%20OR%20%22application%22)&ranges=2026_2026_Year  title='ieee xplore search results'
+2026-03-03 22:09:00 | DEBUG   | [CAPTCHA-CHECK] Body text length: 4635 chars
+2026-03-03 22:09:00 | DEBUG   | [CAPTCHA-CHECK] No CAPTCHA detected
+2026-03-03 22:09:00 | DEBUG   | [CAPTCHA-CHECK] URL=https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=(%22security%20refactoring%22%20OR%20%22secure%20refactoring%22%20OR%20%22refactoring%22)%20AND%20(%22vulnerability%22%20OR%20%22security%22)%20AND%20(%22software%22%20OR%20%22code%22%20OR%20%22application%22)&ranges=2026_2026_Year  title='ieee xplore search results'
+2026-03-03 22:09:01 | DEBUG   | [CAPTCHA-CHECK] Body text length: 4635 chars
+2026-03-03 22:09:01 | DEBUG   | [CAPTCHA-CHECK] No CAPTCHA detected
+2026-03-03 22:09:01 | DEBUG   | [IEEE-NAV] No CAPTCHA detected
+2026-03-03 22:09:02 | DEBUG   | [IEEE-COUNT] Body text length: 4635 chars
+2026-03-03 22:09:02 | DEBUG   | [IEEE-COUNT] Strategy 1 (body text regex): 11
+2026-03-03 22:09:02 | INFO    | [IEEE-NAV] Total result count: 11
+2026-03-03 22:09:02 | INFO    | [IEEE] REM-2 | 2026 — navigation OK, expected results: 11
+2026-03-03 22:09:02 | DEBUG   | [IEEE] REM-2 | 2026: scraping all pages (expected=11)...
+2026-03-03 22:09:02 | DEBUG   | [IEEE-PAGES] Starting pagination (expected=11)
+2026-03-03 22:09:02 | DEBUG   | [IEEE-PAGES] Page 1 — waiting for results...
+2026-03-03 22:09:04 | DEBUG   | [IEEE-PAGES] Page 1 — results container appeared
+2026-03-03 22:09:04 | DEBUG   | [IEEE-PAGES] Page 1: found 22 result elements
+2026-03-03 22:09:08 | DEBUG   | [IEEE-PAGES] Page 1: +10 new papers (total 10 / expected 11)
+2026-03-03 22:09:08 | DEBUG   | [IEEE-PAGES] No next page button — stopping
+2026-03-03 22:09:08 | INFO    | [IEEE-PAGES] Pagination done: 10 papers collected over 1 pages
+2026-03-03 22:09:08 | INFO    | [IEEE] REM-2 | 2026: scraped 10 papers (expected 11)
+2026-03-03 22:09:11 | INFO    | [IEEE] REM-3 | year 2026 — navigating...
+2026-03-03 22:09:11 | DEBUG   | [IEEE-NAV] URL: https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=%28%22automated%22+OR+%22automatic%22+OR+%22semi-automated%22%29+AND+%28%22vulnerability+remediation%22+OR+%22vulnerability+mitigation%22+OR+%22security+fix%22%29+AND+%28%22software%22+OR+%22application%22%29&ranges=2026_2026_Year
+2026-03-03 22:09:11 | DEBUG   | [IEEE-NAV] Loading page (attempt 1/3)...
+2026-03-03 22:09:14 | DEBUG   | [IEEE-NAV] Page loaded, current URL=https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=(%22automated%22%20OR%20%22automatic%22%20OR%20%22semi-automated%22)%20AND%20(%22vulnerability%20remediation%22%20OR%20%22vulnerability%20mitigation%22%20OR%20%22security%20fix%22)%20AND%20(%22software%22%20OR%20%22application%22)&ranges=2026_2026_Year
+2026-03-03 22:09:19 | DEBUG   | [CAPTCHA-CHECK] URL=https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=(%22automated%22%20OR%20%22automatic%22%20OR%20%22semi-automated%22)%20AND%20(%22vulnerability%20remediation%22%20OR%20%22vulnerability%20mitigation%22%20OR%20%22security%20fix%22)%20AND%20(%22software%22%20OR%20%22application%22)&ranges=2026_2026_Year  title='ieee xplore search results'
+2026-03-03 22:09:19 | DEBUG   | [CAPTCHA-CHECK] Body text length: 1632 chars
+2026-03-03 22:09:19 | DEBUG   | [CAPTCHA-CHECK] No CAPTCHA detected
+2026-03-03 22:09:19 | DEBUG   | [CAPTCHA-CHECK] URL=https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=(%22automated%22%20OR%20%22automatic%22%20OR%20%22semi-automated%22)%20AND%20(%22vulnerability%20remediation%22%20OR%20%22vulnerability%20mitigation%22%20OR%20%22security%20fix%22)%20AND%20(%22software%22%20OR%20%22application%22)&ranges=2026_2026_Year  title='ieee xplore search results'
+2026-03-03 22:09:19 | DEBUG   | [CAPTCHA-CHECK] Body text length: 1632 chars
+2026-03-03 22:09:19 | DEBUG   | [CAPTCHA-CHECK] No CAPTCHA detected
+2026-03-03 22:09:19 | DEBUG   | [IEEE-NAV] No CAPTCHA detected
+2026-03-03 22:09:19 | INFO    | [IEEE-NAV] 'No results found' detected on page
+2026-03-03 22:09:19 | INFO    | [IEEE] REM-3 | 2026 — navigation OK, expected results: 0
+2026-03-03 22:09:19 | INFO    | [IEEE] REM-3 | 2026: 0 expected results — skipping
+2026-03-03 22:09:19 | INFO    | [IEEE] REM-4 | year 2026 — navigating...
+2026-03-03 22:09:19 | DEBUG   | [IEEE-NAV] URL: https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=%28%22code+transformation%22+OR+%22program+transformation%22+OR+%22security+hardening%22%29+AND+%28%22vulnerability%22+OR+%22security+flaw%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22%29&ranges=2026_2026_Year
+2026-03-03 22:09:19 | DEBUG   | [IEEE-NAV] Loading page (attempt 1/3)...
+2026-03-03 22:09:22 | DEBUG   | [IEEE-NAV] Page loaded, current URL=https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=(%22code%20transformation%22%20OR%20%22program%20transformation%22%20OR%20%22security%20hardening%22)%20AND%20(%22vulnerability%22%20OR%20%22security%20flaw%22)%20AND%20(%22remediation%22%20OR%20%22mitigation%22%20OR%20%22fix%22)&ranges=2026_2026_Year
+2026-03-03 22:09:28 | DEBUG   | [CAPTCHA-CHECK] URL=https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=(%22code%20transformation%22%20OR%20%22program%20transformation%22%20OR%20%22security%20hardening%22)%20AND%20(%22vulnerability%22%20OR%20%22security%20flaw%22)%20AND%20(%22remediation%22%20OR%20%22mitigation%22%20OR%20%22fix%22)&ranges=2026_2026_Year  title='ieee xplore search results'
+2026-03-03 22:09:29 | DEBUG   | [CAPTCHA-CHECK] Body text length: 1941 chars
+2026-03-03 22:09:29 | DEBUG   | [CAPTCHA-CHECK] No CAPTCHA detected
+2026-03-03 22:09:29 | DEBUG   | [CAPTCHA-CHECK] URL=https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=(%22code%20transformation%22%20OR%20%22program%20transformation%22%20OR%20%22security%20hardening%22)%20AND%20(%22vulnerability%22%20OR%20%22security%20flaw%22)%20AND%20(%22remediation%22%20OR%20%22mitigation%22%20OR%20%22fix%22)&ranges=2026_2026_Year  title='ieee xplore search results'
+2026-03-03 22:09:29 | DEBUG   | [CAPTCHA-CHECK] Body text length: 1941 chars
+2026-03-03 22:09:29 | DEBUG   | [CAPTCHA-CHECK] No CAPTCHA detected
+2026-03-03 22:09:29 | DEBUG   | [IEEE-NAV] No CAPTCHA detected
+2026-03-03 22:09:29 | DEBUG   | [IEEE-COUNT] Body text length: 1941 chars
+2026-03-03 22:09:29 | DEBUG   | [IEEE-COUNT] Strategy 3 (DOM count): 3 items
+2026-03-03 22:09:29 | INFO    | [IEEE-NAV] Total result count: 3
+2026-03-03 22:09:29 | INFO    | [IEEE] REM-4 | 2026 — navigation OK, expected results: 3
+2026-03-03 22:09:29 | DEBUG   | [IEEE] REM-4 | 2026: scraping all pages (expected=3)...
+2026-03-03 22:09:29 | DEBUG   | [IEEE-PAGES] Starting pagination (expected=3)
+2026-03-03 22:09:29 | DEBUG   | [IEEE-PAGES] Page 1 — waiting for results...
+2026-03-03 22:09:33 | DEBUG   | [IEEE-PAGES] Page 1 — results container appeared
+2026-03-03 22:09:33 | DEBUG   | [IEEE-PAGES] Page 1: found 2 result elements
+2026-03-03 22:09:33 | DEBUG   | [IEEE-PAGES] Page 1: +1 new papers (total 1 / expected 3)
+2026-03-03 22:09:33 | DEBUG   | [IEEE-PAGES] No next page button — stopping
+2026-03-03 22:09:33 | INFO    | [IEEE-PAGES] Pagination done: 1 papers collected over 1 pages
+2026-03-03 22:09:33 | INFO    | [IEEE] REM-4 | 2026: scraped 1 papers (expected 3)
+2026-03-03 22:09:37 | INFO    | [IEEE] Year 2026 dedup: 58 → 55 papers
+2026-03-03 22:09:37 | INFO    | [IEEE] Year 2026 done — 55 papers (running total 55)
+2026-03-03 22:09:41 | INFO    | [IEEE] scrape() finished — total 55 papers
+2026-03-03 22:09:41 | INFO    |   scraper.scrape() returned DataFrame with 55 rows, columns=['Title', 'Link', 'Authors', 'Year', 'Publisher', 'DOI', 'Source', 'Search_String']
+2026-03-03 22:09:41 | DEBUG   |   saved #1  Reaching Software Quality for Bioinformatics Applications: How Far Are We?  (year=2026, doi=10.1109/11281877, link=https://ieeexplore.ieee.org/document/11281877/)
+2026-03-03 22:09:41 | DEBUG   |   saved #2  Vercation: Precise Vulnerable Open-Source Software Version Identification Based   (year=2026, doi=10.1109/11129942, link=https://ieeexplore.ieee.org/document/11129942/)
+2026-03-03 22:09:41 | DEBUG   |   saved #3  Identifying and Mitigating API Misuse in Large Language Models  (year=2026, doi=10.1109/11329192, link=https://ieeexplore.ieee.org/document/11329192/)
+2026-03-03 22:09:41 | DEBUG   |   saved #4  Bias-Free and Auto-Evolving Generative AI: Design Principles, Architectures, and  (year=2026, doi=10.1109/11366270, link=https://ieeexplore.ieee.org/document/11366270/)
+2026-03-03 22:09:41 | DEBUG   |   saved #5  A Systematic Security Analysis of Model Context Protocol: Vulnerabilities, Explo  (year=2026, doi=10.1109/11395848, link=https://ieeexplore.ieee.org/document/11395848/)
+2026-03-03 22:09:41 | DEBUG   |   saved #6  Transformation of Vulnerability Management Through Artificial Intelligence: An O  (year=2026, doi=10.1109/11393471, link=https://ieeexplore.ieee.org/document/11393471/)
+2026-03-03 22:09:41 | DEBUG   |   saved #7  Do Automated Fixes Truly Mitigate Smart Contract Exploits?  (year=2026, doi=10.1109/11197044, link=https://ieeexplore.ieee.org/document/11197044/)
+2026-03-03 22:09:41 | DEBUG   |   saved #8  A Modular, Passive Scanning Framework for Efficient Web Vulnerability Enumeratio  (year=2026, doi=10.1109/11394294, link=https://ieeexplore.ieee.org/document/11394294/)
+2026-03-03 22:09:41 | DEBUG   |   saved #9  Designing for the Unlikely: Mitigation Against Rare, High-Impact Threats  (year=2026, doi=10.1109/11298556, link=https://ieeexplore.ieee.org/document/11298556/)
+2026-03-03 22:09:41 | DEBUG   |   saved #10  Co-EDR: Cooperative Event-Driven Fuzzing for Efficient Vulnerability Detection i  (year=2026, doi=10.1109/11394717, link=https://ieeexplore.ieee.org/document/11394717/)
+2026-03-03 22:09:41 | DEBUG   |   saved #11  Generative AI for Advanced Cyber Defense  (year=2026, doi=10.1109/11357432, link=https://ieeexplore.ieee.org/document/11357432/)
+2026-03-03 22:09:41 | DEBUG   |   saved #12  DroneTest-Copilot: LLM-Powered Automated Detection and Repair of Flaws in Drone   (year=2026, doi=10.1109/11348971, link=https://ieeexplore.ieee.org/document/11348971/)
+2026-03-03 22:09:41 | DEBUG   |   saved #13  Vulnerability Assessment of Starlink User Terminals: Firmware and gRPC Communica  (year=2026, doi=10.1109/11417791, link=https://ieeexplore.ieee.org/document/11417791/)
+2026-03-03 22:09:41 | DEBUG   |   saved #14  Security and Privacy in O-RAN for 6G: A Comprehensive Review of Threats and Miti  (year=2026, doi=10.1109/11418661, link=https://ieeexplore.ieee.org/document/11418661/)
+2026-03-03 22:09:41 | DEBUG   |   saved #15  LoRA Patching: Exposing the Fragility of Proactive Defenses Against Deepfakes  (year=2026, doi=10.1109/11298389, link=https://ieeexplore.ieee.org/document/11298389/)
+2026-03-03 22:09:41 | DEBUG   |   saved #16  A Systematic Review of Prompt Injection Attacks on Large Language Models: Trends  (year=2026, doi=10.1109/11359704, link=https://ieeexplore.ieee.org/document/11359704/)
+2026-03-03 22:09:41 | DEBUG   |   saved #17  Detecting Ethereum Smart Contract Vulnerabilities via Bytecode Image Analysis  (year=2026, doi=10.1109/11345231, link=https://ieeexplore.ieee.org/document/11345231/)
+2026-03-03 22:09:41 | DEBUG   |   saved #18  Generative AI as a Security Tool  (year=2026, doi=10.1109/11230030, link=https://ieeexplore.ieee.org/document/11230030/)
+2026-03-03 22:09:41 | DEBUG   |   saved #19  Unveiling the Global Landscape of Android Security Updates  (year=2026, doi=10.1109/11370963, link=https://ieeexplore.ieee.org/document/11370963/)
+2026-03-03 22:09:41 | DEBUG   |   saved #20  Mujaz: A Summarization-Based Approach for Normalized Vulnerability Description  (year=2026, doi=10.1109/11198914, link=https://ieeexplore.ieee.org/document/11198914/)
+2026-03-03 22:09:41 | DEBUG   |   saved #21  Agentic Commerce: A Comprehensive Analysis of Cybersecurity Risks, Privacy Chall  (year=2026, doi=10.1109/11395759, link=https://ieeexplore.ieee.org/document/11395759/)
+2026-03-03 22:09:41 | DEBUG   |   saved #22  Generative Adversarial Networks Based Low-Rate Denial of Service Attack Detectio  (year=2026, doi=10.1109/11217229, link=https://ieeexplore.ieee.org/document/11217229/)
+2026-03-03 22:09:41 | DEBUG   |   saved #23  Federated Learning-Driven Covert Communication in Satellite–Terrestrial Integrat  (year=2026, doi=10.1109/11270855, link=https://ieeexplore.ieee.org/document/11270855/)
+2026-03-03 22:09:41 | DEBUG   |   saved #24  Detection and Mitigation of False Data Injection Attacks Against Wind Farm Activ  (year=2026, doi=10.1109/11184714, link=https://ieeexplore.ieee.org/document/11184714/)
+2026-03-03 22:09:41 | DEBUG   |   saved #25  A Web Protection Model Against Internationalized Domain Name Homograph Exploits  (year=2026, doi=10.1109/11296804, link=https://ieeexplore.ieee.org/document/11296804/)
+2026-03-03 22:09:41 | DEBUG   |   saved #26  Hybrid CNN-LSTM Model for DDoS Detection and Mitigation in Software-Defined Netw  (year=2026, doi=10.1109/11386962, link=https://ieeexplore.ieee.org/document/11386962/)
+2026-03-03 22:09:41 | DEBUG   |   saved #27  Attack-Phase Aware Dynamic Vulnerability Prioritization Framework  (year=2026, doi=10.1109/11394291, link=https://ieeexplore.ieee.org/document/11394291/)
+2026-03-03 22:09:41 | DEBUG   |   saved #28  Cost-Aware Cyber-Threat Mitigation Framework for Critical Infrastructure Environ  (year=2026, doi=10.1109/11366489, link=https://ieeexplore.ieee.org/document/11366489/)
+2026-03-03 22:09:41 | DEBUG   |   saved #29  Cyber-Physical Security of Virtual Power Plants: A Survey  (year=2026, doi=10.1109/11396009, link=https://ieeexplore.ieee.org/document/11396009/)
+2026-03-03 22:09:41 | DEBUG   |   saved #30  A Novel Internet of Things Botnet Propagation Process and Defense Strategy  (year=2026, doi=10.1109/11320855, link=https://ieeexplore.ieee.org/document/11320855/)
+2026-03-03 22:09:41 | DEBUG   |   saved #31  Robust Distributed Learning Framework for FDIA Estimation and Mitigation in Grid  (year=2026, doi=10.1109/11159598, link=https://ieeexplore.ieee.org/document/11159598/)
+2026-03-03 22:09:41 | DEBUG   |   saved #32  The AI-Cybersecurity Nexus: How Large Language Models are Reshaping Threat Intel  (year=2026, doi=10.1109/11366235, link=https://ieeexplore.ieee.org/document/11366235/)
+2026-03-03 22:09:41 | DEBUG   |   saved #33  Adaptive Runtime Risk Assessment With Aging-Aware Feasibility for Safety-Critica  (year=2026, doi=10.1109/11399852, link=https://ieeexplore.ieee.org/document/11399852/)
+2026-03-03 22:09:41 | DEBUG   |   saved #34  A Long Short Term Memory Network-based False Data Injection Cyberattack Detectio  (year=2026, doi=10.1109/11397618, link=https://ieeexplore.ieee.org/document/11397618/)
+2026-03-03 22:09:41 | DEBUG   |   saved #35  VishBox: An AI-Agent-Based Adaptive Voice Phishing Simulation Framework for Cybe  (year=2026, doi=10.1109/11411806, link=https://ieeexplore.ieee.org/document/11411806/)
+2026-03-03 22:09:41 | DEBUG   |   saved #36  Chimera-RL: An End-to-End Autonomous Red-Teaming Framework for LLM Applications  (year=2026, doi=10.1109/11368884, link=https://ieeexplore.ieee.org/document/11368884/)
+2026-03-03 22:09:41 | DEBUG   |   saved #37  A Post-Quantum Secure Solution for SECS/GEM Communications in Industrial Interne  (year=2026, doi=10.1109/11347542, link=https://ieeexplore.ieee.org/document/11347542/)
+2026-03-03 22:09:41 | DEBUG   |   saved #38  Sunspec Modbus Based Smart Inverter Cyber-Attack Modeling and Mitigation Scheme  (year=2026, doi=10.1109/11193993, link=https://ieeexplore.ieee.org/document/11193993/)
+2026-03-03 22:09:41 | DEBUG   |   saved #39  A Multidimensional Survey of Intelligent IoT Systems for Gunshot Detection  (year=2026, doi=10.1109/11363573, link=https://ieeexplore.ieee.org/document/11363573/)
+2026-03-03 22:09:41 | DEBUG   |   saved #40  Passive Security Enhancement Schemes  (year=2026, doi=10.1109/11215937, link=https://ieeexplore.ieee.org/document/11215937/)
+2026-03-03 22:09:41 | DEBUG   |   saved #41  Towards Patch-Based Noise Compression for Adversarial Attack Against Transformer  (year=2026, doi=10.1109/11316104, link=https://ieeexplore.ieee.org/document/11316104/)
+2026-03-03 22:09:41 | DEBUG   |   saved #42  Security Risks of AI/ML With a Focus on Reinforcement Learning: A Review and Per  (year=2026, doi=10.1109/11229437, link=https://ieeexplore.ieee.org/document/11229437/)
+2026-03-03 22:09:41 | DEBUG   |   saved #43  DR-Store: A Dynamic Reliable Coded Blockchain Architecture  (year=2026, doi=10.1109/11260912, link=https://ieeexplore.ieee.org/document/11260912/)
+2026-03-03 22:09:41 | DEBUG   |   saved #44  Technology-Driven Emergency Mass Evacuation: An Operations and Engineering Manag  (year=2026, doi=10.1109/11386771, link=https://ieeexplore.ieee.org/document/11386771/)
+2026-03-03 22:09:41 | DEBUG   |   saved #45  Towards Secure Air Traffic Surveillance: A Survey on ADS-B Threats, Existing Sol  (year=2026, doi=10.1109/11340614, link=https://ieeexplore.ieee.org/document/11340614/)
+2026-03-03 22:09:41 | DEBUG   |   saved #46  Cognitive Security Risks and Countermeasures of Generative Artificial Intelligen  (year=2026, doi=10.1109/11372909, link=https://ieeexplore.ieee.org/document/11372909/)
+2026-03-03 22:09:41 | DEBUG   |   saved #47  Hardware Security Modules for Secure Communications in the Industrial Internet o  (year=2026, doi=10.1109/11129101, link=https://ieeexplore.ieee.org/document/11129101/)
+2026-03-03 22:09:41 | DEBUG   |   saved #48  Bridging the Gap Using GPT-4 to Summarize and Explain Static Analysis Warnings a  (year=2026, doi=10.1109/11395881, link=https://ieeexplore.ieee.org/document/11395881/)
+2026-03-03 22:09:41 | DEBUG   |   saved #49  SoK: Evolution of the Key Encapsulation Mechanism’s Role in Cryptographic Migrat  (year=2026, doi=10.1109/11352720, link=https://ieeexplore.ieee.org/document/11352720/)
+2026-03-03 22:09:41 | DEBUG   |   saved #50  COSTAR: Software Code Smell Detection Through Tree-Based Abstract Representation  (year=2026, doi=10.1109/11342366, link=https://ieeexplore.ieee.org/document/11342366/)
+2026-03-03 22:09:41 | DEBUG   |   saved #51  AI-Augmented Software Engineering for Rapid Feature Delivery and Operations Auto  (year=2026, doi=10.1109/11393761, link=https://ieeexplore.ieee.org/document/11393761/)
+2026-03-03 22:09:41 | DEBUG   |   saved #52  Securing Outsourced Computing With Trusted Execution Environments: A Case Study   (year=2026, doi=10.1109/11214263, link=https://ieeexplore.ieee.org/document/11214263/)
+2026-03-03 22:09:41 | DEBUG   |   saved #53  Improving Gas Efficiency in Smart Contracts: Data-Driven Insights and LLM-Assist  (year=2026, doi=10.1109/11398399, link=https://ieeexplore.ieee.org/document/11398399/)
+2026-03-03 22:09:41 | DEBUG   |   saved #54  From UIKit to SwiftUI: A Quantitative Analysis of Migration Strategies for Large  (year=2026, doi=10.1109/11395797, link=https://ieeexplore.ieee.org/document/11395797/)
+2026-03-03 22:09:41 | DEBUG   |   saved #55  Towards Secure Program Partitioning for Smart Contracts with LLM’s In-Context Le  (year=2026, doi=10.1109/11417948, link=https://ieeexplore.ieee.org/document/11417948/)
+2026-03-03 22:09:41 | INFO    |   DB flush OK — 55 papers from IEEE
+2026-03-03 22:09:41 | INFO    | --- IEEE finished: 55 papers ---
+2026-03-03 22:09:41 | INFO    | 
+2026-03-03 22:09:41 | INFO    | ============================================================
+2026-03-03 22:09:41 | INFO    | [3/3] SOURCE: SPRINGER
+2026-03-03 22:09:41 | INFO    |   Scraper class: app.scrapers.springer.SpringerScraper
+2026-03-03 22:09:41 | INFO    | ============================================================
+2026-03-03 22:09:41 | DEBUG   |   Scraper class imported: <class 'app.scrapers.springer.SpringerScraper'>
+2026-03-03 22:09:41 | INFO    | [Springer] Scraper initialised  (BS4=True, http_works=True)
+2026-03-03 22:09:41 | DEBUG   |   Scraper instance created
+2026-03-03 22:09:41 | INFO    |   Calling scraper.scrape() with 4 search strings, years 2026–2026
+2026-03-03 22:09:41 | INFO    | [Springer] scrape() called — 4 search strings, years 2026–2026
+2026-03-03 22:09:41 | INFO    | [Springer] ── YEAR 2026 ──
+2026-03-03 22:09:41 | INFO    | [Springer] REM-1 | year 2026
+2026-03-03 22:09:41 | DEBUG   | [Springer-ADAPTIVE] query='REM-1' year=2026 months=1–12
+2026-03-03 22:09:41 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=1&facet-end-month=12
+2026-03-03 22:09:42 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=352467
+2026-03-03 22:09:43 | DEBUG   | [Springer-TOTAL] Extracted total: 2495
+2026-03-03 22:09:43 | DEBUG   | [Springer-ADAPTIVE] Total results: 2495 (threshold=1000)
+2026-03-03 22:09:43 | INFO    | [Springer-ADAPTIVE] 2495 results — subdividing months 1–12
+2026-03-03 22:09:43 | DEBUG   | [Springer-ADAPTIVE] Sub-query: month 1
+2026-03-03 22:09:43 | DEBUG   | [Springer-ADAPTIVE] query='REM-1' year=2026 months=1–1
+2026-03-03 22:09:43 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=1&facet-end-month=1
+2026-03-03 22:09:43 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=352466
+2026-03-03 22:09:43 | DEBUG   | [Springer-TOTAL] Extracted total: 2495
+2026-03-03 22:09:43 | DEBUG   | [Springer-ADAPTIVE] Total results: 2495 (threshold=1000)
+2026-03-03 22:09:43 | WARNING | [Springer-ADAPTIVE] 2495 results in single month range — some may be missed
+2026-03-03 22:09:43 | DEBUG   | [Springer-ADAPTIVE] Trying HTTP scraping...
+2026-03-03 22:09:43 | DEBUG   | [Springer-HTTP] Starting HTTP pagination (max_pages=100)
+2026-03-03 22:09:43 | DEBUG   | [Springer-HTTP] GET page 1: https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=1&facet-end-month=1
+2026-03-03 22:09:44 | DEBUG   | [Springer-HTTP] Response: status=200, length=352466
+2026-03-03 22:09:44 | DEBUG   | [Springer-HTTP] Parsed page 1: 20 papers
+2026-03-03 22:09:44 | INFO    | [Springer-HTTP] Page 1: +20 (total 20)
+2026-03-03 22:09:47 | DEBUG   | [Springer-HTTP] GET page 2: https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=1&facet-end-month=1&page=2
+2026-03-03 22:09:47 | DEBUG   | [Springer-HTTP] Response: status=200, length=350751
+2026-03-03 22:09:48 | DEBUG   | [Springer-HTTP] Parsed page 2: 20 papers
+2026-03-03 22:09:48 | INFO    | [Springer-HTTP] Page 2: +20 (total 40)
+2026-03-03 22:09:50 | DEBUG   | [Springer-HTTP] GET page 3: https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=1&facet-end-month=1&page=3
+2026-03-03 22:09:51 | DEBUG   | [Springer-HTTP] Response: status=200, length=3099
+2026-03-03 22:09:51 | DEBUG   | [Springer-HTTP] Parsed page 3: 0 papers
+2026-03-03 22:09:51 | DEBUG   | [Springer-HTTP] No papers on page 3 — stopping
+2026-03-03 22:09:51 | INFO    | [Springer-HTTP] Finished — 40 papers across 3 pages
+2026-03-03 22:09:51 | INFO    | [Springer-ADAPTIVE] HTTP succeeded: 40 papers
+2026-03-03 22:09:53 | DEBUG   | [Springer-ADAPTIVE] Sub-query: month 2
+2026-03-03 22:09:53 | DEBUG   | [Springer-ADAPTIVE] query='REM-1' year=2026 months=2–2
+2026-03-03 22:09:53 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=2&facet-end-month=2
+2026-03-03 22:09:53 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=3099
+2026-03-03 22:09:53 | DEBUG   | [Springer-TOTAL] Extracted total: 0
+2026-03-03 22:09:53 | DEBUG   | [Springer-ADAPTIVE] Total results: 0 (threshold=1000)
+2026-03-03 22:09:53 | DEBUG   | [Springer-ADAPTIVE] 0 results — returning empty
+2026-03-03 22:09:55 | DEBUG   | [Springer-ADAPTIVE] Sub-query: month 3
+2026-03-03 22:09:55 | DEBUG   | [Springer-ADAPTIVE] query='REM-1' year=2026 months=3–3
+2026-03-03 22:09:55 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=3&facet-end-month=3
+2026-03-03 22:09:55 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=3099
+2026-03-03 22:09:55 | DEBUG   | [Springer-TOTAL] Extracted total: 0
+2026-03-03 22:09:55 | DEBUG   | [Springer-ADAPTIVE] Total results: 0 (threshold=1000)
+2026-03-03 22:09:55 | DEBUG   | [Springer-ADAPTIVE] 0 results — returning empty
+2026-03-03 22:09:57 | DEBUG   | [Springer-ADAPTIVE] Sub-query: month 4
+2026-03-03 22:09:57 | DEBUG   | [Springer-ADAPTIVE] query='REM-1' year=2026 months=4–4
+2026-03-03 22:09:57 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=4&facet-end-month=4
+2026-03-03 22:09:57 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=3099
+2026-03-03 22:09:57 | DEBUG   | [Springer-TOTAL] Extracted total: 0
+2026-03-03 22:09:57 | DEBUG   | [Springer-ADAPTIVE] Total results: 0 (threshold=1000)
+2026-03-03 22:09:57 | DEBUG   | [Springer-ADAPTIVE] 0 results — returning empty
+2026-03-03 22:09:59 | DEBUG   | [Springer-ADAPTIVE] Sub-query: month 5
+2026-03-03 22:09:59 | DEBUG   | [Springer-ADAPTIVE] query='REM-1' year=2026 months=5–5
+2026-03-03 22:09:59 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=5&facet-end-month=5
+2026-03-03 22:09:59 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=3099
+2026-03-03 22:09:59 | DEBUG   | [Springer-TOTAL] Extracted total: 0
+2026-03-03 22:09:59 | DEBUG   | [Springer-ADAPTIVE] Total results: 0 (threshold=1000)
+2026-03-03 22:09:59 | DEBUG   | [Springer-ADAPTIVE] 0 results — returning empty
+2026-03-03 22:10:01 | DEBUG   | [Springer-ADAPTIVE] Sub-query: month 6
+2026-03-03 22:10:01 | DEBUG   | [Springer-ADAPTIVE] query='REM-1' year=2026 months=6–6
+2026-03-03 22:10:01 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=6&facet-end-month=6
+2026-03-03 22:10:01 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=3099
+2026-03-03 22:10:01 | DEBUG   | [Springer-TOTAL] Extracted total: 0
+2026-03-03 22:10:01 | DEBUG   | [Springer-ADAPTIVE] Total results: 0 (threshold=1000)
+2026-03-03 22:10:01 | DEBUG   | [Springer-ADAPTIVE] 0 results — returning empty
+2026-03-03 22:10:03 | DEBUG   | [Springer-ADAPTIVE] Sub-query: month 7
+2026-03-03 22:10:03 | DEBUG   | [Springer-ADAPTIVE] query='REM-1' year=2026 months=7–7
+2026-03-03 22:10:03 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=7&facet-end-month=7
+2026-03-03 22:10:03 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=3099
+2026-03-03 22:10:03 | DEBUG   | [Springer-TOTAL] Extracted total: 0
+2026-03-03 22:10:03 | DEBUG   | [Springer-ADAPTIVE] Total results: 0 (threshold=1000)
+2026-03-03 22:10:03 | DEBUG   | [Springer-ADAPTIVE] 0 results — returning empty
+2026-03-03 22:10:05 | DEBUG   | [Springer-ADAPTIVE] Sub-query: month 8
+2026-03-03 22:10:05 | DEBUG   | [Springer-ADAPTIVE] query='REM-1' year=2026 months=8–8
+2026-03-03 22:10:05 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=8&facet-end-month=8
+2026-03-03 22:10:05 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=3099
+2026-03-03 22:10:05 | DEBUG   | [Springer-TOTAL] Extracted total: 0
+2026-03-03 22:10:05 | DEBUG   | [Springer-ADAPTIVE] Total results: 0 (threshold=1000)
+2026-03-03 22:10:06 | DEBUG   | [Springer-ADAPTIVE] 0 results — returning empty
+2026-03-03 22:10:08 | DEBUG   | [Springer-ADAPTIVE] Sub-query: month 9
+2026-03-03 22:10:08 | DEBUG   | [Springer-ADAPTIVE] query='REM-1' year=2026 months=9–9
+2026-03-03 22:10:08 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=9&facet-end-month=9
+2026-03-03 22:10:08 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=3099
+2026-03-03 22:10:08 | DEBUG   | [Springer-TOTAL] Extracted total: 0
+2026-03-03 22:10:08 | DEBUG   | [Springer-ADAPTIVE] Total results: 0 (threshold=1000)
+2026-03-03 22:10:08 | DEBUG   | [Springer-ADAPTIVE] 0 results — returning empty
+2026-03-03 22:10:10 | DEBUG   | [Springer-ADAPTIVE] Sub-query: month 10
+2026-03-03 22:10:10 | DEBUG   | [Springer-ADAPTIVE] query='REM-1' year=2026 months=10–10
+2026-03-03 22:10:10 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=10&facet-end-month=10
+2026-03-03 22:10:10 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=3099
+2026-03-03 22:10:10 | DEBUG   | [Springer-TOTAL] Extracted total: 0
+2026-03-03 22:10:10 | DEBUG   | [Springer-ADAPTIVE] Total results: 0 (threshold=1000)
+2026-03-03 22:10:10 | DEBUG   | [Springer-ADAPTIVE] 0 results — returning empty
+2026-03-03 22:10:12 | DEBUG   | [Springer-ADAPTIVE] Sub-query: month 11
+2026-03-03 22:10:12 | DEBUG   | [Springer-ADAPTIVE] query='REM-1' year=2026 months=11–11
+2026-03-03 22:10:12 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=11&facet-end-month=11
+2026-03-03 22:10:12 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=3099
+2026-03-03 22:10:12 | DEBUG   | [Springer-TOTAL] Extracted total: 0
+2026-03-03 22:10:12 | DEBUG   | [Springer-ADAPTIVE] Total results: 0 (threshold=1000)
+2026-03-03 22:10:12 | DEBUG   | [Springer-ADAPTIVE] 0 results — returning empty
+2026-03-03 22:10:13 | DEBUG   | [Springer-ADAPTIVE] Sub-query: month 12
+2026-03-03 22:10:13 | DEBUG   | [Springer-ADAPTIVE] query='REM-1' year=2026 months=12–12
+2026-03-03 22:10:13 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=12&facet-end-month=12
+2026-03-03 22:10:13 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=3099
+2026-03-03 22:10:13 | DEBUG   | [Springer-TOTAL] Extracted total: 0
+2026-03-03 22:10:13 | DEBUG   | [Springer-ADAPTIVE] Total results: 0 (threshold=1000)
+2026-03-03 22:10:13 | DEBUG   | [Springer-ADAPTIVE] 0 results — returning empty
+2026-03-03 22:10:15 | INFO    | [Springer-ADAPTIVE] Subdivision done: 40 papers for months 1–12
+2026-03-03 22:10:15 | INFO    | [Springer] REM-1 | 2026: 40 papers
+2026-03-03 22:10:18 | INFO    | [Springer] REM-2 | year 2026
+2026-03-03 22:10:18 | DEBUG   | [Springer-ADAPTIVE] query='REM-2' year=2026 months=1–12
+2026-03-03 22:10:18 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22security+refactoring%22+OR+%22secure+refactoring%22+OR+%22refactoring%22%29+AND+%28%22vulnerability%22+OR+%22security%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=1&facet-end-month=12
+2026-03-03 22:10:18 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=3099
+2026-03-03 22:10:18 | DEBUG   | [Springer-TOTAL] Extracted total: 0
+2026-03-03 22:10:18 | DEBUG   | [Springer-ADAPTIVE] Total results: 0 (threshold=1000)
+2026-03-03 22:10:18 | DEBUG   | [Springer-ADAPTIVE] 0 results — returning empty
+2026-03-03 22:10:18 | INFO    | [Springer] REM-2 | 2026: 0 papers
+2026-03-03 22:10:21 | INFO    | [Springer] REM-3 | year 2026
+2026-03-03 22:10:21 | DEBUG   | [Springer-ADAPTIVE] query='REM-3' year=2026 months=1–12
+2026-03-03 22:10:21 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22automated%22+OR+%22automatic%22+OR+%22semi-automated%22%29+AND+%28%22vulnerability+remediation%22+OR+%22vulnerability+mitigation%22+OR+%22security+fix%22%29+AND+%28%22software%22+OR+%22application%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=1&facet-end-month=12
+2026-03-03 22:10:21 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=3099
+2026-03-03 22:10:21 | DEBUG   | [Springer-TOTAL] Extracted total: 0
+2026-03-03 22:10:21 | DEBUG   | [Springer-ADAPTIVE] Total results: 0 (threshold=1000)
+2026-03-03 22:10:21 | DEBUG   | [Springer-ADAPTIVE] 0 results — returning empty
+2026-03-03 22:10:21 | INFO    | [Springer] REM-3 | 2026: 0 papers
+2026-03-03 22:10:24 | INFO    | [Springer] REM-4 | year 2026
+2026-03-03 22:10:24 | DEBUG   | [Springer-ADAPTIVE] query='REM-4' year=2026 months=1–12
+2026-03-03 22:10:24 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22code+transformation%22+OR+%22program+transformation%22+OR+%22security+hardening%22%29+AND+%28%22vulnerability%22+OR+%22security+flaw%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=1&facet-end-month=12
+2026-03-03 22:10:24 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=3099
+2026-03-03 22:10:24 | DEBUG   | [Springer-TOTAL] Extracted total: 0
+2026-03-03 22:10:24 | DEBUG   | [Springer-ADAPTIVE] Total results: 0 (threshold=1000)
+2026-03-03 22:10:24 | DEBUG   | [Springer-ADAPTIVE] 0 results — returning empty
+2026-03-03 22:10:24 | INFO    | [Springer] REM-4 | 2026: 0 papers
+2026-03-03 22:10:27 | INFO    | [Springer] Year 2026 done — 40 papers (running total 40)
+2026-03-03 22:10:29 | INFO    | [Springer] scrape() finished — total 40 papers
+2026-03-03 22:10:29 | INFO    |   scraper.scrape() returned DataFrame with 40 rows, columns=['Title', 'Authors', 'Year', 'Publisher', 'DOI', 'Link', 'Source', 'Search_String']
+2026-03-03 22:10:29 | DEBUG   |   saved #1  Source code vulnerability detection based on deep learning: a review  (year=2026, doi=10.1186/s42400-025-00518-7, link=https://link.springer.com/article/10.1186/s42400-025-00518-7)
+2026-03-03 22:10:29 | DEBUG   |   saved #2  Vulnerability Positioner (VulP): enhancing code vulnerability localization with   (year=2026, doi=10.1007/s00530-025-02106-8, link=https://link.springer.com/article/10.1007/s00530-025-02106-8)
+2026-03-03 22:10:29 | DEBUG   |   saved #3  Finding software vulnerabilities in large C projects via bounded model checking  (year=2026, doi=10.1007/s10009-026-00838-0, link=https://link.springer.com/article/10.1007/s10009-026-00838-0)
+2026-03-03 22:10:29 | DEBUG   |   saved #4  Software vulnerability management in IoT systems: a systematic mapping study  (year=2026, doi=10.1186/s42400-025-00543-6, link=https://link.springer.com/article/10.1186/s42400-025-00543-6)
+2026-03-03 22:10:29 | DEBUG   |   saved #5  A large scale analysis of code security in public repositories  (year=2026, doi=10.1007/s10207-025-01187-w, link=https://link.springer.com/article/10.1007/s10207-025-01187-w)
+2026-03-03 22:10:29 | DEBUG   |   saved #6  A generative AI cybersecurity risks mitigation model for code generation: using   (year=2026, doi=10.1038/s41598-025-34350-3, link=https://link.springer.com/article/10.1038/s41598-025-34350-3)
+2026-03-03 22:10:29 | DEBUG   |   saved #7  Data preparation and quality for code-centric generative software engineering ta  (year=2026, doi=10.1007/s11704-025-41376-3, link=https://link.springer.com/article/10.1007/s11704-025-41376-3)
+2026-03-03 22:10:29 | DEBUG   |   saved #8  Long-range context modeling for software vulnerability detection using an XLNet-  (year=2026, doi=10.1038/s41598-026-36196-9, link=https://link.springer.com/article/10.1038/s41598-026-36196-9)
+2026-03-03 22:10:29 | DEBUG   |   saved #9  Knowledge distillation-driven commit-aware multimodal learning for software vuln  (year=2026, doi=10.1007/s10515-026-00595-z, link=https://link.springer.com/article/10.1007/s10515-026-00595-z)
+2026-03-03 22:10:29 | DEBUG   |   saved #10  Assessing security vulnerabilities in a docker-enabled federated learning framew  (year=2026, doi=10.1007/s10207-026-01213-5, link=https://link.springer.com/article/10.1007/s10207-026-01213-5)
+2026-03-03 22:10:29 | DEBUG   |   saved #11  An exploratory study on fine-tuning large language models for secure code genera  (year=2026, doi=10.1007/s10664-026-10803-9, link=https://link.springer.com/article/10.1007/s10664-026-10803-9)
+2026-03-03 22:10:29 | DEBUG   |   saved #12  Harnessing the Power of LLMs for Enhancing Hardware Security  (year=2026, doi=10.1007/s42979-026-04799-8, link=https://link.springer.com/article/10.1007/s42979-026-04799-8)
+2026-03-03 22:10:29 | DEBUG   |   saved #13  Program-plate: a method for identifying the ability to extract vulnerability fea  (year=2026, doi=10.1186/s42400-025-00404-2, link=https://link.springer.com/article/10.1186/s42400-025-00404-2)
+2026-03-03 22:10:29 | DEBUG   |   saved #14  Analyzing cybersecurity gaps in medical device procurement using NLP and vulnera  (year=2026, doi=10.1007/s43926-025-00279-2, link=https://link.springer.com/article/10.1007/s43926-025-00279-2)
+2026-03-03 22:10:29 | DEBUG   |   saved #15  In the webs of ethereum: analyzing smart contracts vulnerabilities  (year=2026, doi=10.1007/s10207-026-01208-2, link=https://link.springer.com/article/10.1007/s10207-026-01208-2)
+2026-03-03 22:10:29 | DEBUG   |   saved #16  Generative AI as an infrastructure copilot: automating Infrastructure-As-Code ac  (year=2026, doi=10.1007/s10515-026-00600-5, link=https://link.springer.com/article/10.1007/s10515-026-00600-5)
+2026-03-03 22:10:29 | DEBUG   |   saved #17  CTDMF-SC: cybersecurity threat detection and mitigation framework for smart citi  (year=2026, doi=10.1007/s10207-025-01195-w, link=https://link.springer.com/article/10.1007/s10207-025-01195-w)
+2026-03-03 22:10:29 | DEBUG   |   saved #18  Security issues in software-defined radio: a review  (year=2026, doi=10.1186/s42400-025-00433-x, link=https://link.springer.com/article/10.1186/s42400-025-00433-x)
+2026-03-03 22:10:29 | DEBUG   |   saved #19  A multi-layered cryptographic trust reinforcement model against AI-driven threat  (year=2026, doi=10.1038/s41598-026-36966-5, link=https://link.springer.com/article/10.1038/s41598-026-36966-5)
+2026-03-03 22:10:29 | DEBUG   |   saved #20  In-Orbit Validation of a Heterogeneous COTS Architecture for Onboard AI: System-  (year=2026, doi=10.1007/s42405-026-01130-w, link=https://link.springer.com/article/10.1007/s42405-026-01130-w)
+2026-03-03 22:10:29 | DEBUG   |   saved #21  Dynamics of Virus-Patch Dissemination in Cyber-Physical Systems  (year=2026, doi=10.1007/s42979-026-04813-z, link=https://link.springer.com/article/10.1007/s42979-026-04813-z)
+2026-03-03 22:10:29 | DEBUG   |   saved #22  Explainable AI based dynamic cybersecurity risk management for cyber insurabilit  (year=2026, doi=10.1007/s10207-025-01189-8, link=https://link.springer.com/article/10.1007/s10207-025-01189-8)
+2026-03-03 22:10:29 | DEBUG   |   saved #23  Quantitative assessment of urban flood vulnerability using the Livelihood Vulner  (year=2026, doi=10.1007/s11356-026-37500-w, link=https://link.springer.com/article/10.1007/s11356-026-37500-w)
+2026-03-03 22:10:29 | DEBUG   |   saved #24  Onside integrity? Match-fixing, corruption and organized crime risks in Canadian  (year=2026, doi=10.1007/s40318-025-00330-y, link=https://link.springer.com/article/10.1007/s40318-025-00330-y)
+2026-03-03 22:10:29 | DEBUG   |   saved #25  Security by documentation? characterizing GitHubSECURITY.mdpolicy and their adop  (year=2026, doi=10.1007/s10664-025-10794-z, link=https://link.springer.com/article/10.1007/s10664-025-10794-z)
+2026-03-03 22:10:29 | DEBUG   |   saved #26  Rator: detecting fine-grained semantic code clones using tree encoding based on   (year=2026, doi=10.1186/s42400-025-00456-4, link=https://link.springer.com/article/10.1186/s42400-025-00456-4)
+2026-03-03 22:10:29 | DEBUG   |   saved #27  A comprehensive introspection on AI risks: taxonomy, challenges, and future dire  (year=2026, doi=10.1007/s42044-025-00370-5, link=https://link.springer.com/article/10.1007/s42044-025-00370-5)
+2026-03-03 22:10:29 | DEBUG   |   saved #28  From AI security to ethical AI security: a comparative risk-mitigation framework  (year=2026, doi=10.1007/s43681-025-00935-x, link=https://link.springer.com/article/10.1007/s43681-025-00935-x)
+2026-03-03 22:10:29 | DEBUG   |   saved #29  Hybrid AI-Based dynamic risk assessment framework with explainable AI practices   (year=2026, doi=10.1007/s10207-026-01218-0, link=https://link.springer.com/article/10.1007/s10207-026-01218-0)
+2026-03-03 22:10:29 | DEBUG   |   saved #30  Evaluating gait system vulnerabilities through PPO and GAN-generated adversarial  (year=2026, doi=10.1038/s41598-026-37011-1, link=https://link.springer.com/article/10.1038/s41598-026-37011-1)
+2026-03-03 22:10:29 | DEBUG   |   saved #31  COAA: combined adversarial attacks for deep model vulnerability exploitation  (year=2026, doi=10.1007/s13042-025-02862-z, link=https://link.springer.com/article/10.1007/s13042-025-02862-z)
+2026-03-03 22:10:29 | DEBUG   |   saved #32  A scoping review of climate vulnerability indicators: implications for neighborh  (year=2026, doi=10.1007/s10584-026-04122-7, link=https://link.springer.com/article/10.1007/s10584-026-04122-7)
+2026-03-03 22:10:29 | DEBUG   |   saved #33  Dam break flood vulnerability assessment using TELEMAC-2D and GIS: application t  (year=2026, doi=10.1007/s11069-025-07812-0, link=https://link.springer.com/article/10.1007/s11069-025-07812-0)
+2026-03-03 22:10:29 | DEBUG   |   saved #34  Cyber Supply Chain Risk Management: From Threats to Treatment  (year=2026, doi=10.1007/s10207-025-01207-9, link=https://link.springer.com/article/10.1007/s10207-025-01207-9)
+2026-03-03 22:10:29 | DEBUG   |   saved #35  Between law and code: challenges and opportunities for automating privacy assess  (year=2026, doi=10.1007/s10515-026-00601-4, link=https://link.springer.com/article/10.1007/s10515-026-00601-4)
+2026-03-03 22:10:29 | DEBUG   |   saved #36  Enhancing novel view synthesis with random patch radiance fields  (year=2026, doi=10.1007/s00371-026-04392-3, link=https://link.springer.com/article/10.1007/s00371-026-04392-3)
+2026-03-03 22:10:29 | DEBUG   |   saved #37  Generative AI and health misinformation: production, propagation, and mitigation  (year=2026, doi=10.1186/s12889-025-26148-9, link=https://link.springer.com/article/10.1186/s12889-025-26148-9)
+2026-03-03 22:10:29 | DEBUG   |   saved #38  Ataxia-telangiectasia mutated kinase inhibition overcomes gemcitabine resistance  (year=2026, doi=10.1038/s41417-026-01005-y, link=https://link.springer.com/article/10.1038/s41417-026-01005-y)
+2026-03-03 22:10:29 | DEBUG   |   saved #39  Cross: a cloud-native approach to automated remediation and self-healing in cybe  (year=2026, doi=10.1186/s42400-026-00549-8, link=https://link.springer.com/article/10.1186/s42400-026-00549-8)
+2026-03-03 22:10:29 | DEBUG   |   saved #40  Evaluating socio-ecological vulnerabilities and the impact of extreme weather ev  (year=2026, doi=10.1007/s10584-026-04127-2, link=https://link.springer.com/article/10.1007/s10584-026-04127-2)
+2026-03-03 22:10:29 | INFO    |   DB flush OK — 40 papers from SPRINGER
+2026-03-03 22:10:29 | INFO    | --- SPRINGER finished: 40 papers ---
+2026-03-03 22:10:29 | INFO    | 
+2026-03-03 22:10:29 | INFO    | ======================================================================
+2026-03-03 22:10:29 | INFO    | COLLECTION COMPLETE — 324 papers (ACM: 229, IEEE: 55, SPRINGER: 40)
+2026-03-03 22:10:29 | INFO    | ======================================================================
+2026-03-03 22:10:29 | INFO    | Shutting down WebDriver...
+2026-03-03 22:10:30 | INFO    | WebDriver closed.

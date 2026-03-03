@@ -38,7 +38,7 @@ import toast from "react-hot-toast";
 import type { ProgressEvent, JobType, PaperFilters } from "@/types";
 
 const PIPELINE_STEPS: { type: JobType; label: string; icon: React.ElementType; desc: string }[] = [
-  { type: "collect", label: "Collect", icon: Layers, desc: "Scrape papers from selected sources" },
+  { type: "collect", label: "Collect", icon: Layers, desc: "Collect papers from selected sources via APIs" },
   { type: "deduplicate", label: "Deduplicate", icon: Copy, desc: "Find and mark duplicates" },
   { type: "find_links", label: "Find PDFs", icon: LinkIcon, desc: "Locate open-access PDF links" },
 ];

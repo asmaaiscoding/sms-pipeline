@@ -52,7 +52,7 @@ class Project(Base):
     year_start: Mapped[int] = mapped_column(Integer, default=2000)
     year_end: Mapped[int] = mapped_column(Integer, default=2026)
     sources: Mapped[str] = mapped_column(
-        String(256), default="acm,ieee,springer",
+        String(512), default="acm,ieee,springer,elsevier,wiley",
         comment="Comma-separated list of sources"
     )
     status: Mapped[ProjectStatus] = mapped_column(

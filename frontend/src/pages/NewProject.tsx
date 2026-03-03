@@ -17,10 +17,16 @@ export default function NewProject() {
   const [topic, setTopic] = useState<Topic>("detection");
   const [yearStart, setYearStart] = useState(2000);
   const [yearEnd, setYearEnd] = useState(2026);
-  const [sources, setSources] = useState({
+  const [sources, setSources] = useState<Record<string, boolean>>({
     acm: true,
     ieee: true,
     springer: true,
+    elsevier: true,
+    wiley: true,
+    scopus: false,
+    taylor_francis: false,
+    mdpi: false,
+    sage: false,
   });
   const [customStrings, setCustomStrings] = useState<
     { label: string; query: string }[]
@@ -267,21 +273,34 @@ export default function NewProject() {
 
           <div>
             <p className="label">Sources</p>
-            <div className="flex gap-4">
-              {(["acm", "ieee", "springer"] as const).map((src) => (
-                <label key={src} className="flex items-center gap-2 text-sm">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-3">
+              {([
+                { key: "acm", label: "ACM" },
+                { key: "ieee", label: "IEEE" },
+                { key: "springer", label: "Springer" },
+                { key: "elsevier", label: "Elsevier" },
+                { key: "wiley", label: "Wiley" },
+                { key: "scopus", label: "Scopus (broad)" },
+                { key: "taylor_francis", label: "Taylor & Francis" },
+                { key: "mdpi", label: "MDPI" },
+                { key: "sage", label: "SAGE" },
+              ] as const).map((src) => (
+                <label key={src.key} className="flex items-center gap-2 text-sm">
                   <input
                     type="checkbox"
                     className="h-4 w-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
-                    checked={sources[src]}
+                    checked={sources[src.key] ?? false}
                     onChange={(e) =>
-                      setSources({ ...sources, [src]: e.target.checked })
+                      setSources({ ...sources, [src.key]: e.target.checked })
                     }
                   />
-                  <span className="uppercase">{src}</span>
+                  <span>{src.label}</span>
                 </label>
               ))}
             </div>
+            <p className="text-xs text-gray-400 mt-2">
+              All sources use free APIs (OpenAlex + CrossRef) — no CAPTCHA, no rate limits.
+            </p>
           </div>
         </div>
 

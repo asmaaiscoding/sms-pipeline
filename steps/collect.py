@@ -20,14 +20,26 @@ from scrapers.base import setup_driver
 from scrapers.acm import ACMScraper
 from scrapers.ieee import IEEEScraper
 from scrapers.springer import SpringerScraper
+from scrapers.wiley import WileyScraper
+from scrapers.elsevier import ElsevierScraper
+from scrapers.taylor_francis import TaylorFrancisScraper
+from scrapers.mdpi import MDPIScraper
+from scrapers.sage import SageScraper
+from scrapers.scopus import ScopusScraper
 from config import OUTPUT_DIR, PAPER_COLUMNS
 
 
 # mapping label → scraper class
 SOURCES = {
-    "acm":      ACMScraper,
-    "ieee":     IEEEScraper,
-    "springer": SpringerScraper,
+    "acm":            ACMScraper,
+    "ieee":           IEEEScraper,
+    "springer":       SpringerScraper,
+    "wiley":          WileyScraper,
+    "elsevier":       ElsevierScraper,
+    "taylor_francis": TaylorFrancisScraper,
+    "mdpi":           MDPIScraper,
+    "sage":           SageScraper,
+    "scopus":         ScopusScraper,
 }
 
 
@@ -57,8 +69,9 @@ def run_collection(
     os.makedirs(output_dir, exist_ok=True)
     all_frames: List[pd.DataFrame] = []
 
-    driver = setup_driver()
-    print(f"\n[COLLECT] Browser opened.  Sources: {', '.join(sources)}")
+    # API-based scrapers don't need Selenium
+    driver = None
+    print(f"\n[COLLECT] Sources: {', '.join(sources)}")
     print(f"[COLLECT] Years: {year_start}–{year_end}")
     print(f"[COLLECT] Search strings: {len(search_strings)}\n")
 
@@ -73,7 +86,7 @@ def run_collection(
             print(f"  COLLECTING FROM: {src.upper()}")
             print(f"{'#' * 70}")
 
-            scraper = cls(driver)
+            scraper = cls(driver)  # driver=None for API-based scrapers
             df = scraper.scrape(search_strings, year_start, year_end)
 
             if df.empty:
@@ -94,8 +107,9 @@ def run_collection(
     except KeyboardInterrupt:
         print("\n[COLLECT] Interrupted — saving partial results …")
     finally:
-        driver.quit()
-        print("[COLLECT] Browser closed.")
+        if driver:
+            driver.quit()
+            print("[COLLECT] Browser closed.")
 
     # combine
     combined_path = os.path.join(output_dir, "all_collected.xlsx")

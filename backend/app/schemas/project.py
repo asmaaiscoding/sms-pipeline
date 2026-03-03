@@ -39,7 +39,7 @@ class ProjectCreate(BaseModel):
     topic: TopicEnum = TopicEnum.DETECTION
     year_start: int = Field(default=2000, ge=1900, le=2100)
     year_end: int = Field(default=2026, ge=1900, le=2100)
-    sources: List[str] = Field(default=["acm", "ieee", "springer"])
+    sources: List[str] = Field(default=["acm", "ieee", "springer", "elsevier", "wiley"])
     search_strings: Optional[List[SearchStringCreate]] = None
     use_preset_strings: bool = True
 

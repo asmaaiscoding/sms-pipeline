@@ -1,44 +1,51 @@
-"""
+﻿"""
 app/scrapers/ieee.py
-────────────────────
-Scraper for IEEE Xplore (headless-compatible).
+--------------------
+Scraper for IEEE Xplore -- **API-based** (no web scraping).
+
+Uses free academic APIs that index IEEE papers:
+  1. OpenAlex API   (primary)
+  2. CrossRef API   (fallback, DOI prefix 10.1109)
+
+The Selenium driver parameter is accepted for interface compatibility
+but is NOT used.
 """
 
 from __future__ import annotations
 
-import hashlib
+import html as html_mod
 import logging
-import re
 import time
 from typing import Dict, List, Optional
-from urllib.parse import quote_plus
+from urllib.parse import quote, quote_plus
 
 import pandas as pd
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
+import requests
 
-from app.scrapers.base import random_delay, ensure_page_ready, has_captcha, retry, _get_null_logger
+from app.scrapers.base import random_delay, _get_null_logger
 
 logger = logging.getLogger(__name__)
 
+_SESSION = requests.Session()
+_SESSION.headers.update({
+    "User-Agent": "SMSPipeline/1.0 (academic-review-tool; mailto:noreply@example.com)",
+    "Accept": "application/json",
+})
 
-def _paper_hash(title: str, year: str) -> str:
-    return hashlib.md5(f"{title.lower().strip()}_{year}".encode()).hexdigest()
+_OPENALEX_MAILTO = "mailto=sms-pipeline@example.com"
+_IEEE_DOI_PREFIX = "10.1109"
 
 
 class IEEEScraper:
-    """Scrape papers from IEEE Xplore year-by-year."""
+    """Collect IEEE Xplore papers via free academic APIs."""
 
     SOURCE_NAME = "IEEE Xplore"
     PUBLISHER = "IEEE"
 
-    def __init__(self, driver, flog: Optional[logging.Logger] = None):
+    def __init__(self, driver=None, flog: Optional[logging.Logger] = None):
         self.driver = driver
-        self._first_visit = True
         self.flog = flog or _get_null_logger()
-        self.flog.info("[IEEE] Scraper initialised")
+        self.flog.info("[IEEE] Scraper initialised (API-based)")
 
     def scrape(
         self,
@@ -47,21 +54,30 @@ class IEEEScraper:
         year_end: int,
     ) -> pd.DataFrame:
         all_papers: List[dict] = []
-        self.flog.info("[IEEE] scrape() called — %d search strings, years %d–%d",
+        self.flog.info("[IEEE] scrape() called -- %d search strings, years %d-%d",
                        len(search_strings), year_start, year_end)
 
-        for year in range(year_start, year_end + 1):
-            self.flog.info("[IEEE] ── YEAR %d ──", year)
-            try:
-                year_papers = self._scrape_year(year, search_strings)
-            except Exception as exc:
-                self.flog.error("[IEEE] _scrape_year(%d) EXCEPTION: %s", year, exc, exc_info=True)
-                year_papers = []
-            all_papers.extend(year_papers)
-            self.flog.info("[IEEE] Year %d done — %d papers (running total %d)", year, len(year_papers), len(all_papers))
-            random_delay(3, 5)
+        for sname, query in search_strings.items():
+            for year in range(year_start, year_end + 1):
+                self.flog.info("[IEEE] -- %s | year %d --", sname, year)
+                logger.info("[IEEE] %s | year %d", sname, year)
 
-        self.flog.info("[IEEE] scrape() finished — total %d papers", len(all_papers))
+                try:
+                    papers = self._collect(query, sname, year)
+                except Exception as exc:
+                    self.flog.error("[IEEE] _collect() EXCEPTION for %s/%d: %s",
+                                   sname, year, exc, exc_info=True)
+                    papers = []
+
+                for p in papers:
+                    p["Search_String"] = sname
+                all_papers.extend(papers)
+
+                self.flog.info("[IEEE] %s | %d: %d papers collected", sname, year, len(papers))
+                logger.info("[IEEE] %s | %d: %d papers", sname, year, len(papers))
+                random_delay(0.3, 0.8)
+
+        self.flog.info("[IEEE] scrape() finished -- total %d papers", len(all_papers))
 
         if not all_papers:
             return pd.DataFrame(columns=[
@@ -70,358 +86,202 @@ class IEEEScraper:
             ])
         return pd.DataFrame(all_papers)
 
-    def _scrape_year(self, year: int, search_strings: Dict[str, str]) -> List[dict]:
-        logger.info("[IEEE] YEAR %d", year)
-        year_papers: List[dict] = []
+    def _collect(self, query: str, sname: str, year: int) -> List[dict]:
+        papers = self._scrape_via_openalex(query, year)
+        if papers:
+            self.flog.info("[IEEE] OpenAlex returned %d papers", len(papers))
+            return papers
 
-        for sname, query in search_strings.items():
-            self.flog.info("[IEEE] %s | year %d — navigating...", sname, year)
-            logger.info("[IEEE] %s | year %d", sname, year)
-            try:
-                expected = retry(self._navigate, 3, query, year, flog=self.flog)
-                self.flog.info("[IEEE] %s | %d — navigation OK, expected results: %s", sname, year, expected)
-            except Exception as exc:
-                self.flog.error("[IEEE] Navigation FAILED for %s/%d: %s", sname, year, exc, exc_info=True)
-                logger.error("[IEEE] Navigation failed: %s", exc)
-                continue
+        self.flog.info("[IEEE] OpenAlex returned 0 -- trying CrossRef")
+        papers = self._scrape_via_crossref(query, year)
+        if papers:
+            self.flog.info("[IEEE] CrossRef returned %d papers", len(papers))
+            return papers
 
-            if expected == 0:
-                self.flog.info("[IEEE] %s | %d: 0 expected results — skipping", sname, year)
-                logger.info("[IEEE] %s | %d: 0 results", sname, year)
-                continue
+        self.flog.warning("[IEEE] %s | %d: ALL API approaches returned 0", sname, year)
+        return []
 
-            try:
-                self.flog.debug("[IEEE] %s | %d: scraping all pages (expected=%d)...", sname, year, expected)
-                papers = retry(self._scrape_all_pages, 3, year, expected, flog=self.flog)
-                self.flog.info("[IEEE] %s | %d: scraped %d papers (expected %d)", sname, year, len(papers), expected)
-            except Exception as exc:
-                self.flog.error("[IEEE] Scraping FAILED for %s/%d: %s", sname, year, exc, exc_info=True)
-                logger.error("[IEEE] Scraping failed: %s", exc)
-                continue
+    # -- OpenAlex ---
 
-            for p in papers:
-                p["Search_String"] = sname
-            year_papers.extend(papers)
-            logger.info("[IEEE] %s | %d: %d papers", sname, year, len(papers))
-            random_delay(3, 5)
-
-        deduped = self._dedup(year_papers)
-        self.flog.info("[IEEE] Year %d dedup: %d → %d papers", year, len(year_papers), len(deduped))
-        return deduped
-
-    def _navigate(self, query: str, year: int) -> int:
-        encoded = quote_plus(query)
-        url = (
-            f"https://ieeexplore.ieee.org/search/searchresult.jsp"
-            f"?queryText={encoded}"
-            f"&ranges={year}_{year}_Year"
-        )
-        self.flog.debug("[IEEE-NAV] URL: %s", url)
-
-        # Retry if we hit a rate-limit / block page
-        for attempt in range(3):
-            self.flog.debug("[IEEE-NAV] Loading page (attempt %d/3)...", attempt + 1)
-            try:
-                self.driver.get(url)
-                self.flog.debug("[IEEE-NAV] Page loaded, current URL=%s", self.driver.current_url)
-            except Exception as exc:
-                self.flog.error("[IEEE-NAV] driver.get() FAILED (attempt %d/3): %s", attempt + 1, exc, exc_info=True)
-                continue
-
-            random_delay(4, 6)
-            ensure_page_ready(self.driver, self._first_visit, flog=self.flog)
-            self._first_visit = False
-
-            if has_captcha(self.driver, flog=self.flog):
-                wait_secs = 30 * (attempt + 1)
-                self.flog.warning("[IEEE-NAV] Page blocked (attempt %d/3) — waiting %ds", attempt + 1, wait_secs)
-                logger.warning("[IEEE] Page blocked (attempt %d/3) — waiting %ds", attempt + 1, wait_secs)
-                time.sleep(wait_secs)
-                continue
-            self.flog.debug("[IEEE-NAV] No CAPTCHA detected")
-            break
-        else:
-            self.flog.error("[IEEE-NAV] Still blocked after 3 retries — returning 0")
-            logger.error("[IEEE] Still blocked after 3 retries")
-            return 0
-
-        try:
-            elems = self.driver.find_elements(
-                By.XPATH,
-                "//*[contains(text(),'No results found')] | "
-                "//*[contains(text(),'0 results')] | "
-                "//*[contains(text(),'No records found')]",
-            )
-            if elems and any(e.is_displayed() for e in elems):
-                self.flog.info("[IEEE-NAV] 'No results found' detected on page")
-                return 0
-        except Exception as exc:
-            self.flog.debug("[IEEE-NAV] Error checking for 'no results' text: %s", exc)
-
-        total = self._get_total_count() or 0
-        self.flog.info("[IEEE-NAV] Total result count: %d", total)
-        return total
-
-    def _get_total_count(self) -> Optional[int]:
-        # Strategy 1: try body text "Showing X-Y of Z results"
-        try:
-            body_text = self.driver.find_element(By.TAG_NAME, "body").text
-            self.flog.debug("[IEEE-COUNT] Body text length: %d chars", len(body_text))
-            m = re.search(r"Showing\s+\d+-\d+\s+of\s+([\d,]+)\s+results?", body_text, re.I)
-            if m:
-                count = int(m.group(1).replace(",", ""))
-                self.flog.debug("[IEEE-COUNT] Strategy 1 (body text regex): %d", count)
-                return count
-        except Exception as exc:
-            self.flog.debug("[IEEE-COUNT] Strategy 1 failed: %s", exc)
-
-        # Strategy 2: try specific selectors
-        selectors = [
-            "//span[contains(@class,'result-count')] | //span[contains(@class,'results-count')]",
-            "//div[contains(@class,'Dashboard-header')]//span[contains(text(),'results')]",
-        ]
-        for sel in selectors:
-            try:
-                el = self.driver.find_element(By.XPATH, sel)
-                text = el.text
-                self.flog.debug("[IEEE-COUNT] Strategy 2 selector '%s' text: '%s'", sel[:60], text)
-                m = re.search(r"of\s+([\d,]+)", text, re.I) or re.search(r"([\d,]+)\s+results?", text, re.I)
-                if m:
-                    count = int(m.group(1).replace(",", ""))
-                    self.flog.debug("[IEEE-COUNT] Strategy 2: %d", count)
-                    return count
-            except Exception:
-                continue
-
-        # Strategy 3: count result items on page as fallback
-        try:
-            items = self.driver.find_elements(
-                By.XPATH, "//xpl-results-item | //div[contains(@class,'result-item')]"
-            )
-            if items:
-                self.flog.debug("[IEEE-COUNT] Strategy 3 (DOM count): %d items", len(items))
-                logger.info("[IEEE] Count from selectors failed — found %d items on page", len(items))
-                return len(items)
-        except Exception as exc:
-            self.flog.debug("[IEEE-COUNT] Strategy 3 failed: %s", exc)
-
-        self.flog.warning("[IEEE-COUNT] All strategies failed — returning None")
-        return None
-
-    def _scrape_all_pages(self, target_year: int, expected: int) -> List[dict]:
-        if expected == 0:
-            return []
-
+    def _scrape_via_openalex(self, query: str, year: int) -> List[dict]:
         papers: List[dict] = []
-        seen_hashes: set = set()
-        seen_links: set = set()
-        page = 1
-        stale_pages = 0
-        self.flog.debug("[IEEE-PAGES] Starting pagination (expected=%d)", expected)
+        seen_dois: set = set()
+        per_page = 200
+        cursor = "*"
+        page_num = 0
+        max_pages = 50
 
-        while True:
-            self.flog.debug("[IEEE-PAGES] Page %d — waiting for results...", page)
-            logger.debug("  Page %d", page)
-            random_delay(2, 4)
+        base_filter = f"publication_year:{year},locations.source.publisher:IEEE"
+
+        while cursor and page_num < max_pages:
+            page_num += 1
+            url = (
+                f"https://api.openalex.org/works"
+                f"?search={quote(query)}"
+                f"&filter={quote(base_filter)}"
+                f"&per_page={per_page}"
+                f"&cursor={cursor}"
+                f"&{_OPENALEX_MAILTO}"
+            )
+            self.flog.debug("[IEEE-OA] GET page %d", page_num)
 
             try:
-                WebDriverWait(self.driver, 10).until(
-                    EC.presence_of_element_located((
-                        By.XPATH,
-                        "//div[contains(@class,'List-results-items')] | //xpl-results-item",
-                    ))
-                )
-                self.flog.debug("[IEEE-PAGES] Page %d — results container appeared", page)
-            except TimeoutException:
-                if has_captcha(self.driver, flog=self.flog):
-                    self.flog.warning("[IEEE-PAGES] CAPTCHA on page %d — waiting 30s", page)
-                    logger.warning("CAPTCHA on IEEE — waiting")
-                    time.sleep(30)
-                    continue
-                if page > 1:
-                    self.flog.debug("[IEEE-PAGES] Timeout on page %d (not first) — stopping", page)
-                    break
-                self.flog.debug("[IEEE-PAGES] Timeout on page 1 — retrying after 5s")
-                time.sleep(5)
-                continue
+                resp = _SESSION.get(url, timeout=30)
+            except Exception as exc:
+                self.flog.error("[IEEE-OA] Request failed: %s", exc)
+                break
 
-            results = self.driver.find_elements(
-                By.XPATH,
-                "//xpl-results-item | "
-                "//div[contains(@class,'List-results-items')]"
-                "//div[contains(@class,'result-item-align')] | "
-                "//div[@class='result-item']",
-            )
-            self.flog.debug("[IEEE-PAGES] Page %d: found %d result elements", page, len(results))
+            if resp.status_code != 200:
+                self.flog.warning("[IEEE-OA] HTTP %d", resp.status_code)
+                if resp.status_code == 429:
+                    time.sleep(5)
+                    continue
+                break
+
+            data = resp.json()
+            results = data.get("results", [])
+            meta = data.get("meta", {})
 
             if not results:
-                stale_pages += 1
-                self.flog.debug("[IEEE-PAGES] 0 results on page %d (stale=%d)", page, stale_pages)
-                if stale_pages >= 3:
-                    self.flog.debug("[IEEE-PAGES] 3 stale pages — stopping")
-                    break
-                continue
-
-            new_count = 0
-            for res in results:
-                paper = self._extract_paper(res, target_year)
-                if not paper or len(paper["Title"]) < 10:
-                    continue
-                h = _paper_hash(paper["Title"], paper["Year"])
-                if h in seen_hashes or paper["Link"] in seen_links:
-                    continue
-                seen_hashes.add(h)
-                seen_links.add(paper["Link"])
-                papers.append(paper)
-                new_count += 1
-
-            self.flog.debug("[IEEE-PAGES] Page %d: +%d new papers (total %d / expected %d)",
-                            page, new_count, len(papers), expected)
-
-            if expected and len(papers) >= expected:
-                self.flog.debug("[IEEE-PAGES] Reached expected count — stopping")
                 break
-            if new_count == 0:
-                stale_pages += 1
-                if stale_pages >= 3:
-                    self.flog.debug("[IEEE-PAGES] 3 stale pages with no new papers — stopping")
-                    break
-            else:
-                stale_pages = 0
 
-            if not self._go_next_page(page):
-                self.flog.debug("[IEEE-PAGES] No next page button — stopping")
+            for work in results:
+                paper = self._openalex_to_paper(work, year)
+                if paper:
+                    doi_key = paper["DOI"].lower()
+                    if doi_key and doi_key in seen_dois:
+                        continue
+                    if doi_key:
+                        seen_dois.add(doi_key)
+                    papers.append(paper)
+
+            cursor = meta.get("next_cursor")
+            if not cursor:
                 break
-            page += 1
 
-        self.flog.info("[IEEE-PAGES] Pagination done: %d papers collected over %d pages", len(papers), page)
+            random_delay(0.2, 0.5)
+
+        self.flog.info("[IEEE-OA] Finished -- %d papers", len(papers))
         return papers
 
-    def _extract_paper(self, el, target_year: int) -> Optional[dict]:
-        paper = {
-            "Title": "", "Link": "", "Authors": "",
-            "Year": str(target_year), "Publisher": self.PUBLISHER,
-            "DOI": "", "Source": self.SOURCE_NAME,
-        }
-        try:
-            title_el = el.find_element(
-                By.XPATH,
-                ".//h2[@class='text-md-md-lh']//a | .//h3//a | "
-                ".//a[contains(@class,'result-item-title')]",
-            )
-            paper["Title"] = title_el.text.strip()
-            paper["Link"] = title_el.get_attribute("href")
-            if "/document/" in paper["Link"]:
-                doc = paper["Link"].split("/document/")[-1].split("/")[0].split("?")[0]
-                if doc.isdigit():
-                    paper["DOI"] = f"10.1109/{doc}"
-        except Exception:
+    def _openalex_to_paper(self, work: dict, year: int) -> Optional[dict]:
+        title = (work.get("title") or "").strip()
+        if not title or len(title) < 5:
             return None
 
-        try:
-            aels = el.find_elements(
-                By.XPATH,
-                ".//p[@class='author']//a | "
-                ".//span[contains(@class,'author')]//a | "
-                ".//*[contains(@class,'author-name')]",
-            )
-            names = [a.text.strip() for a in aels if a.text.strip()]
-            paper["Authors"] = "; ".join(names)
-        except Exception:
-            pass
+        doi_url = work.get("doi") or ""
+        doi = doi_url.replace("https://doi.org/", "").replace("http://doi.org/", "")
 
-        yr = self._extract_year(el)
-        if yr:
-            paper["Year"] = yr
+        link = doi_url or work.get("id", "")
+        if doi and not link.startswith("http"):
+            link = f"https://doi.org/{doi}"
 
-        return paper
-
-    @staticmethod
-    def _extract_year(el) -> Optional[str]:
-        patterns = [
-            r"Date of Publication:\s*(\d{4})",
-            r"Published in:\s*.*?(\d{4})",
-        ]
-        text = el.text
-        for pat in patterns:
-            m = re.search(pat, text, re.I)
-            if m and 1900 <= int(m.group(1)) <= 2030:
-                return m.group(1)
-        try:
-            desc = el.find_element(
-                By.XPATH,
-                ".//*[contains(@class,'publisher-info-container')] | .//*[contains(@class,'description')]",
-            )
-            for yr in re.findall(r"\b(19\d{2}|20\d{2})\b", desc.text):
-                if 1900 <= int(yr) <= 2030:
-                    return yr
-        except Exception:
-            pass
-        return None
-
-    def _go_next_page(self, current_page: int) -> bool:
-        btn = None
-        strategies = [
-            "//button[@aria-label='Next page'] | //a[@aria-label='Next page'] | "
-            "//button[@aria-label='next page'] | //a[@aria-label='next page']",
-            "//button[contains(@class,'stats-Pagination_arrow_next')] | "
-            "//button[contains(@class,'Pagination') and contains(@class,'next')]",
-        ]
-        for sel in strategies:
-            try:
-                btn = self.driver.find_element(By.XPATH, sel)
-                break
-            except NoSuchElementException:
-                continue
-
-        if btn is None:
-            try:
-                container = self.driver.find_element(
-                    By.XPATH, "//xpl-paginator | //div[contains(@class,'pagination')]"
-                )
-                btn = container.find_element(
-                    By.XPATH,
-                    ".//*[contains(@aria-label,'next') or contains(@aria-label,'Next')] | "
-                    ".//button[contains(@class,'next') and not(contains(@class,'previous'))]",
-                )
-            except Exception:
-                pass
-
-        if btn is None:
-            return False
-
-        classes = (btn.get_attribute("class") or "").lower()
-        if "previous" in classes:
-            return False
-        if btn.get_attribute("disabled") == "true" or btn.get_attribute("aria-disabled") == "true":
-            return False
-        if "disabled" in classes:
-            return False
-
-        old_url = self.driver.current_url
-        self.driver.execute_script(
-            "arguments[0].scrollIntoView({behavior:'smooth',block:'center'});", btn
+        authorships = work.get("authorships", [])
+        authors = "; ".join(
+            a.get("author", {}).get("display_name", "")
+            for a in authorships
+            if a.get("author", {}).get("display_name")
         )
-        random_delay(1, 2)
-        self.driver.execute_script("arguments[0].click();", btn)
-        random_delay(2, 5)
 
-        new_url = self.driver.current_url
-        if "/document/" in new_url:
-            return False
-        if new_url == old_url:
-            time.sleep(3)
-            if self.driver.current_url == old_url:
-                return False
-        return True
+        yr = work.get("publication_year") or year
 
-    @staticmethod
-    def _dedup(papers: List[dict]) -> List[dict]:
-        seen: set = set()
-        unique: list = []
-        for p in papers:
-            h = _paper_hash(p["Title"], p["Year"])
-            if h not in seen:
-                seen.add(h)
-                unique.append(p)
-        return unique
+        return {
+            "Title": html_mod.unescape(title),
+            "Authors": authors,
+            "Year": str(yr),
+            "Publisher": self.PUBLISHER,
+            "DOI": doi,
+            "Link": link,
+            "Source": self.SOURCE_NAME,
+        }
+
+    # -- CrossRef ---
+
+    def _scrape_via_crossref(self, query: str, year: int) -> List[dict]:
+        papers: List[dict] = []
+        seen_dois: set = set()
+        rows_per_page = 100
+        offset = 0
+        max_results = 2000
+
+        while offset < max_results:
+            url = (
+                f"https://api.crossref.org/prefixes/{_IEEE_DOI_PREFIX}/works"
+                f"?query={quote_plus(query)}"
+                f"&filter=from-pub-date:{year},until-pub-date:{year}"
+                f"&rows={rows_per_page}"
+                f"&offset={offset}"
+                f"&sort=relevance&order=desc"
+            )
+            self.flog.debug("[IEEE-CR] GET offset=%d", offset)
+
+            try:
+                resp = _SESSION.get(url, timeout=45)
+            except Exception as exc:
+                self.flog.error("[IEEE-CR] Request failed: %s", exc)
+                break
+
+            if resp.status_code != 200:
+                if resp.status_code == 429:
+                    time.sleep(10)
+                    continue
+                break
+
+            data = resp.json()
+            items = data.get("message", {}).get("items", [])
+
+            if not items:
+                break
+
+            for item in items:
+                paper = self._crossref_to_paper(item, year)
+                if paper:
+                    doi_key = paper["DOI"].lower()
+                    if doi_key and doi_key in seen_dois:
+                        continue
+                    if doi_key:
+                        seen_dois.add(doi_key)
+                    papers.append(paper)
+
+            offset += rows_per_page
+            if len(items) < rows_per_page:
+                break
+            random_delay(0.5, 1.0)
+
+        self.flog.info("[IEEE-CR] Finished -- %d papers", len(papers))
+        return papers
+
+    def _crossref_to_paper(self, item: dict, year: int) -> Optional[dict]:
+        titles = item.get("title", [])
+        title = titles[0].strip() if titles else ""
+        if not title or len(title) < 5:
+            return None
+
+        doi = item.get("DOI", "")
+        link = f"https://doi.org/{doi}" if doi else item.get("URL", "")
+
+        author_list = item.get("author", [])
+        authors = "; ".join(
+            f"{a.get('given', '')} {a.get('family', '')}".strip()
+            for a in author_list
+            if a.get("family")
+        )
+
+        yr = year
+        for date_key in ("published-print", "published-online", "created"):
+            date_info = item.get(date_key)
+            if date_info:
+                parts = date_info.get("date-parts", [[]])[0]
+                if parts and parts[0]:
+                    yr = parts[0]
+                    break
+
+        return {
+            "Title": html_mod.unescape(title),
+            "Authors": authors,
+            "Year": str(yr),
+            "Publisher": self.PUBLISHER,
+            "DOI": doi,
+            "Link": link,
+            "Source": self.SOURCE_NAME,
+        }

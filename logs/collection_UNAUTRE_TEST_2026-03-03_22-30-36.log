@@ -1,0 +1,43 @@
+2026-03-03 22:30:36 | INFO    | ======================================================================
+2026-03-03 22:30:36 | INFO    | PIPELINE STEP: COLLECTION
+2026-03-03 22:30:36 | INFO    | Project: UNAUTRE TEST
+2026-03-03 22:30:36 | INFO    | Started: 2026-03-03_22-30-36 UTC
+2026-03-03 22:30:36 | INFO    | Log file: /app/logs/collection_UNAUTRE_TEST_2026-03-03_22-30-36.log
+2026-03-03 22:30:36 | INFO    | Python: 3.12.12 (main, Feb 24 2026, 19:45:37) [GCC 14.2.0]
+2026-03-03 22:30:36 | INFO    | Platform: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.41
+2026-03-03 22:30:36 | INFO    | PID: 8
+2026-03-03 22:30:36 | INFO    | ======================================================================
+2026-03-03 22:30:36 | INFO    | ======================================================================
+2026-03-03 22:30:36 | INFO    | COLLECTION STARTED
+2026-03-03 22:30:36 | INFO    |   Project name : UNAUTRE TEST
+2026-03-03 22:30:36 | INFO    |   Project ID   : f5e66079-2d3e-49d9-8913-8126a4b60450
+2026-03-03 22:30:36 | INFO    | ======================================================================
+2026-03-03 22:30:36 | INFO    | Configuration:
+2026-03-03 22:30:36 | INFO    |   Sources          : ACM, IEEE, SPRINGER, ELSEVIER, WILEY, SCOPUS, TAYLOR_FRANCIS, MDPI, SAGE
+2026-03-03 22:30:36 | INFO    |   Search strings   : 4
+2026-03-03 22:30:36 | INFO    |     [REM-1] → ("vulnerability" OR "vulnerabilities" OR "security flaw" OR "security weakness") AND ("remediation" OR "mitigation" OR "fix" OR "fixing" OR "repair" OR "patch" OR "patching") AND ("software" OR "code" OR "application" OR "source code")
+2026-03-03 22:30:36 | INFO    |     [REM-2] → ("security refactoring" OR "secure refactoring" OR "refactoring") AND ("vulnerability" OR "security") AND ("software" OR "code" OR "application")
+2026-03-03 22:30:36 | INFO    |     [REM-3] → ("automated" OR "automatic" OR "semi-automated") AND ("vulnerability remediation" OR "vulnerability mitigation" OR "security fix") AND ("software" OR "application")
+2026-03-03 22:30:36 | INFO    |     [REM-4] → ("code transformation" OR "program transformation" OR "security hardening") AND ("vulnerability" OR "security flaw") AND ("remediation" OR "mitigation" OR "fix")
+2026-03-03 22:30:36 | INFO    |   Year range       : 2025 – 2026
+2026-03-03 22:30:36 | INFO    |   Total year span  : 2 years
+2026-03-03 22:30:36 | INFO    | Estimated task count: 72 (sources × strings × years)
+2026-03-03 22:30:36 | INFO    | --- All scrapers are API-based — no Selenium WebDriver needed ---
+2026-03-03 22:30:36 | INFO    | 
+2026-03-03 22:30:36 | INFO    | ============================================================
+2026-03-03 22:30:36 | INFO    | [1/9] SOURCE: ACM
+2026-03-03 22:30:36 | INFO    |   Scraper class: app.scrapers.acm.ACMScraper
+2026-03-03 22:30:36 | INFO    | ============================================================
+2026-03-03 22:30:36 | DEBUG   |   Scraper class imported: <class 'app.scrapers.acm.ACMScraper'>
+2026-03-03 22:30:36 | INFO    | [ACM] Scraper initialised (API-based -- no Selenium/CAPTCHA)
+2026-03-03 22:30:36 | DEBUG   |   Scraper instance created
+2026-03-03 22:30:36 | INFO    |   Calling scraper.scrape() with 4 search strings, years 2025–2026
+2026-03-03 22:30:36 | INFO    | [ACM] scrape() called -- 4 search strings, years 2025-2026
+2026-03-03 22:30:36 | INFO    | [ACM] -- REM-1 | year 2025 --
+2026-03-03 22:30:36 | DEBUG   | [ACM] _collect(REM-1, 2025) -- trying OpenAlex first
+2026-03-03 22:30:36 | DEBUG   | [ACM-OA] GET page 1: https://api.openalex.org/works?search=%28%22vulnerability%22%20OR%20%22vulnerabilities%22%20OR%20%22security%20flaw%22%20OR%20%22security%20weakness%22%29%20AND%20%28%22remediation%22%20OR%20%22mitigation%22%20OR%20%22fix%22%20OR%20%22fixing%22%20OR%20%22repair%22%20OR%20%22patch%22%20OR%20%22patching%22%29%20AND%20%28%22software%22%20OR%20%22code%22%20OR%20%22application%22%20OR%20%22source%20code%22%29&filter=publication_year%3A2025%2Clocations.source.publisher%3AACM&per_page=200&cursor=*&mailto=sms-pipeline@example.com
+2026-03-03 22:30:37 | WARNING | [ACM-OA] HTTP 400 -- body: {"error":"Invalid query parameters error.","message":"locations.source.publisher is not a valid field. Valid fields are underscore or hyphenated versions of: abstract.search, abstract.search.exact, apc_list.currency, apc_list.provenance, apc_list.value, apc_list.value_usd, apc_paid.currency, apc_paid.provenance, apc_paid.value, apc_paid.value_usd, author.id, author.orcid, authors_count, authorships.affiliations.institution_ids, authorships.author.id, authorships.author.orcid, authorships.countri
+2026-03-03 22:30:37 | INFO    | [ACM-OA] Finished -- 0 papers total
+2026-03-03 22:30:37 | INFO    | [ACM] OpenAlex returned 0 -- trying CrossRef fallback
+2026-03-03 22:30:37 | DEBUG   | [ACM-CR] GET offset=0: https://api.crossref.org/prefixes/10.1145/works?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&filter=from-pub-date:2025,until-pub-date:2025&rows=100&offset=0&sort=relevance&order=desc
+2026-03-03 22:30:38 | INFO    | No WebDriver to shut down (API-based scrapers).
