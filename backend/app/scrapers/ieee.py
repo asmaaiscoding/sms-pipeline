@@ -19,7 +19,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
-from app.scrapers.base import random_delay, ensure_page_ready, has_captcha, retry
+from app.scrapers.base import random_delay, ensure_page_ready, has_captcha, retry, _get_null_logger
 
 logger = logging.getLogger(__name__)
 
@@ -34,9 +34,11 @@ class IEEEScraper:
     SOURCE_NAME = "IEEE Xplore"
     PUBLISHER = "IEEE"
 
-    def __init__(self, driver):
+    def __init__(self, driver, flog: Optional[logging.Logger] = None):
         self.driver = driver
         self._first_visit = True
+        self.flog = flog or _get_null_logger()
+        self.flog.info("[IEEE] Scraper initialised")
 
     def scrape(
         self,
@@ -45,11 +47,21 @@ class IEEEScraper:
         year_end: int,
     ) -> pd.DataFrame:
         all_papers: List[dict] = []
+        self.flog.info("[IEEE] scrape() called — %d search strings, years %d–%d",
+                       len(search_strings), year_start, year_end)
 
         for year in range(year_start, year_end + 1):
-            year_papers = self._scrape_year(year, search_strings)
+            self.flog.info("[IEEE] ── YEAR %d ──", year)
+            try:
+                year_papers = self._scrape_year(year, search_strings)
+            except Exception as exc:
+                self.flog.error("[IEEE] _scrape_year(%d) EXCEPTION: %s", year, exc, exc_info=True)
+                year_papers = []
             all_papers.extend(year_papers)
+            self.flog.info("[IEEE] Year %d done — %d papers (running total %d)", year, len(year_papers), len(all_papers))
             random_delay(3, 5)
+
+        self.flog.info("[IEEE] scrape() finished — total %d papers", len(all_papers))
 
         if not all_papers:
             return pd.DataFrame(columns=[
@@ -63,20 +75,27 @@ class IEEEScraper:
         year_papers: List[dict] = []
 
         for sname, query in search_strings.items():
+            self.flog.info("[IEEE] %s | year %d — navigating...", sname, year)
             logger.info("[IEEE] %s | year %d", sname, year)
             try:
-                expected = retry(self._navigate, 3, query, year)
+                expected = retry(self._navigate, 3, query, year, flog=self.flog)
+                self.flog.info("[IEEE] %s | %d — navigation OK, expected results: %s", sname, year, expected)
             except Exception as exc:
+                self.flog.error("[IEEE] Navigation FAILED for %s/%d: %s", sname, year, exc, exc_info=True)
                 logger.error("[IEEE] Navigation failed: %s", exc)
                 continue
 
             if expected == 0:
+                self.flog.info("[IEEE] %s | %d: 0 expected results — skipping", sname, year)
                 logger.info("[IEEE] %s | %d: 0 results", sname, year)
                 continue
 
             try:
-                papers = retry(self._scrape_all_pages, 3, year, expected)
+                self.flog.debug("[IEEE] %s | %d: scraping all pages (expected=%d)...", sname, year, expected)
+                papers = retry(self._scrape_all_pages, 3, year, expected, flog=self.flog)
+                self.flog.info("[IEEE] %s | %d: scraped %d papers (expected %d)", sname, year, len(papers), expected)
             except Exception as exc:
+                self.flog.error("[IEEE] Scraping FAILED for %s/%d: %s", sname, year, exc, exc_info=True)
                 logger.error("[IEEE] Scraping failed: %s", exc)
                 continue
 
@@ -86,7 +105,9 @@ class IEEEScraper:
             logger.info("[IEEE] %s | %d: %d papers", sname, year, len(papers))
             random_delay(3, 5)
 
-        return self._dedup(year_papers)
+        deduped = self._dedup(year_papers)
+        self.flog.info("[IEEE] Year %d dedup: %d → %d papers", year, len(year_papers), len(deduped))
+        return deduped
 
     def _navigate(self, query: str, year: int) -> int:
         encoded = quote_plus(query)
@@ -95,24 +116,32 @@ class IEEEScraper:
             f"?queryText={encoded}"
             f"&ranges={year}_{year}_Year"
         )
+        self.flog.debug("[IEEE-NAV] URL: %s", url)
 
         # Retry if we hit a rate-limit / block page
         for attempt in range(3):
-            self.driver.get(url)
+            self.flog.debug("[IEEE-NAV] Loading page (attempt %d/3)...", attempt + 1)
+            try:
+                self.driver.get(url)
+                self.flog.debug("[IEEE-NAV] Page loaded, current URL=%s", self.driver.current_url)
+            except Exception as exc:
+                self.flog.error("[IEEE-NAV] driver.get() FAILED (attempt %d/3): %s", attempt + 1, exc, exc_info=True)
+                continue
+
             random_delay(4, 6)
-            ensure_page_ready(self.driver, self._first_visit)
+            ensure_page_ready(self.driver, self._first_visit, flog=self.flog)
             self._first_visit = False
 
-            if has_captcha(self.driver):
+            if has_captcha(self.driver, flog=self.flog):
                 wait_secs = 30 * (attempt + 1)
-                logger.warning(
-                    "[IEEE] Page blocked (attempt %d/3) — waiting %ds",
-                    attempt + 1, wait_secs,
-                )
+                self.flog.warning("[IEEE-NAV] Page blocked (attempt %d/3) — waiting %ds", attempt + 1, wait_secs)
+                logger.warning("[IEEE] Page blocked (attempt %d/3) — waiting %ds", attempt + 1, wait_secs)
                 time.sleep(wait_secs)
                 continue
+            self.flog.debug("[IEEE-NAV] No CAPTCHA detected")
             break
         else:
+            self.flog.error("[IEEE-NAV] Still blocked after 3 retries — returning 0")
             logger.error("[IEEE] Still blocked after 3 retries")
             return 0
 
@@ -124,21 +153,27 @@ class IEEEScraper:
                 "//*[contains(text(),'No records found')]",
             )
             if elems and any(e.is_displayed() for e in elems):
+                self.flog.info("[IEEE-NAV] 'No results found' detected on page")
                 return 0
-        except Exception:
-            pass
+        except Exception as exc:
+            self.flog.debug("[IEEE-NAV] Error checking for 'no results' text: %s", exc)
 
-        return self._get_total_count() or 0
+        total = self._get_total_count() or 0
+        self.flog.info("[IEEE-NAV] Total result count: %d", total)
+        return total
 
     def _get_total_count(self) -> Optional[int]:
         # Strategy 1: try body text "Showing X-Y of Z results"
         try:
             body_text = self.driver.find_element(By.TAG_NAME, "body").text
+            self.flog.debug("[IEEE-COUNT] Body text length: %d chars", len(body_text))
             m = re.search(r"Showing\s+\d+-\d+\s+of\s+([\d,]+)\s+results?", body_text, re.I)
             if m:
-                return int(m.group(1).replace(",", ""))
-        except Exception:
-            pass
+                count = int(m.group(1).replace(",", ""))
+                self.flog.debug("[IEEE-COUNT] Strategy 1 (body text regex): %d", count)
+                return count
+        except Exception as exc:
+            self.flog.debug("[IEEE-COUNT] Strategy 1 failed: %s", exc)
 
         # Strategy 2: try specific selectors
         selectors = [
@@ -149,9 +184,12 @@ class IEEEScraper:
             try:
                 el = self.driver.find_element(By.XPATH, sel)
                 text = el.text
+                self.flog.debug("[IEEE-COUNT] Strategy 2 selector '%s' text: '%s'", sel[:60], text)
                 m = re.search(r"of\s+([\d,]+)", text, re.I) or re.search(r"([\d,]+)\s+results?", text, re.I)
                 if m:
-                    return int(m.group(1).replace(",", ""))
+                    count = int(m.group(1).replace(",", ""))
+                    self.flog.debug("[IEEE-COUNT] Strategy 2: %d", count)
+                    return count
             except Exception:
                 continue
 
@@ -161,11 +199,13 @@ class IEEEScraper:
                 By.XPATH, "//xpl-results-item | //div[contains(@class,'result-item')]"
             )
             if items:
+                self.flog.debug("[IEEE-COUNT] Strategy 3 (DOM count): %d items", len(items))
                 logger.info("[IEEE] Count from selectors failed — found %d items on page", len(items))
                 return len(items)
-        except Exception:
-            pass
+        except Exception as exc:
+            self.flog.debug("[IEEE-COUNT] Strategy 3 failed: %s", exc)
 
+        self.flog.warning("[IEEE-COUNT] All strategies failed — returning None")
         return None
 
     def _scrape_all_pages(self, target_year: int, expected: int) -> List[dict]:
@@ -177,8 +217,10 @@ class IEEEScraper:
         seen_links: set = set()
         page = 1
         stale_pages = 0
+        self.flog.debug("[IEEE-PAGES] Starting pagination (expected=%d)", expected)
 
         while True:
+            self.flog.debug("[IEEE-PAGES] Page %d — waiting for results...", page)
             logger.debug("  Page %d", page)
             random_delay(2, 4)
 
@@ -189,13 +231,17 @@ class IEEEScraper:
                         "//div[contains(@class,'List-results-items')] | //xpl-results-item",
                     ))
                 )
+                self.flog.debug("[IEEE-PAGES] Page %d — results container appeared", page)
             except TimeoutException:
-                if has_captcha(self.driver):
+                if has_captcha(self.driver, flog=self.flog):
+                    self.flog.warning("[IEEE-PAGES] CAPTCHA on page %d — waiting 30s", page)
                     logger.warning("CAPTCHA on IEEE — waiting")
                     time.sleep(30)
                     continue
                 if page > 1:
+                    self.flog.debug("[IEEE-PAGES] Timeout on page %d (not first) — stopping", page)
                     break
+                self.flog.debug("[IEEE-PAGES] Timeout on page 1 — retrying after 5s")
                 time.sleep(5)
                 continue
 
@@ -206,10 +252,13 @@ class IEEEScraper:
                 "//div[contains(@class,'result-item-align')] | "
                 "//div[@class='result-item']",
             )
+            self.flog.debug("[IEEE-PAGES] Page %d: found %d result elements", page, len(results))
 
             if not results:
                 stale_pages += 1
+                self.flog.debug("[IEEE-PAGES] 0 results on page %d (stale=%d)", page, stale_pages)
                 if stale_pages >= 3:
+                    self.flog.debug("[IEEE-PAGES] 3 stale pages — stopping")
                     break
                 continue
 
@@ -226,19 +275,26 @@ class IEEEScraper:
                 papers.append(paper)
                 new_count += 1
 
+            self.flog.debug("[IEEE-PAGES] Page %d: +%d new papers (total %d / expected %d)",
+                            page, new_count, len(papers), expected)
+
             if expected and len(papers) >= expected:
+                self.flog.debug("[IEEE-PAGES] Reached expected count — stopping")
                 break
             if new_count == 0:
                 stale_pages += 1
                 if stale_pages >= 3:
+                    self.flog.debug("[IEEE-PAGES] 3 stale pages with no new papers — stopping")
                     break
             else:
                 stale_pages = 0
 
             if not self._go_next_page(page):
+                self.flog.debug("[IEEE-PAGES] No next page button — stopping")
                 break
             page += 1
 
+        self.flog.info("[IEEE-PAGES] Pagination done: %d papers collected over %d pages", len(papers), page)
         return papers
 
     def _extract_paper(self, el, target_year: int) -> Optional[dict]:

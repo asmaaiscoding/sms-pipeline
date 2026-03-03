@@ -1,0 +1,469 @@
+2026-03-03 05:41:28 | INFO    | ======================================================================
+2026-03-03 05:41:28 | INFO    | PIPELINE STEP: COLLECTION
+2026-03-03 05:41:28 | INFO    | Project: yarebi temchi
+2026-03-03 05:41:28 | INFO    | Started: 2026-03-03_05-41-28 UTC
+2026-03-03 05:41:28 | INFO    | Log file: /app/logs/collection_yarebi_temchi_2026-03-03_05-41-28.log
+2026-03-03 05:41:28 | INFO    | Python: 3.12.12 (main, Feb 24 2026, 19:45:37) [GCC 14.2.0]
+2026-03-03 05:41:28 | INFO    | Platform: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.41
+2026-03-03 05:41:28 | INFO    | PID: 9
+2026-03-03 05:41:28 | INFO    | ======================================================================
+2026-03-03 05:41:28 | INFO    | ======================================================================
+2026-03-03 05:41:28 | INFO    | COLLECTION STARTED
+2026-03-03 05:41:28 | INFO    |   Project name : yarebi temchi
+2026-03-03 05:41:28 | INFO    |   Project ID   : 88740ba0-b4b0-4e25-af7a-66b169523283
+2026-03-03 05:41:28 | INFO    | ======================================================================
+2026-03-03 05:41:28 | INFO    | Configuration:
+2026-03-03 05:41:28 | INFO    |   Sources          : ACM, IEEE, SPRINGER
+2026-03-03 05:41:28 | INFO    |   Search strings   : 4
+2026-03-03 05:41:28 | INFO    |     [REM-1] → ("vulnerability" OR "vulnerabilities" OR "security flaw" OR "security weakness") AND ("remediation" OR "mitigation" OR "fix" OR "fixing" OR "repair" OR "patch" OR "patching") AND ("software" OR "code" OR "application" OR "source code")
+2026-03-03 05:41:28 | INFO    |     [REM-2] → ("security refactoring" OR "secure refactoring" OR "refactoring") AND ("vulnerability" OR "security") AND ("software" OR "code" OR "application")
+2026-03-03 05:41:28 | INFO    |     [REM-3] → ("automated" OR "automatic" OR "semi-automated") AND ("vulnerability remediation" OR "vulnerability mitigation" OR "security fix") AND ("software" OR "application")
+2026-03-03 05:41:28 | INFO    |     [REM-4] → ("code transformation" OR "program transformation" OR "security hardening") AND ("vulnerability" OR "security flaw") AND ("remediation" OR "mitigation" OR "fix")
+2026-03-03 05:41:28 | INFO    |   Year range       : 2026 – 2026
+2026-03-03 05:41:28 | INFO    |   Total year span  : 1 years
+2026-03-03 05:41:28 | INFO    | Estimated task count: 12 (sources × strings × years)
+2026-03-03 05:41:28 | INFO    | --- Setting up Selenium WebDriver ---
+2026-03-03 05:41:28 | INFO    | [DRIVER] Setting up Chrome WebDriver (headless=True)
+2026-03-03 05:41:28 | DEBUG   | [DRIVER] CHROMEDRIVER_PATH=/usr/bin/chromedriver
+2026-03-03 05:41:28 | DEBUG   | [DRIVER] CHROME_BIN=/usr/bin/chromium
+2026-03-03 05:41:30 | INFO    | [DRIVER] Chrome WebDriver created successfully
+2026-03-03 05:41:30 | DEBUG   | [DRIVER] Anti-detection CDP command injected
+2026-03-03 05:41:30 | DEBUG   | [DRIVER] Page load timeout set to 60s
+2026-03-03 05:41:30 | INFO    | [DRIVER] WebDriver ready
+2026-03-03 05:41:30 | INFO    | WebDriver created successfully
+2026-03-03 05:41:30 | INFO    | 
+2026-03-03 05:41:30 | INFO    | ============================================================
+2026-03-03 05:41:30 | INFO    | [1/3] SOURCE: ACM
+2026-03-03 05:41:30 | INFO    |   Scraper class: app.scrapers.acm.ACMScraper
+2026-03-03 05:41:30 | INFO    | ============================================================
+2026-03-03 05:41:30 | DEBUG   |   Scraper class imported: <class 'app.scrapers.acm.ACMScraper'>
+2026-03-03 05:41:30 | INFO    | [ACM] Scraper initialised  (BS4=True, cloudscraper=True)
+2026-03-03 05:41:30 | DEBUG   |   Scraper instance created
+2026-03-03 05:41:30 | INFO    |   Calling scraper.scrape() with 4 search strings, years 2026–2026
+2026-03-03 05:41:30 | INFO    | [ACM] scrape() called — 4 search strings, years 2026–2026
+2026-03-03 05:41:30 | INFO    | [ACM] ── REM-1 | year 2026 ──
+2026-03-03 05:41:30 | DEBUG   | [ACM] _collect(REM-1, 2026) — http_consecutive_fails=0, selenium_blocked=False
+2026-03-03 05:41:30 | DEBUG   | [ACM] Trying HTTP approach first...
+2026-03-03 05:41:30 | DEBUG   | [ACM-HTTP] GET page 1: https://dl.acm.org/action/doSearch?fillQuickSearch=false&target=advanced&AllField=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&AfterYear=2026&BeforeYear=2026&startPage=0&pageSize=50
+2026-03-03 05:41:30 | DEBUG   | [ACM-HTTP] Response: status=403, content-length=5521, content-type=text/html; charset=UTF-8
+2026-03-03 05:41:30 | WARNING | [ACM-HTTP] HTTP 403 — Cloudflare block. Headers: {'Date': 'Tue, 03 Mar 2026 05:41:30 GMT', 'Content-Type': 'text/html; charset=UTF-8', 'Transfer-Encoding': 'chunked', 'Connection': 'close', 'accept-ch': 'Sec-CH-UA-Bitness, Sec-CH-UA-Arch, Sec-CH-UA-Full-Version, Sec-CH-UA-Mobile, Sec-CH-UA-Model, Sec-CH-UA-Platform-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Platform, Sec-CH-UA, UA-Bitness, UA-Arch, UA-Full-Version, UA-Mobile, UA-Model, UA-Platform-Version, UA-Platform, UA', 'cf-mitigated': 'challenge', 'critical-ch': 'Sec-CH-UA-Bitness, Sec-CH-UA-Arch, Sec-CH-UA-Full-Version, Sec-CH-UA-Mobile, Sec-CH-UA-Model, Sec-CH-UA-Platform-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Platform, Sec-CH-UA, UA-Bitness, UA-Arch, UA-Full-Version, UA-Mobile, UA-Model, UA-Platform-Version, UA-Platform, UA', 'cross-origin-embedder-policy': 'require-corp', 'cross-origin-opener-policy': 'same-origin', 'cross-origin-resource-policy': 'same-origin', 'origin-agent-cluster': '?1', 'permissions-policy': 'accelerometer=(),browsing-topics=(),camera=(),clipboard-read=(),clipboard-write=(),geolocation=(),gyroscope=(),hid=(),interest-cohort=(),magnetometer=(),microphone=(),payment=(),publickey-credentials-get=(),screen-wake-lock=(),serial=(),sync-xhr=(),usb=()', 'referrer-policy': 'same-origin', 'server-timing': 'chlray;desc="9d6650000f6544f4", cfOrigin;dur=0,cfEdge;dur=9', 'x-content-type-options': 'nosniff', 'x-frame-options': 'SAMEORIGIN', 'Cache-Control': 'private, max-age=0, no-store, no-cache, must-revalidate, post-check=0, pre-check=0', 'Expires': 'Thu, 01 Jan 1970 00:00:01 GMT', 'Vary': 'Accept-Encoding', 'Strict-Transport-Security': 'max-age=2592000', 'Server': 'cloudflare', 'CF-RAY': '9d6650000f6544f4-ORN', 'Content-Encoding': 'br', 'alt-svc': 'h3=":443"; ma=86400'}
+2026-03-03 05:41:30 | INFO    | [ACM] HTTP returned 0 for REM-1/2026 (consecutive fails now 1) — trying Selenium
+2026-03-03 05:41:30 | DEBUG   | [ACM] Trying Selenium approach...
+2026-03-03 05:41:30 | INFO    | [ACM-SEL] Navigating to https://dl.acm.org/action/doSearch?fillQuickSearch=false&target=advanced&AllField=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&AfterYear=2026&BeforeYear=2026
+2026-03-03 05:41:31 | DEBUG   | [ACM-SEL] Page loaded (attempt 1/3), current URL=https://dl.acm.org/action/doSearch?fillQuickSearch=false&target=advanced&AllField=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&AfterYear=2026&BeforeYear=2026
+2026-03-03 05:41:36 | DEBUG   | [CAPTCHA-CHECK] URL=https://dl.acm.org/action/doSearch?fillQuickSearch=false&target=advanced&AllField=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&AfterYear=2026&BeforeYear=2026  title='just a moment...'
+2026-03-03 05:41:36 | WARNING | [CAPTCHA-CHECK] Title matched block keywords: ['just a moment']
+2026-03-03 05:41:36 | WARNING | [PAGE-READY] CAPTCHA detected — page may be blocked. URL=https://dl.acm.org/action/doSearch?fillQuickSearch=false&target=advanced&AllField=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&AfterYear=2026&BeforeYear=2026
+2026-03-03 05:41:36 | DEBUG   | [CAPTCHA-CHECK] URL=https://dl.acm.org/action/doSearch?fillQuickSearch=false&target=advanced&AllField=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&AfterYear=2026&BeforeYear=2026  title='just a moment...'
+2026-03-03 05:41:36 | WARNING | [CAPTCHA-CHECK] Title matched block keywords: ['just a moment']
+2026-03-03 05:41:36 | WARNING | [ACM-SEL] CAPTCHA/block detected (attempt 1/3) — waiting 30s
+2026-03-03 05:42:06 | DEBUG   | [ACM-SEL] Page loaded (attempt 2/3), current URL=https://dl.acm.org/action/doSearch?fillQuickSearch=false&target=advanced&AllField=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&AfterYear=2026&BeforeYear=2026
+2026-03-03 05:42:10 | DEBUG   | [CAPTCHA-CHECK] URL=https://dl.acm.org/action/doSearch?fillQuickSearch=false&target=advanced&AllField=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&AfterYear=2026&BeforeYear=2026  title='just a moment...'
+2026-03-03 05:42:10 | WARNING | [CAPTCHA-CHECK] Title matched block keywords: ['just a moment']
+2026-03-03 05:42:10 | WARNING | [PAGE-READY] CAPTCHA detected — page may be blocked. URL=https://dl.acm.org/action/doSearch?fillQuickSearch=false&target=advanced&AllField=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&AfterYear=2026&BeforeYear=2026
+2026-03-03 05:42:11 | DEBUG   | [CAPTCHA-CHECK] URL=https://dl.acm.org/action/doSearch?fillQuickSearch=false&target=advanced&AllField=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&AfterYear=2026&BeforeYear=2026  title='just a moment...'
+2026-03-03 05:42:11 | WARNING | [CAPTCHA-CHECK] Title matched block keywords: ['just a moment']
+2026-03-03 05:42:11 | WARNING | [ACM-SEL] CAPTCHA/block detected (attempt 2/3) — waiting 60s
+2026-03-03 05:43:10 | DEBUG   | [ACM-SEL] Page loaded (attempt 3/3), current URL=https://dl.acm.org/action/doSearch?fillQuickSearch=false&target=advanced&AllField=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&AfterYear=2026&BeforeYear=2026
+2026-03-03 05:43:15 | DEBUG   | [CAPTCHA-CHECK] URL=https://dl.acm.org/action/doSearch?fillQuickSearch=false&target=advanced&AllField=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&AfterYear=2026&BeforeYear=2026  title='just a moment...'
+2026-03-03 05:43:15 | WARNING | [CAPTCHA-CHECK] Title matched block keywords: ['just a moment']
+2026-03-03 05:43:15 | WARNING | [PAGE-READY] CAPTCHA detected — page may be blocked. URL=https://dl.acm.org/action/doSearch?fillQuickSearch=false&target=advanced&AllField=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&AfterYear=2026&BeforeYear=2026
+2026-03-03 05:43:15 | DEBUG   | [CAPTCHA-CHECK] URL=https://dl.acm.org/action/doSearch?fillQuickSearch=false&target=advanced&AllField=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&AfterYear=2026&BeforeYear=2026  title='just a moment...'
+2026-03-03 05:43:15 | WARNING | [CAPTCHA-CHECK] Title matched block keywords: ['just a moment']
+2026-03-03 05:43:15 | WARNING | [ACM-SEL] CAPTCHA/block detected (attempt 3/3) — waiting 90s
+2026-03-03 05:44:45 | ERROR   | [ACM-SEL] Still blocked after 3 retries — marking selenium as blocked
+2026-03-03 05:44:45 | WARNING | [ACM] Selenium approach returned 0 papers
+2026-03-03 05:44:45 | WARNING | [ACM] REM-1 | 2026: ALL approaches failed — returning empty
+2026-03-03 05:44:45 | INFO    | [ACM] REM-1 | 2026: 0 papers collected
+2026-03-03 05:44:47 | INFO    | [ACM] ── REM-2 | year 2026 ──
+2026-03-03 05:44:47 | DEBUG   | [ACM] _collect(REM-2, 2026) — http_consecutive_fails=1, selenium_blocked=True
+2026-03-03 05:44:47 | DEBUG   | [ACM] Trying HTTP approach first...
+2026-03-03 05:44:47 | DEBUG   | [ACM-HTTP] GET page 1: https://dl.acm.org/action/doSearch?fillQuickSearch=false&target=advanced&AllField=%28%22security+refactoring%22+OR+%22secure+refactoring%22+OR+%22refactoring%22%29+AND+%28%22vulnerability%22+OR+%22security%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22%29&AfterYear=2026&BeforeYear=2026&startPage=0&pageSize=50
+2026-03-03 05:44:48 | DEBUG   | [ACM-HTTP] Response: status=403, content-length=5320, content-type=text/html; charset=UTF-8
+2026-03-03 05:44:48 | WARNING | [ACM-HTTP] HTTP 403 — Cloudflare block. Headers: {'Date': 'Tue, 03 Mar 2026 05:44:47 GMT', 'Content-Type': 'text/html; charset=UTF-8', 'Transfer-Encoding': 'chunked', 'Connection': 'close', 'accept-ch': 'Sec-CH-UA-Bitness, Sec-CH-UA-Arch, Sec-CH-UA-Full-Version, Sec-CH-UA-Mobile, Sec-CH-UA-Model, Sec-CH-UA-Platform-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Platform, Sec-CH-UA, UA-Bitness, UA-Arch, UA-Full-Version, UA-Mobile, UA-Model, UA-Platform-Version, UA-Platform, UA', 'cf-mitigated': 'challenge', 'critical-ch': 'Sec-CH-UA-Bitness, Sec-CH-UA-Arch, Sec-CH-UA-Full-Version, Sec-CH-UA-Mobile, Sec-CH-UA-Model, Sec-CH-UA-Platform-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Platform, Sec-CH-UA, UA-Bitness, UA-Arch, UA-Full-Version, UA-Mobile, UA-Model, UA-Platform-Version, UA-Platform, UA', 'cross-origin-embedder-policy': 'require-corp', 'cross-origin-opener-policy': 'same-origin', 'cross-origin-resource-policy': 'same-origin', 'origin-agent-cluster': '?1', 'permissions-policy': 'accelerometer=(),browsing-topics=(),camera=(),clipboard-read=(),clipboard-write=(),geolocation=(),gyroscope=(),hid=(),interest-cohort=(),magnetometer=(),microphone=(),payment=(),publickey-credentials-get=(),screen-wake-lock=(),serial=(),sync-xhr=(),usb=()', 'referrer-policy': 'same-origin', 'server-timing': 'chlray;desc="9d6654cdb9b1a4a9", cfOrigin;dur=0,cfEdge;dur=10', 'x-content-type-options': 'nosniff', 'x-frame-options': 'SAMEORIGIN', 'Cache-Control': 'private, max-age=0, no-store, no-cache, must-revalidate, post-check=0, pre-check=0', 'Expires': 'Thu, 01 Jan 1970 00:00:01 GMT', 'Vary': 'Accept-Encoding', 'Strict-Transport-Security': 'max-age=2592000', 'Server': 'cloudflare', 'CF-RAY': '9d6654cdb9b1a4a9-ORN', 'Content-Encoding': 'br', 'alt-svc': 'h3=":443"; ma=86400'}
+2026-03-03 05:44:48 | INFO    | [ACM] HTTP returned 0 for REM-2/2026 (consecutive fails now 2) — trying Selenium
+2026-03-03 05:44:48 | DEBUG   | [ACM] Skipping Selenium (blocked=True)
+2026-03-03 05:44:48 | WARNING | [ACM] REM-2 | 2026: ALL approaches failed — returning empty
+2026-03-03 05:44:48 | INFO    | [ACM] REM-2 | 2026: 0 papers collected
+2026-03-03 05:44:50 | INFO    | [ACM] ── REM-3 | year 2026 ──
+2026-03-03 05:44:50 | DEBUG   | [ACM] _collect(REM-3, 2026) — http_consecutive_fails=2, selenium_blocked=True
+2026-03-03 05:44:50 | DEBUG   | [ACM] Trying HTTP approach first...
+2026-03-03 05:44:50 | DEBUG   | [ACM-HTTP] GET page 1: https://dl.acm.org/action/doSearch?fillQuickSearch=false&target=advanced&AllField=%28%22automated%22+OR+%22automatic%22+OR+%22semi-automated%22%29+AND+%28%22vulnerability+remediation%22+OR+%22vulnerability+mitigation%22+OR+%22security+fix%22%29+AND+%28%22software%22+OR+%22application%22%29&AfterYear=2026&BeforeYear=2026&startPage=0&pageSize=50
+2026-03-03 05:44:50 | DEBUG   | [ACM-HTTP] Response: status=403, content-length=5335, content-type=text/html; charset=UTF-8
+2026-03-03 05:44:50 | WARNING | [ACM-HTTP] HTTP 403 — Cloudflare block. Headers: {'Date': 'Tue, 03 Mar 2026 05:44:50 GMT', 'Content-Type': 'text/html; charset=UTF-8', 'Transfer-Encoding': 'chunked', 'Connection': 'close', 'accept-ch': 'Sec-CH-UA-Bitness, Sec-CH-UA-Arch, Sec-CH-UA-Full-Version, Sec-CH-UA-Mobile, Sec-CH-UA-Model, Sec-CH-UA-Platform-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Platform, Sec-CH-UA, UA-Bitness, UA-Arch, UA-Full-Version, UA-Mobile, UA-Model, UA-Platform-Version, UA-Platform, UA', 'cf-mitigated': 'challenge', 'critical-ch': 'Sec-CH-UA-Bitness, Sec-CH-UA-Arch, Sec-CH-UA-Full-Version, Sec-CH-UA-Mobile, Sec-CH-UA-Model, Sec-CH-UA-Platform-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Platform, Sec-CH-UA, UA-Bitness, UA-Arch, UA-Full-Version, UA-Mobile, UA-Model, UA-Platform-Version, UA-Platform, UA', 'cross-origin-embedder-policy': 'require-corp', 'cross-origin-opener-policy': 'same-origin', 'cross-origin-resource-policy': 'same-origin', 'origin-agent-cluster': '?1', 'permissions-policy': 'accelerometer=(),browsing-topics=(),camera=(),clipboard-read=(),clipboard-write=(),geolocation=(),gyroscope=(),hid=(),interest-cohort=(),magnetometer=(),microphone=(),payment=(),publickey-credentials-get=(),screen-wake-lock=(),serial=(),sync-xhr=(),usb=()', 'referrer-policy': 'same-origin', 'server-timing': 'chlray;desc="9d6654e13a4c3447", cfOrigin;dur=0,cfEdge;dur=53', 'x-content-type-options': 'nosniff', 'x-frame-options': 'SAMEORIGIN', 'Cache-Control': 'private, max-age=0, no-store, no-cache, must-revalidate, post-check=0, pre-check=0', 'Expires': 'Thu, 01 Jan 1970 00:00:01 GMT', 'Vary': 'Accept-Encoding', 'Strict-Transport-Security': 'max-age=2592000', 'Server': 'cloudflare', 'CF-RAY': '9d6654e13a4c3447-ORN', 'Content-Encoding': 'br', 'alt-svc': 'h3=":443"; ma=86400'}
+2026-03-03 05:44:50 | INFO    | [ACM] HTTP returned 0 for REM-3/2026 (consecutive fails now 3) — trying Selenium
+2026-03-03 05:44:50 | DEBUG   | [ACM] Skipping Selenium (blocked=True)
+2026-03-03 05:44:50 | WARNING | [ACM] REM-3 | 2026: ALL approaches failed — returning empty
+2026-03-03 05:44:50 | INFO    | [ACM] REM-3 | 2026: 0 papers collected
+2026-03-03 05:44:52 | INFO    | [ACM] ── REM-4 | year 2026 ──
+2026-03-03 05:44:52 | DEBUG   | [ACM] _collect(REM-4, 2026) — http_consecutive_fails=3, selenium_blocked=True
+2026-03-03 05:44:52 | DEBUG   | [ACM] Trying HTTP approach first...
+2026-03-03 05:44:52 | DEBUG   | [ACM-HTTP] GET page 1: https://dl.acm.org/action/doSearch?fillQuickSearch=false&target=advanced&AllField=%28%22code+transformation%22+OR+%22program+transformation%22+OR+%22security+hardening%22%29+AND+%28%22vulnerability%22+OR+%22security+flaw%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22%29&AfterYear=2026&BeforeYear=2026&startPage=0&pageSize=50
+2026-03-03 05:44:52 | DEBUG   | [ACM-HTTP] Response: status=403, content-length=5367, content-type=text/html; charset=UTF-8
+2026-03-03 05:44:52 | WARNING | [ACM-HTTP] HTTP 403 — Cloudflare block. Headers: {'Date': 'Tue, 03 Mar 2026 05:44:51 GMT', 'Content-Type': 'text/html; charset=UTF-8', 'Transfer-Encoding': 'chunked', 'Connection': 'close', 'accept-ch': 'Sec-CH-UA-Bitness, Sec-CH-UA-Arch, Sec-CH-UA-Full-Version, Sec-CH-UA-Mobile, Sec-CH-UA-Model, Sec-CH-UA-Platform-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Platform, Sec-CH-UA, UA-Bitness, UA-Arch, UA-Full-Version, UA-Mobile, UA-Model, UA-Platform-Version, UA-Platform, UA', 'cf-mitigated': 'challenge', 'critical-ch': 'Sec-CH-UA-Bitness, Sec-CH-UA-Arch, Sec-CH-UA-Full-Version, Sec-CH-UA-Mobile, Sec-CH-UA-Model, Sec-CH-UA-Platform-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Platform, Sec-CH-UA, UA-Bitness, UA-Arch, UA-Full-Version, UA-Mobile, UA-Model, UA-Platform-Version, UA-Platform, UA', 'cross-origin-embedder-policy': 'require-corp', 'cross-origin-opener-policy': 'same-origin', 'cross-origin-resource-policy': 'same-origin', 'origin-agent-cluster': '?1', 'permissions-policy': 'accelerometer=(),browsing-topics=(),camera=(),clipboard-read=(),clipboard-write=(),geolocation=(),gyroscope=(),hid=(),interest-cohort=(),magnetometer=(),microphone=(),payment=(),publickey-credentials-get=(),screen-wake-lock=(),serial=(),sync-xhr=(),usb=()', 'referrer-policy': 'same-origin', 'server-timing': 'chlray;desc="9d6654ec7a9ad07f", cfOrigin;dur=0,cfEdge;dur=12', 'x-content-type-options': 'nosniff', 'x-frame-options': 'SAMEORIGIN', 'Cache-Control': 'private, max-age=0, no-store, no-cache, must-revalidate, post-check=0, pre-check=0', 'Expires': 'Thu, 01 Jan 1970 00:00:01 GMT', 'Vary': 'Accept-Encoding', 'Strict-Transport-Security': 'max-age=2592000', 'Server': 'cloudflare', 'CF-RAY': '9d6654ec7a9ad07f-ORN', 'Content-Encoding': 'br', 'alt-svc': 'h3=":443"; ma=86400'}
+2026-03-03 05:44:52 | INFO    | [ACM] HTTP returned 0 for REM-4/2026 (consecutive fails now 4) — trying Selenium
+2026-03-03 05:44:52 | DEBUG   | [ACM] Skipping Selenium (blocked=True)
+2026-03-03 05:44:52 | WARNING | [ACM] REM-4 | 2026: ALL approaches failed — returning empty
+2026-03-03 05:44:52 | INFO    | [ACM] REM-4 | 2026: 0 papers collected
+2026-03-03 05:44:54 | INFO    | [ACM] scrape() finished — total 0 papers across all strings/years
+2026-03-03 05:44:54 | INFO    |   scraper.scrape() returned DataFrame with 0 rows, columns=[]
+2026-03-03 05:44:54 | INFO    |   DB flush OK — 0 papers from ACM
+2026-03-03 05:44:54 | INFO    | --- ACM finished: 0 papers ---
+2026-03-03 05:44:54 | INFO    | 
+2026-03-03 05:44:54 | INFO    | ============================================================
+2026-03-03 05:44:54 | INFO    | [2/3] SOURCE: IEEE
+2026-03-03 05:44:54 | INFO    |   Scraper class: app.scrapers.ieee.IEEEScraper
+2026-03-03 05:44:54 | INFO    | ============================================================
+2026-03-03 05:44:54 | DEBUG   |   Scraper class imported: <class 'app.scrapers.ieee.IEEEScraper'>
+2026-03-03 05:44:54 | INFO    | [IEEE] Scraper initialised
+2026-03-03 05:44:54 | DEBUG   |   Scraper instance created
+2026-03-03 05:44:54 | INFO    |   Calling scraper.scrape() with 4 search strings, years 2026–2026
+2026-03-03 05:44:54 | INFO    | [IEEE] scrape() called — 4 search strings, years 2026–2026
+2026-03-03 05:44:54 | INFO    | [IEEE] ── YEAR 2026 ──
+2026-03-03 05:44:54 | INFO    | [IEEE] REM-1 | year 2026 — navigating...
+2026-03-03 05:44:54 | DEBUG   | [IEEE-NAV] URL: https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&ranges=2026_2026_Year
+2026-03-03 05:44:54 | DEBUG   | [IEEE-NAV] Loading page (attempt 1/3)...
+2026-03-03 05:45:01 | DEBUG   | [IEEE-NAV] Page loaded, current URL=https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=(%22vulnerability%22%20OR%20%22vulnerabilities%22%20OR%20%22security%20flaw%22%20OR%20%22security%20weakness%22)%20AND%20(%22remediation%22%20OR%20%22mitigation%22%20OR%20%22fix%22%20OR%20%22fixing%22%20OR%20%22repair%22%20OR%20%22patch%22%20OR%20%22patching%22)%20AND%20(%22software%22%20OR%20%22code%22%20OR%20%22application%22%20OR%20%22source%20code%22)&ranges=2026_2026_Year
+2026-03-03 05:45:07 | DEBUG   | [CAPTCHA-CHECK] URL=https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=(%22vulnerability%22%20OR%20%22vulnerabilities%22%20OR%20%22security%20flaw%22%20OR%20%22security%20weakness%22)%20AND%20(%22remediation%22%20OR%20%22mitigation%22%20OR%20%22fix%22%20OR%20%22fixing%22%20OR%20%22repair%22%20OR%20%22patch%22%20OR%20%22patching%22)%20AND%20(%22software%22%20OR%20%22code%22%20OR%20%22application%22%20OR%20%22source%20code%22)&ranges=2026_2026_Year  title='ieee xplore search results'
+2026-03-03 05:45:09 | DEBUG   | [CAPTCHA-CHECK] Body text length: 8894 chars
+2026-03-03 05:45:09 | DEBUG   | [CAPTCHA-CHECK] No CAPTCHA detected
+2026-03-03 05:45:09 | INFO    | [PAGE-READY] First visit — page loaded successfully. URL=https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=(%22vulnerability%22%20OR%20%22vulnerabilities%22%20OR%20%22security%20flaw%22%20OR%20%22security%20weakness%22)%20AND%20(%22remediation%22%20OR%20%22mitigation%22%20OR%20%22fix%22%20OR%20%22fixing%22%20OR%20%22repair%22%20OR%20%22patch%22%20OR%20%22patching%22)%20AND%20(%22software%22%20OR%20%22code%22%20OR%20%22application%22%20OR%20%22source%20code%22)&ranges=2026_2026_Year
+2026-03-03 05:45:09 | DEBUG   | [CAPTCHA-CHECK] URL=https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=(%22vulnerability%22%20OR%20%22vulnerabilities%22%20OR%20%22security%20flaw%22%20OR%20%22security%20weakness%22)%20AND%20(%22remediation%22%20OR%20%22mitigation%22%20OR%20%22fix%22%20OR%20%22fixing%22%20OR%20%22repair%22%20OR%20%22patch%22%20OR%20%22patching%22)%20AND%20(%22software%22%20OR%20%22code%22%20OR%20%22application%22%20OR%20%22source%20code%22)&ranges=2026_2026_Year  title='ieee xplore search results'
+2026-03-03 05:45:12 | DEBUG   | [CAPTCHA-CHECK] Body text length: 8894 chars
+2026-03-03 05:45:12 | DEBUG   | [CAPTCHA-CHECK] No CAPTCHA detected
+2026-03-03 05:45:12 | DEBUG   | [IEEE-NAV] No CAPTCHA detected
+2026-03-03 05:45:14 | DEBUG   | [IEEE-COUNT] Body text length: 8894 chars
+2026-03-03 05:45:14 | DEBUG   | [IEEE-COUNT] Strategy 1 (body text regex): 47
+2026-03-03 05:45:14 | INFO    | [IEEE-NAV] Total result count: 47
+2026-03-03 05:45:14 | INFO    | [IEEE] REM-1 | 2026 — navigation OK, expected results: 47
+2026-03-03 05:45:14 | DEBUG   | [IEEE] REM-1 | 2026: scraping all pages (expected=47)...
+2026-03-03 05:45:14 | DEBUG   | [IEEE-PAGES] Starting pagination (expected=47)
+2026-03-03 05:45:14 | DEBUG   | [IEEE-PAGES] Page 1 — waiting for results...
+2026-03-03 05:45:17 | DEBUG   | [IEEE-PAGES] Page 1 — results container appeared
+2026-03-03 05:45:17 | DEBUG   | [IEEE-PAGES] Page 1: found 50 result elements
+2026-03-03 05:45:32 | DEBUG   | [IEEE-PAGES] Page 1: +25 new papers (total 25 / expected 47)
+2026-03-03 05:45:40 | DEBUG   | [IEEE-PAGES] Page 2 — waiting for results...
+2026-03-03 05:45:42 | DEBUG   | [IEEE-PAGES] Page 2 — results container appeared
+2026-03-03 05:45:42 | DEBUG   | [IEEE-PAGES] Page 2: found 44 result elements
+2026-03-03 05:45:53 | DEBUG   | [IEEE-PAGES] Page 2: +22 new papers (total 47 / expected 47)
+2026-03-03 05:45:53 | DEBUG   | [IEEE-PAGES] Reached expected count — stopping
+2026-03-03 05:45:53 | INFO    | [IEEE-PAGES] Pagination done: 47 papers collected over 2 pages
+2026-03-03 05:45:53 | INFO    | [IEEE] REM-1 | 2026: scraped 47 papers (expected 47)
+2026-03-03 05:45:57 | INFO    | [IEEE] REM-2 | year 2026 — navigating...
+2026-03-03 05:45:57 | DEBUG   | [IEEE-NAV] URL: https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=%28%22security+refactoring%22+OR+%22secure+refactoring%22+OR+%22refactoring%22%29+AND+%28%22vulnerability%22+OR+%22security%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22%29&ranges=2026_2026_Year
+2026-03-03 05:45:57 | DEBUG   | [IEEE-NAV] Loading page (attempt 1/3)...
+2026-03-03 05:46:03 | DEBUG   | [IEEE-NAV] Page loaded, current URL=https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=(%22security%20refactoring%22%20OR%20%22secure%20refactoring%22%20OR%20%22refactoring%22)%20AND%20(%22vulnerability%22%20OR%20%22security%22)%20AND%20(%22software%22%20OR%20%22code%22%20OR%20%22application%22)&ranges=2026_2026_Year
+2026-03-03 05:46:09 | DEBUG   | [CAPTCHA-CHECK] URL=https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=(%22security%20refactoring%22%20OR%20%22secure%20refactoring%22%20OR%20%22refactoring%22)%20AND%20(%22vulnerability%22%20OR%20%22security%22)%20AND%20(%22software%22%20OR%20%22code%22%20OR%20%22application%22)&ranges=2026_2026_Year  title='ieee xplore search results'
+2026-03-03 05:46:10 | DEBUG   | [CAPTCHA-CHECK] Body text length: 4635 chars
+2026-03-03 05:46:10 | DEBUG   | [CAPTCHA-CHECK] No CAPTCHA detected
+2026-03-03 05:46:10 | DEBUG   | [CAPTCHA-CHECK] URL=https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=(%22security%20refactoring%22%20OR%20%22secure%20refactoring%22%20OR%20%22refactoring%22)%20AND%20(%22vulnerability%22%20OR%20%22security%22)%20AND%20(%22software%22%20OR%20%22code%22%20OR%20%22application%22)&ranges=2026_2026_Year  title='ieee xplore search results'
+2026-03-03 05:46:10 | DEBUG   | [CAPTCHA-CHECK] Body text length: 4635 chars
+2026-03-03 05:46:10 | DEBUG   | [CAPTCHA-CHECK] No CAPTCHA detected
+2026-03-03 05:46:10 | DEBUG   | [IEEE-NAV] No CAPTCHA detected
+2026-03-03 05:46:11 | DEBUG   | [IEEE-COUNT] Body text length: 4635 chars
+2026-03-03 05:46:11 | DEBUG   | [IEEE-COUNT] Strategy 1 (body text regex): 11
+2026-03-03 05:46:11 | INFO    | [IEEE-NAV] Total result count: 11
+2026-03-03 05:46:11 | INFO    | [IEEE] REM-2 | 2026 — navigation OK, expected results: 11
+2026-03-03 05:46:11 | DEBUG   | [IEEE] REM-2 | 2026: scraping all pages (expected=11)...
+2026-03-03 05:46:11 | DEBUG   | [IEEE-PAGES] Starting pagination (expected=11)
+2026-03-03 05:46:11 | DEBUG   | [IEEE-PAGES] Page 1 — waiting for results...
+2026-03-03 05:46:13 | DEBUG   | [IEEE-PAGES] Page 1 — results container appeared
+2026-03-03 05:46:13 | DEBUG   | [IEEE-PAGES] Page 1: found 22 result elements
+2026-03-03 05:46:18 | DEBUG   | [IEEE-PAGES] Page 1: +10 new papers (total 10 / expected 11)
+2026-03-03 05:46:18 | DEBUG   | [IEEE-PAGES] No next page button — stopping
+2026-03-03 05:46:18 | INFO    | [IEEE-PAGES] Pagination done: 10 papers collected over 1 pages
+2026-03-03 05:46:18 | INFO    | [IEEE] REM-2 | 2026: scraped 10 papers (expected 11)
+2026-03-03 05:46:22 | INFO    | [IEEE] REM-3 | year 2026 — navigating...
+2026-03-03 05:46:22 | DEBUG   | [IEEE-NAV] URL: https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=%28%22automated%22+OR+%22automatic%22+OR+%22semi-automated%22%29+AND+%28%22vulnerability+remediation%22+OR+%22vulnerability+mitigation%22+OR+%22security+fix%22%29+AND+%28%22software%22+OR+%22application%22%29&ranges=2026_2026_Year
+2026-03-03 05:46:22 | DEBUG   | [IEEE-NAV] Loading page (attempt 1/3)...
+2026-03-03 05:46:25 | DEBUG   | [IEEE-NAV] Page loaded, current URL=https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=(%22automated%22%20OR%20%22automatic%22%20OR%20%22semi-automated%22)%20AND%20(%22vulnerability%20remediation%22%20OR%20%22vulnerability%20mitigation%22%20OR%20%22security%20fix%22)%20AND%20(%22software%22%20OR%20%22application%22)&ranges=2026_2026_Year
+2026-03-03 05:46:29 | DEBUG   | [CAPTCHA-CHECK] URL=https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=(%22automated%22%20OR%20%22automatic%22%20OR%20%22semi-automated%22)%20AND%20(%22vulnerability%20remediation%22%20OR%20%22vulnerability%20mitigation%22%20OR%20%22security%20fix%22)%20AND%20(%22software%22%20OR%20%22application%22)&ranges=2026_2026_Year  title='ieee xplore search results'
+2026-03-03 05:46:29 | DEBUG   | [CAPTCHA-CHECK] Body text length: 1632 chars
+2026-03-03 05:46:29 | DEBUG   | [CAPTCHA-CHECK] No CAPTCHA detected
+2026-03-03 05:46:29 | DEBUG   | [CAPTCHA-CHECK] URL=https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=(%22automated%22%20OR%20%22automatic%22%20OR%20%22semi-automated%22)%20AND%20(%22vulnerability%20remediation%22%20OR%20%22vulnerability%20mitigation%22%20OR%20%22security%20fix%22)%20AND%20(%22software%22%20OR%20%22application%22)&ranges=2026_2026_Year  title='ieee xplore search results'
+2026-03-03 05:46:29 | DEBUG   | [CAPTCHA-CHECK] Body text length: 1632 chars
+2026-03-03 05:46:29 | DEBUG   | [CAPTCHA-CHECK] No CAPTCHA detected
+2026-03-03 05:46:29 | DEBUG   | [IEEE-NAV] No CAPTCHA detected
+2026-03-03 05:46:29 | INFO    | [IEEE-NAV] 'No results found' detected on page
+2026-03-03 05:46:29 | INFO    | [IEEE] REM-3 | 2026 — navigation OK, expected results: 0
+2026-03-03 05:46:29 | INFO    | [IEEE] REM-3 | 2026: 0 expected results — skipping
+2026-03-03 05:46:29 | INFO    | [IEEE] REM-4 | year 2026 — navigating...
+2026-03-03 05:46:29 | DEBUG   | [IEEE-NAV] URL: https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=%28%22code+transformation%22+OR+%22program+transformation%22+OR+%22security+hardening%22%29+AND+%28%22vulnerability%22+OR+%22security+flaw%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22%29&ranges=2026_2026_Year
+2026-03-03 05:46:29 | DEBUG   | [IEEE-NAV] Loading page (attempt 1/3)...
+2026-03-03 05:46:33 | DEBUG   | [IEEE-NAV] Page loaded, current URL=https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=(%22code%20transformation%22%20OR%20%22program%20transformation%22%20OR%20%22security%20hardening%22)%20AND%20(%22vulnerability%22%20OR%20%22security%20flaw%22)%20AND%20(%22remediation%22%20OR%20%22mitigation%22%20OR%20%22fix%22)&ranges=2026_2026_Year
+2026-03-03 05:46:39 | DEBUG   | [CAPTCHA-CHECK] URL=https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=(%22code%20transformation%22%20OR%20%22program%20transformation%22%20OR%20%22security%20hardening%22)%20AND%20(%22vulnerability%22%20OR%20%22security%20flaw%22)%20AND%20(%22remediation%22%20OR%20%22mitigation%22%20OR%20%22fix%22)&ranges=2026_2026_Year  title='ieee xplore search results'
+2026-03-03 05:46:40 | DEBUG   | [CAPTCHA-CHECK] Body text length: 1941 chars
+2026-03-03 05:46:40 | DEBUG   | [CAPTCHA-CHECK] No CAPTCHA detected
+2026-03-03 05:46:40 | DEBUG   | [CAPTCHA-CHECK] URL=https://ieeexplore.ieee.org/search/searchresult.jsp?queryText=(%22code%20transformation%22%20OR%20%22program%20transformation%22%20OR%20%22security%20hardening%22)%20AND%20(%22vulnerability%22%20OR%20%22security%20flaw%22)%20AND%20(%22remediation%22%20OR%20%22mitigation%22%20OR%20%22fix%22)&ranges=2026_2026_Year  title='ieee xplore search results'
+2026-03-03 05:46:40 | DEBUG   | [CAPTCHA-CHECK] Body text length: 1941 chars
+2026-03-03 05:46:40 | DEBUG   | [CAPTCHA-CHECK] No CAPTCHA detected
+2026-03-03 05:46:40 | DEBUG   | [IEEE-NAV] No CAPTCHA detected
+2026-03-03 05:46:40 | DEBUG   | [IEEE-COUNT] Body text length: 1941 chars
+2026-03-03 05:46:40 | DEBUG   | [IEEE-COUNT] Strategy 3 (DOM count): 3 items
+2026-03-03 05:46:40 | INFO    | [IEEE-NAV] Total result count: 3
+2026-03-03 05:46:40 | INFO    | [IEEE] REM-4 | 2026 — navigation OK, expected results: 3
+2026-03-03 05:46:40 | DEBUG   | [IEEE] REM-4 | 2026: scraping all pages (expected=3)...
+2026-03-03 05:46:40 | DEBUG   | [IEEE-PAGES] Starting pagination (expected=3)
+2026-03-03 05:46:40 | DEBUG   | [IEEE-PAGES] Page 1 — waiting for results...
+2026-03-03 05:46:43 | DEBUG   | [IEEE-PAGES] Page 1 — results container appeared
+2026-03-03 05:46:43 | DEBUG   | [IEEE-PAGES] Page 1: found 2 result elements
+2026-03-03 05:46:43 | DEBUG   | [IEEE-PAGES] Page 1: +1 new papers (total 1 / expected 3)
+2026-03-03 05:46:43 | DEBUG   | [IEEE-PAGES] No next page button — stopping
+2026-03-03 05:46:43 | INFO    | [IEEE-PAGES] Pagination done: 1 papers collected over 1 pages
+2026-03-03 05:46:43 | INFO    | [IEEE] REM-4 | 2026: scraped 1 papers (expected 3)
+2026-03-03 05:46:48 | INFO    | [IEEE] Year 2026 dedup: 58 → 55 papers
+2026-03-03 05:46:48 | INFO    | [IEEE] Year 2026 done — 55 papers (running total 55)
+2026-03-03 05:46:51 | INFO    | [IEEE] scrape() finished — total 55 papers
+2026-03-03 05:46:51 | INFO    |   scraper.scrape() returned DataFrame with 55 rows, columns=['Title', 'Link', 'Authors', 'Year', 'Publisher', 'DOI', 'Source', 'Search_String']
+2026-03-03 05:46:51 | DEBUG   |   saved #1  Reaching Software Quality for Bioinformatics Applications: How Far Are We?  (year=2026, doi=10.1109/11281877, link=https://ieeexplore.ieee.org/document/11281877/)
+2026-03-03 05:46:51 | DEBUG   |   saved #2  Vercation: Precise Vulnerable Open-Source Software Version Identification Based   (year=2026, doi=10.1109/11129942, link=https://ieeexplore.ieee.org/document/11129942/)
+2026-03-03 05:46:51 | DEBUG   |   saved #3  Identifying and Mitigating API Misuse in Large Language Models  (year=2026, doi=10.1109/11329192, link=https://ieeexplore.ieee.org/document/11329192/)
+2026-03-03 05:46:51 | DEBUG   |   saved #4  Bias-Free and Auto-Evolving Generative AI: Design Principles, Architectures, and  (year=2026, doi=10.1109/11366270, link=https://ieeexplore.ieee.org/document/11366270/)
+2026-03-03 05:46:51 | DEBUG   |   saved #5  A Systematic Security Analysis of Model Context Protocol: Vulnerabilities, Explo  (year=2026, doi=10.1109/11395848, link=https://ieeexplore.ieee.org/document/11395848/)
+2026-03-03 05:46:51 | DEBUG   |   saved #6  Transformation of Vulnerability Management Through Artificial Intelligence: An O  (year=2026, doi=10.1109/11393471, link=https://ieeexplore.ieee.org/document/11393471/)
+2026-03-03 05:46:51 | DEBUG   |   saved #7  Do Automated Fixes Truly Mitigate Smart Contract Exploits?  (year=2026, doi=10.1109/11197044, link=https://ieeexplore.ieee.org/document/11197044/)
+2026-03-03 05:46:51 | DEBUG   |   saved #8  A Modular, Passive Scanning Framework for Efficient Web Vulnerability Enumeratio  (year=2026, doi=10.1109/11394294, link=https://ieeexplore.ieee.org/document/11394294/)
+2026-03-03 05:46:51 | DEBUG   |   saved #9  Designing for the Unlikely: Mitigation Against Rare, High-Impact Threats  (year=2026, doi=10.1109/11298556, link=https://ieeexplore.ieee.org/document/11298556/)
+2026-03-03 05:46:51 | DEBUG   |   saved #10  Co-EDR: Cooperative Event-Driven Fuzzing for Efficient Vulnerability Detection i  (year=2026, doi=10.1109/11394717, link=https://ieeexplore.ieee.org/document/11394717/)
+2026-03-03 05:46:51 | DEBUG   |   saved #11  Generative AI for Advanced Cyber Defense  (year=2026, doi=10.1109/11357432, link=https://ieeexplore.ieee.org/document/11357432/)
+2026-03-03 05:46:51 | DEBUG   |   saved #12  DroneTest-Copilot: LLM-Powered Automated Detection and Repair of Flaws in Drone   (year=2026, doi=10.1109/11348971, link=https://ieeexplore.ieee.org/document/11348971/)
+2026-03-03 05:46:51 | DEBUG   |   saved #13  Vulnerability Assessment of Starlink User Terminals: Firmware and gRPC Communica  (year=2026, doi=10.1109/11417791, link=https://ieeexplore.ieee.org/document/11417791/)
+2026-03-03 05:46:51 | DEBUG   |   saved #14  LoRA Patching: Exposing the Fragility of Proactive Defenses Against Deepfakes  (year=2026, doi=10.1109/11298389, link=https://ieeexplore.ieee.org/document/11298389/)
+2026-03-03 05:46:51 | DEBUG   |   saved #15  A Systematic Review of Prompt Injection Attacks on Large Language Models: Trends  (year=2026, doi=10.1109/11359704, link=https://ieeexplore.ieee.org/document/11359704/)
+2026-03-03 05:46:51 | DEBUG   |   saved #16  Detecting Ethereum Smart Contract Vulnerabilities via Bytecode Image Analysis  (year=2026, doi=10.1109/11345231, link=https://ieeexplore.ieee.org/document/11345231/)
+2026-03-03 05:46:51 | DEBUG   |   saved #17  Generative AI as a Security Tool  (year=2026, doi=10.1109/11230030, link=https://ieeexplore.ieee.org/document/11230030/)
+2026-03-03 05:46:51 | DEBUG   |   saved #18  Security and Privacy in O-RAN for 6G: A Comprehensive Review of Threats and Miti  (year=2026, doi=10.1109/11418661, link=https://ieeexplore.ieee.org/document/11418661/)
+2026-03-03 05:46:51 | DEBUG   |   saved #19  Unveiling the Global Landscape of Android Security Updates  (year=2026, doi=10.1109/11370963, link=https://ieeexplore.ieee.org/document/11370963/)
+2026-03-03 05:46:51 | DEBUG   |   saved #20  Mujaz: A Summarization-Based Approach for Normalized Vulnerability Description  (year=2026, doi=10.1109/11198914, link=https://ieeexplore.ieee.org/document/11198914/)
+2026-03-03 05:46:51 | DEBUG   |   saved #21  Agentic Commerce: A Comprehensive Analysis of Cybersecurity Risks, Privacy Chall  (year=2026, doi=10.1109/11395759, link=https://ieeexplore.ieee.org/document/11395759/)
+2026-03-03 05:46:51 | DEBUG   |   saved #22  Generative Adversarial Networks Based Low-Rate Denial of Service Attack Detectio  (year=2026, doi=10.1109/11217229, link=https://ieeexplore.ieee.org/document/11217229/)
+2026-03-03 05:46:51 | DEBUG   |   saved #23  Federated Learning-Driven Covert Communication in Satellite–Terrestrial Integrat  (year=2026, doi=10.1109/11270855, link=https://ieeexplore.ieee.org/document/11270855/)
+2026-03-03 05:46:51 | DEBUG   |   saved #24  Detection and Mitigation of False Data Injection Attacks Against Wind Farm Activ  (year=2026, doi=10.1109/11184714, link=https://ieeexplore.ieee.org/document/11184714/)
+2026-03-03 05:46:51 | DEBUG   |   saved #25  A Web Protection Model Against Internationalized Domain Name Homograph Exploits  (year=2026, doi=10.1109/11296804, link=https://ieeexplore.ieee.org/document/11296804/)
+2026-03-03 05:46:51 | DEBUG   |   saved #26  Hybrid CNN-LSTM Model for DDoS Detection and Mitigation in Software-Defined Netw  (year=2026, doi=10.1109/11386962, link=https://ieeexplore.ieee.org/document/11386962/)
+2026-03-03 05:46:51 | DEBUG   |   saved #27  Attack-Phase Aware Dynamic Vulnerability Prioritization Framework  (year=2026, doi=10.1109/11394291, link=https://ieeexplore.ieee.org/document/11394291/)
+2026-03-03 05:46:51 | DEBUG   |   saved #28  Cost-Aware Cyber-Threat Mitigation Framework for Critical Infrastructure Environ  (year=2026, doi=10.1109/11366489, link=https://ieeexplore.ieee.org/document/11366489/)
+2026-03-03 05:46:51 | DEBUG   |   saved #29  Cyber-Physical Security of Virtual Power Plants: A Survey  (year=2026, doi=10.1109/11396009, link=https://ieeexplore.ieee.org/document/11396009/)
+2026-03-03 05:46:51 | DEBUG   |   saved #30  A Novel Internet of Things Botnet Propagation Process and Defense Strategy  (year=2026, doi=10.1109/11320855, link=https://ieeexplore.ieee.org/document/11320855/)
+2026-03-03 05:46:52 | DEBUG   |   saved #31  Robust Distributed Learning Framework for FDIA Estimation and Mitigation in Grid  (year=2026, doi=10.1109/11159598, link=https://ieeexplore.ieee.org/document/11159598/)
+2026-03-03 05:46:52 | DEBUG   |   saved #32  The AI-Cybersecurity Nexus: How Large Language Models are Reshaping Threat Intel  (year=2026, doi=10.1109/11366235, link=https://ieeexplore.ieee.org/document/11366235/)
+2026-03-03 05:46:52 | DEBUG   |   saved #33  Adaptive Runtime Risk Assessment With Aging-Aware Feasibility for Safety-Critica  (year=2026, doi=10.1109/11399852, link=https://ieeexplore.ieee.org/document/11399852/)
+2026-03-03 05:46:52 | DEBUG   |   saved #34  A Long Short Term Memory Network-based False Data Injection Cyberattack Detectio  (year=2026, doi=10.1109/11397618, link=https://ieeexplore.ieee.org/document/11397618/)
+2026-03-03 05:46:52 | DEBUG   |   saved #35  VishBox: An AI-Agent-Based Adaptive Voice Phishing Simulation Framework for Cybe  (year=2026, doi=10.1109/11411806, link=https://ieeexplore.ieee.org/document/11411806/)
+2026-03-03 05:46:52 | DEBUG   |   saved #36  Chimera-RL: An End-to-End Autonomous Red-Teaming Framework for LLM Applications  (year=2026, doi=10.1109/11368884, link=https://ieeexplore.ieee.org/document/11368884/)
+2026-03-03 05:46:52 | DEBUG   |   saved #37  A Post-Quantum Secure Solution for SECS/GEM Communications in Industrial Interne  (year=2026, doi=10.1109/11347542, link=https://ieeexplore.ieee.org/document/11347542/)
+2026-03-03 05:46:52 | DEBUG   |   saved #38  Sunspec Modbus Based Smart Inverter Cyber-Attack Modeling and Mitigation Scheme  (year=2026, doi=10.1109/11193993, link=https://ieeexplore.ieee.org/document/11193993/)
+2026-03-03 05:46:52 | DEBUG   |   saved #39  A Multidimensional Survey of Intelligent IoT Systems for Gunshot Detection  (year=2026, doi=10.1109/11363573, link=https://ieeexplore.ieee.org/document/11363573/)
+2026-03-03 05:46:52 | DEBUG   |   saved #40  Passive Security Enhancement Schemes  (year=2026, doi=10.1109/11215937, link=https://ieeexplore.ieee.org/document/11215937/)
+2026-03-03 05:46:52 | DEBUG   |   saved #41  Towards Patch-Based Noise Compression for Adversarial Attack Against Transformer  (year=2026, doi=10.1109/11316104, link=https://ieeexplore.ieee.org/document/11316104/)
+2026-03-03 05:46:52 | DEBUG   |   saved #42  Security Risks of AI/ML With a Focus on Reinforcement Learning: A Review and Per  (year=2026, doi=10.1109/11229437, link=https://ieeexplore.ieee.org/document/11229437/)
+2026-03-03 05:46:52 | DEBUG   |   saved #43  DR-Store: A Dynamic Reliable Coded Blockchain Architecture  (year=2026, doi=10.1109/11260912, link=https://ieeexplore.ieee.org/document/11260912/)
+2026-03-03 05:46:52 | DEBUG   |   saved #44  Technology-Driven Emergency Mass Evacuation: An Operations and Engineering Manag  (year=2026, doi=10.1109/11386771, link=https://ieeexplore.ieee.org/document/11386771/)
+2026-03-03 05:46:52 | DEBUG   |   saved #45  Towards Secure Air Traffic Surveillance: A Survey on ADS-B Threats, Existing Sol  (year=2026, doi=10.1109/11340614, link=https://ieeexplore.ieee.org/document/11340614/)
+2026-03-03 05:46:52 | DEBUG   |   saved #46  Cognitive Security Risks and Countermeasures of Generative Artificial Intelligen  (year=2026, doi=10.1109/11372909, link=https://ieeexplore.ieee.org/document/11372909/)
+2026-03-03 05:46:52 | DEBUG   |   saved #47  Hardware Security Modules for Secure Communications in the Industrial Internet o  (year=2026, doi=10.1109/11129101, link=https://ieeexplore.ieee.org/document/11129101/)
+2026-03-03 05:46:52 | DEBUG   |   saved #48  Bridging the Gap Using GPT-4 to Summarize and Explain Static Analysis Warnings a  (year=2026, doi=10.1109/11395881, link=https://ieeexplore.ieee.org/document/11395881/)
+2026-03-03 05:46:52 | DEBUG   |   saved #49  SoK: Evolution of the Key Encapsulation Mechanism’s Role in Cryptographic Migrat  (year=2026, doi=10.1109/11352720, link=https://ieeexplore.ieee.org/document/11352720/)
+2026-03-03 05:46:52 | DEBUG   |   saved #50  COSTAR: Software Code Smell Detection Through Tree-Based Abstract Representation  (year=2026, doi=10.1109/11342366, link=https://ieeexplore.ieee.org/document/11342366/)
+2026-03-03 05:46:52 | DEBUG   |   saved #51  AI-Augmented Software Engineering for Rapid Feature Delivery and Operations Auto  (year=2026, doi=10.1109/11393761, link=https://ieeexplore.ieee.org/document/11393761/)
+2026-03-03 05:46:52 | DEBUG   |   saved #52  Securing Outsourced Computing With Trusted Execution Environments: A Case Study   (year=2026, doi=10.1109/11214263, link=https://ieeexplore.ieee.org/document/11214263/)
+2026-03-03 05:46:52 | DEBUG   |   saved #53  Improving Gas Efficiency in Smart Contracts: Data-Driven Insights and LLM-Assist  (year=2026, doi=10.1109/11398399, link=https://ieeexplore.ieee.org/document/11398399/)
+2026-03-03 05:46:52 | DEBUG   |   saved #54  From UIKit to SwiftUI: A Quantitative Analysis of Migration Strategies for Large  (year=2026, doi=10.1109/11395797, link=https://ieeexplore.ieee.org/document/11395797/)
+2026-03-03 05:46:52 | DEBUG   |   saved #55  Towards Secure Program Partitioning for Smart Contracts with LLM’s In-Context Le  (year=2026, doi=10.1109/11417948, link=https://ieeexplore.ieee.org/document/11417948/)
+2026-03-03 05:46:52 | INFO    |   DB flush OK — 55 papers from IEEE
+2026-03-03 05:46:52 | INFO    | --- IEEE finished: 55 papers ---
+2026-03-03 05:46:52 | INFO    | 
+2026-03-03 05:46:52 | INFO    | ============================================================
+2026-03-03 05:46:52 | INFO    | [3/3] SOURCE: SPRINGER
+2026-03-03 05:46:52 | INFO    |   Scraper class: app.scrapers.springer.SpringerScraper
+2026-03-03 05:46:52 | INFO    | ============================================================
+2026-03-03 05:46:52 | DEBUG   |   Scraper class imported: <class 'app.scrapers.springer.SpringerScraper'>
+2026-03-03 05:46:52 | INFO    | [Springer] Scraper initialised  (BS4=True, http_works=True)
+2026-03-03 05:46:52 | DEBUG   |   Scraper instance created
+2026-03-03 05:46:52 | INFO    |   Calling scraper.scrape() with 4 search strings, years 2026–2026
+2026-03-03 05:46:52 | INFO    | [Springer] scrape() called — 4 search strings, years 2026–2026
+2026-03-03 05:46:52 | INFO    | [Springer] ── YEAR 2026 ──
+2026-03-03 05:46:52 | INFO    | [Springer] REM-1 | year 2026
+2026-03-03 05:46:52 | DEBUG   | [Springer-ADAPTIVE] query='REM-1' year=2026 months=1–12
+2026-03-03 05:46:52 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=1&facet-end-month=12
+2026-03-03 05:46:53 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=352400
+2026-03-03 05:46:54 | DEBUG   | [Springer-TOTAL] Extracted total: 2438
+2026-03-03 05:46:54 | DEBUG   | [Springer-ADAPTIVE] Total results: 2438 (threshold=1000)
+2026-03-03 05:46:54 | INFO    | [Springer-ADAPTIVE] 2438 results — subdividing months 1–12
+2026-03-03 05:46:54 | DEBUG   | [Springer-ADAPTIVE] Sub-query: month 1
+2026-03-03 05:46:54 | DEBUG   | [Springer-ADAPTIVE] query='REM-1' year=2026 months=1–1
+2026-03-03 05:46:54 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=1&facet-end-month=1
+2026-03-03 05:46:54 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=352399
+2026-03-03 05:46:55 | DEBUG   | [Springer-TOTAL] Extracted total: 2438
+2026-03-03 05:46:55 | DEBUG   | [Springer-ADAPTIVE] Total results: 2438 (threshold=1000)
+2026-03-03 05:46:55 | WARNING | [Springer-ADAPTIVE] 2438 results in single month range — some may be missed
+2026-03-03 05:46:55 | DEBUG   | [Springer-ADAPTIVE] Trying HTTP scraping...
+2026-03-03 05:46:55 | DEBUG   | [Springer-HTTP] Starting HTTP pagination (max_pages=100)
+2026-03-03 05:46:55 | DEBUG   | [Springer-HTTP] GET page 1: https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=1&facet-end-month=1
+2026-03-03 05:46:55 | DEBUG   | [Springer-HTTP] Response: status=200, length=352399
+2026-03-03 05:46:57 | DEBUG   | [Springer-HTTP] Parsed page 1: 20 papers
+2026-03-03 05:46:57 | INFO    | [Springer-HTTP] Page 1: +20 (total 20)
+2026-03-03 05:47:01 | DEBUG   | [Springer-HTTP] GET page 2: https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=1&facet-end-month=1&page=2
+2026-03-03 05:47:02 | DEBUG   | [Springer-HTTP] Response: status=200, length=350684
+2026-03-03 05:47:04 | DEBUG   | [Springer-HTTP] Parsed page 2: 20 papers
+2026-03-03 05:47:04 | INFO    | [Springer-HTTP] Page 2: +20 (total 40)
+2026-03-03 05:47:07 | DEBUG   | [Springer-HTTP] GET page 3: https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=1&facet-end-month=1&page=3
+2026-03-03 05:47:07 | DEBUG   | [Springer-HTTP] Response: status=200, length=3099
+2026-03-03 05:47:07 | DEBUG   | [Springer-HTTP] Parsed page 3: 0 papers
+2026-03-03 05:47:07 | DEBUG   | [Springer-HTTP] No papers on page 3 — stopping
+2026-03-03 05:47:07 | INFO    | [Springer-HTTP] Finished — 40 papers across 3 pages
+2026-03-03 05:47:07 | INFO    | [Springer-ADAPTIVE] HTTP succeeded: 40 papers
+2026-03-03 05:47:09 | DEBUG   | [Springer-ADAPTIVE] Sub-query: month 2
+2026-03-03 05:47:09 | DEBUG   | [Springer-ADAPTIVE] query='REM-1' year=2026 months=2–2
+2026-03-03 05:47:09 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=2&facet-end-month=2
+2026-03-03 05:47:09 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=3099
+2026-03-03 05:47:09 | DEBUG   | [Springer-TOTAL] Extracted total: 0
+2026-03-03 05:47:09 | DEBUG   | [Springer-ADAPTIVE] Total results: 0 (threshold=1000)
+2026-03-03 05:47:09 | DEBUG   | [Springer-ADAPTIVE] 0 results — returning empty
+2026-03-03 05:47:11 | DEBUG   | [Springer-ADAPTIVE] Sub-query: month 3
+2026-03-03 05:47:11 | DEBUG   | [Springer-ADAPTIVE] query='REM-1' year=2026 months=3–3
+2026-03-03 05:47:11 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=3&facet-end-month=3
+2026-03-03 05:47:11 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=3099
+2026-03-03 05:47:11 | DEBUG   | [Springer-TOTAL] Extracted total: 0
+2026-03-03 05:47:11 | DEBUG   | [Springer-ADAPTIVE] Total results: 0 (threshold=1000)
+2026-03-03 05:47:11 | DEBUG   | [Springer-ADAPTIVE] 0 results — returning empty
+2026-03-03 05:47:13 | DEBUG   | [Springer-ADAPTIVE] Sub-query: month 4
+2026-03-03 05:47:13 | DEBUG   | [Springer-ADAPTIVE] query='REM-1' year=2026 months=4–4
+2026-03-03 05:47:13 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=4&facet-end-month=4
+2026-03-03 05:47:13 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=3099
+2026-03-03 05:47:13 | DEBUG   | [Springer-TOTAL] Extracted total: 0
+2026-03-03 05:47:13 | DEBUG   | [Springer-ADAPTIVE] Total results: 0 (threshold=1000)
+2026-03-03 05:47:13 | DEBUG   | [Springer-ADAPTIVE] 0 results — returning empty
+2026-03-03 05:47:15 | DEBUG   | [Springer-ADAPTIVE] Sub-query: month 5
+2026-03-03 05:47:15 | DEBUG   | [Springer-ADAPTIVE] query='REM-1' year=2026 months=5–5
+2026-03-03 05:47:15 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=5&facet-end-month=5
+2026-03-03 05:47:15 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=3099
+2026-03-03 05:47:15 | DEBUG   | [Springer-TOTAL] Extracted total: 0
+2026-03-03 05:47:15 | DEBUG   | [Springer-ADAPTIVE] Total results: 0 (threshold=1000)
+2026-03-03 05:47:15 | DEBUG   | [Springer-ADAPTIVE] 0 results — returning empty
+2026-03-03 05:47:17 | DEBUG   | [Springer-ADAPTIVE] Sub-query: month 6
+2026-03-03 05:47:17 | DEBUG   | [Springer-ADAPTIVE] query='REM-1' year=2026 months=6–6
+2026-03-03 05:47:17 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=6&facet-end-month=6
+2026-03-03 05:47:17 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=3099
+2026-03-03 05:47:17 | DEBUG   | [Springer-TOTAL] Extracted total: 0
+2026-03-03 05:47:17 | DEBUG   | [Springer-ADAPTIVE] Total results: 0 (threshold=1000)
+2026-03-03 05:47:17 | DEBUG   | [Springer-ADAPTIVE] 0 results — returning empty
+2026-03-03 05:47:19 | DEBUG   | [Springer-ADAPTIVE] Sub-query: month 7
+2026-03-03 05:47:19 | DEBUG   | [Springer-ADAPTIVE] query='REM-1' year=2026 months=7–7
+2026-03-03 05:47:19 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=7&facet-end-month=7
+2026-03-03 05:47:20 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=3099
+2026-03-03 05:47:20 | DEBUG   | [Springer-TOTAL] Extracted total: 0
+2026-03-03 05:47:20 | DEBUG   | [Springer-ADAPTIVE] Total results: 0 (threshold=1000)
+2026-03-03 05:47:20 | DEBUG   | [Springer-ADAPTIVE] 0 results — returning empty
+2026-03-03 05:47:22 | DEBUG   | [Springer-ADAPTIVE] Sub-query: month 8
+2026-03-03 05:47:22 | DEBUG   | [Springer-ADAPTIVE] query='REM-1' year=2026 months=8–8
+2026-03-03 05:47:22 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=8&facet-end-month=8
+2026-03-03 05:47:22 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=3099
+2026-03-03 05:47:22 | DEBUG   | [Springer-TOTAL] Extracted total: 0
+2026-03-03 05:47:22 | DEBUG   | [Springer-ADAPTIVE] Total results: 0 (threshold=1000)
+2026-03-03 05:47:22 | DEBUG   | [Springer-ADAPTIVE] 0 results — returning empty
+2026-03-03 05:47:24 | DEBUG   | [Springer-ADAPTIVE] Sub-query: month 9
+2026-03-03 05:47:24 | DEBUG   | [Springer-ADAPTIVE] query='REM-1' year=2026 months=9–9
+2026-03-03 05:47:24 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=9&facet-end-month=9
+2026-03-03 05:47:24 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=3099
+2026-03-03 05:47:24 | DEBUG   | [Springer-TOTAL] Extracted total: 0
+2026-03-03 05:47:24 | DEBUG   | [Springer-ADAPTIVE] Total results: 0 (threshold=1000)
+2026-03-03 05:47:24 | DEBUG   | [Springer-ADAPTIVE] 0 results — returning empty
+2026-03-03 05:47:26 | DEBUG   | [Springer-ADAPTIVE] Sub-query: month 10
+2026-03-03 05:47:26 | DEBUG   | [Springer-ADAPTIVE] query='REM-1' year=2026 months=10–10
+2026-03-03 05:47:26 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=10&facet-end-month=10
+2026-03-03 05:47:26 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=3099
+2026-03-03 05:47:26 | DEBUG   | [Springer-TOTAL] Extracted total: 0
+2026-03-03 05:47:26 | DEBUG   | [Springer-ADAPTIVE] Total results: 0 (threshold=1000)
+2026-03-03 05:47:26 | DEBUG   | [Springer-ADAPTIVE] 0 results — returning empty
+2026-03-03 05:47:28 | DEBUG   | [Springer-ADAPTIVE] Sub-query: month 11
+2026-03-03 05:47:28 | DEBUG   | [Springer-ADAPTIVE] query='REM-1' year=2026 months=11–11
+2026-03-03 05:47:28 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=11&facet-end-month=11
+2026-03-03 05:47:28 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=3099
+2026-03-03 05:47:28 | DEBUG   | [Springer-TOTAL] Extracted total: 0
+2026-03-03 05:47:28 | DEBUG   | [Springer-ADAPTIVE] Total results: 0 (threshold=1000)
+2026-03-03 05:47:28 | DEBUG   | [Springer-ADAPTIVE] 0 results — returning empty
+2026-03-03 05:47:30 | DEBUG   | [Springer-ADAPTIVE] Sub-query: month 12
+2026-03-03 05:47:30 | DEBUG   | [Springer-ADAPTIVE] query='REM-1' year=2026 months=12–12
+2026-03-03 05:47:30 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22vulnerability%22+OR+%22vulnerabilities%22+OR+%22security+flaw%22+OR+%22security+weakness%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22+OR+%22fixing%22+OR+%22repair%22+OR+%22patch%22+OR+%22patching%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22+OR+%22source+code%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=12&facet-end-month=12
+2026-03-03 05:47:30 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=3099
+2026-03-03 05:47:30 | DEBUG   | [Springer-TOTAL] Extracted total: 0
+2026-03-03 05:47:30 | DEBUG   | [Springer-ADAPTIVE] Total results: 0 (threshold=1000)
+2026-03-03 05:47:30 | DEBUG   | [Springer-ADAPTIVE] 0 results — returning empty
+2026-03-03 05:47:32 | INFO    | [Springer-ADAPTIVE] Subdivision done: 40 papers for months 1–12
+2026-03-03 05:47:32 | INFO    | [Springer] REM-1 | 2026: 40 papers
+2026-03-03 05:47:35 | INFO    | [Springer] REM-2 | year 2026
+2026-03-03 05:47:35 | DEBUG   | [Springer-ADAPTIVE] query='REM-2' year=2026 months=1–12
+2026-03-03 05:47:35 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22security+refactoring%22+OR+%22secure+refactoring%22+OR+%22refactoring%22%29+AND+%28%22vulnerability%22+OR+%22security%22%29+AND+%28%22software%22+OR+%22code%22+OR+%22application%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=1&facet-end-month=12
+2026-03-03 05:47:35 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=3099
+2026-03-03 05:47:35 | DEBUG   | [Springer-TOTAL] Extracted total: 0
+2026-03-03 05:47:35 | DEBUG   | [Springer-ADAPTIVE] Total results: 0 (threshold=1000)
+2026-03-03 05:47:35 | DEBUG   | [Springer-ADAPTIVE] 0 results — returning empty
+2026-03-03 05:47:35 | INFO    | [Springer] REM-2 | 2026: 0 papers
+2026-03-03 05:47:38 | INFO    | [Springer] REM-3 | year 2026
+2026-03-03 05:47:38 | DEBUG   | [Springer-ADAPTIVE] query='REM-3' year=2026 months=1–12
+2026-03-03 05:47:38 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22automated%22+OR+%22automatic%22+OR+%22semi-automated%22%29+AND+%28%22vulnerability+remediation%22+OR+%22vulnerability+mitigation%22+OR+%22security+fix%22%29+AND+%28%22software%22+OR+%22application%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=1&facet-end-month=12
+2026-03-03 05:47:38 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=3099
+2026-03-03 05:47:38 | DEBUG   | [Springer-TOTAL] Extracted total: 0
+2026-03-03 05:47:38 | DEBUG   | [Springer-ADAPTIVE] Total results: 0 (threshold=1000)
+2026-03-03 05:47:38 | DEBUG   | [Springer-ADAPTIVE] 0 results — returning empty
+2026-03-03 05:47:38 | INFO    | [Springer] REM-3 | 2026: 0 papers
+2026-03-03 05:47:41 | INFO    | [Springer] REM-4 | year 2026
+2026-03-03 05:47:41 | DEBUG   | [Springer-ADAPTIVE] query='REM-4' year=2026 months=1–12
+2026-03-03 05:47:41 | DEBUG   | [Springer-TOTAL] HTTP GET https://link.springer.com/search?query=%28%22code+transformation%22+OR+%22program+transformation%22+OR+%22security+hardening%22%29+AND+%28%22vulnerability%22+OR+%22security+flaw%22%29+AND+%28%22remediation%22+OR+%22mitigation%22+OR+%22fix%22%29&facet-content-type=Article&date-facet-mode=between&facet-start-year=2026&facet-end-year=2026&facet-start-month=1&facet-end-month=12
+2026-03-03 05:47:41 | DEBUG   | [Springer-TOTAL] HTTP status=200, length=3099
+2026-03-03 05:47:41 | DEBUG   | [Springer-TOTAL] Extracted total: 0
+2026-03-03 05:47:41 | DEBUG   | [Springer-ADAPTIVE] Total results: 0 (threshold=1000)
+2026-03-03 05:47:41 | DEBUG   | [Springer-ADAPTIVE] 0 results — returning empty
+2026-03-03 05:47:41 | INFO    | [Springer] REM-4 | 2026: 0 papers
+2026-03-03 05:47:44 | INFO    | [Springer] Year 2026 done — 40 papers (running total 40)
+2026-03-03 05:47:48 | INFO    | [Springer] scrape() finished — total 40 papers
+2026-03-03 05:47:48 | INFO    |   scraper.scrape() returned DataFrame with 40 rows, columns=['Title', 'Authors', 'Year', 'Publisher', 'DOI', 'Link', 'Source', 'Search_String']
+2026-03-03 05:47:48 | DEBUG   |   saved #1  Source code vulnerability detection based on deep learning: a review  (year=2026, doi=10.1186/s42400-025-00518-7, link=https://link.springer.com/article/10.1186/s42400-025-00518-7)
+2026-03-03 05:47:48 | DEBUG   |   saved #2  Vulnerability Positioner (VulP): enhancing code vulnerability localization with   (year=2026, doi=10.1007/s00530-025-02106-8, link=https://link.springer.com/article/10.1007/s00530-025-02106-8)
+2026-03-03 05:47:48 | DEBUG   |   saved #3  Finding software vulnerabilities in large C projects via bounded model checking  (year=2026, doi=10.1007/s10009-026-00838-0, link=https://link.springer.com/article/10.1007/s10009-026-00838-0)
+2026-03-03 05:47:48 | DEBUG   |   saved #4  Software vulnerability management in IoT systems: a systematic mapping study  (year=2026, doi=10.1186/s42400-025-00543-6, link=https://link.springer.com/article/10.1186/s42400-025-00543-6)
+2026-03-03 05:47:48 | DEBUG   |   saved #5  A large scale analysis of code security in public repositories  (year=2026, doi=10.1007/s10207-025-01187-w, link=https://link.springer.com/article/10.1007/s10207-025-01187-w)
+2026-03-03 05:47:48 | DEBUG   |   saved #6  A generative AI cybersecurity risks mitigation model for code generation: using   (year=2026, doi=10.1038/s41598-025-34350-3, link=https://link.springer.com/article/10.1038/s41598-025-34350-3)
+2026-03-03 05:47:48 | DEBUG   |   saved #7  Data preparation and quality for code-centric generative software engineering ta  (year=2026, doi=10.1007/s11704-025-41376-3, link=https://link.springer.com/article/10.1007/s11704-025-41376-3)
+2026-03-03 05:47:48 | DEBUG   |   saved #8  Long-range context modeling for software vulnerability detection using an XLNet-  (year=2026, doi=10.1038/s41598-026-36196-9, link=https://link.springer.com/article/10.1038/s41598-026-36196-9)
+2026-03-03 05:47:48 | DEBUG   |   saved #9  Knowledge distillation-driven commit-aware multimodal learning for software vuln  (year=2026, doi=10.1007/s10515-026-00595-z, link=https://link.springer.com/article/10.1007/s10515-026-00595-z)
+2026-03-03 05:47:48 | DEBUG   |   saved #10  Assessing security vulnerabilities in a docker-enabled federated learning framew  (year=2026, doi=10.1007/s10207-026-01213-5, link=https://link.springer.com/article/10.1007/s10207-026-01213-5)
+2026-03-03 05:47:48 | DEBUG   |   saved #11  An exploratory study on fine-tuning large language models for secure code genera  (year=2026, doi=10.1007/s10664-026-10803-9, link=https://link.springer.com/article/10.1007/s10664-026-10803-9)
+2026-03-03 05:47:48 | DEBUG   |   saved #12  Harnessing the Power of LLMs for Enhancing Hardware Security  (year=2026, doi=10.1007/s42979-026-04799-8, link=https://link.springer.com/article/10.1007/s42979-026-04799-8)
+2026-03-03 05:47:48 | DEBUG   |   saved #13  Program-plate: a method for identifying the ability to extract vulnerability fea  (year=2026, doi=10.1186/s42400-025-00404-2, link=https://link.springer.com/article/10.1186/s42400-025-00404-2)
+2026-03-03 05:47:48 | DEBUG   |   saved #14  Analyzing cybersecurity gaps in medical device procurement using NLP and vulnera  (year=2026, doi=10.1007/s43926-025-00279-2, link=https://link.springer.com/article/10.1007/s43926-025-00279-2)
+2026-03-03 05:47:48 | DEBUG   |   saved #15  In the webs of ethereum: analyzing smart contracts vulnerabilities  (year=2026, doi=10.1007/s10207-026-01208-2, link=https://link.springer.com/article/10.1007/s10207-026-01208-2)
+2026-03-03 05:47:48 | DEBUG   |   saved #16  Generative AI as an infrastructure copilot: automating Infrastructure-As-Code ac  (year=2026, doi=10.1007/s10515-026-00600-5, link=https://link.springer.com/article/10.1007/s10515-026-00600-5)
+2026-03-03 05:47:48 | DEBUG   |   saved #17  CTDMF-SC: cybersecurity threat detection and mitigation framework for smart citi  (year=2026, doi=10.1007/s10207-025-01195-w, link=https://link.springer.com/article/10.1007/s10207-025-01195-w)
+2026-03-03 05:47:48 | DEBUG   |   saved #18  Security issues in software-defined radio: a review  (year=2026, doi=10.1186/s42400-025-00433-x, link=https://link.springer.com/article/10.1186/s42400-025-00433-x)
+2026-03-03 05:47:48 | DEBUG   |   saved #19  A multi-layered cryptographic trust reinforcement model against AI-driven threat  (year=2026, doi=10.1038/s41598-026-36966-5, link=https://link.springer.com/article/10.1038/s41598-026-36966-5)
+2026-03-03 05:47:48 | DEBUG   |   saved #20  In-Orbit Validation of a Heterogeneous COTS Architecture for Onboard AI: System-  (year=2026, doi=10.1007/s42405-026-01130-w, link=https://link.springer.com/article/10.1007/s42405-026-01130-w)
+2026-03-03 05:47:48 | DEBUG   |   saved #21  Dynamics of Virus-Patch Dissemination in Cyber-Physical Systems  (year=2026, doi=10.1007/s42979-026-04813-z, link=https://link.springer.com/article/10.1007/s42979-026-04813-z)
+2026-03-03 05:47:48 | DEBUG   |   saved #22  Explainable AI based dynamic cybersecurity risk management for cyber insurabilit  (year=2026, doi=10.1007/s10207-025-01189-8, link=https://link.springer.com/article/10.1007/s10207-025-01189-8)
+2026-03-03 05:47:48 | DEBUG   |   saved #23  Quantitative assessment of urban flood vulnerability using the Livelihood Vulner  (year=2026, doi=10.1007/s11356-026-37500-w, link=https://link.springer.com/article/10.1007/s11356-026-37500-w)
+2026-03-03 05:47:48 | DEBUG   |   saved #24  Onside integrity? Match-fixing, corruption and organized crime risks in Canadian  (year=2026, doi=10.1007/s40318-025-00330-y, link=https://link.springer.com/article/10.1007/s40318-025-00330-y)
+2026-03-03 05:47:48 | DEBUG   |   saved #25  Security by documentation? characterizing GitHubSECURITY.mdpolicy and their adop  (year=2026, doi=10.1007/s10664-025-10794-z, link=https://link.springer.com/article/10.1007/s10664-025-10794-z)
+2026-03-03 05:47:48 | DEBUG   |   saved #26  Rator: detecting fine-grained semantic code clones using tree encoding based on   (year=2026, doi=10.1186/s42400-025-00456-4, link=https://link.springer.com/article/10.1186/s42400-025-00456-4)
+2026-03-03 05:47:48 | DEBUG   |   saved #27  A comprehensive introspection on AI risks: taxonomy, challenges, and future dire  (year=2026, doi=10.1007/s42044-025-00370-5, link=https://link.springer.com/article/10.1007/s42044-025-00370-5)
+2026-03-03 05:47:48 | DEBUG   |   saved #28  From AI security to ethical AI security: a comparative risk-mitigation framework  (year=2026, doi=10.1007/s43681-025-00935-x, link=https://link.springer.com/article/10.1007/s43681-025-00935-x)
+2026-03-03 05:47:48 | DEBUG   |   saved #29  Hybrid AI-Based dynamic risk assessment framework with explainable AI practices   (year=2026, doi=10.1007/s10207-026-01218-0, link=https://link.springer.com/article/10.1007/s10207-026-01218-0)
+2026-03-03 05:47:48 | DEBUG   |   saved #30  Evaluating gait system vulnerabilities through PPO and GAN-generated adversarial  (year=2026, doi=10.1038/s41598-026-37011-1, link=https://link.springer.com/article/10.1038/s41598-026-37011-1)
+2026-03-03 05:47:48 | DEBUG   |   saved #31  COAA: combined adversarial attacks for deep model vulnerability exploitation  (year=2026, doi=10.1007/s13042-025-02862-z, link=https://link.springer.com/article/10.1007/s13042-025-02862-z)
+2026-03-03 05:47:48 | DEBUG   |   saved #32  A scoping review of climate vulnerability indicators: implications for neighborh  (year=2026, doi=10.1007/s10584-026-04122-7, link=https://link.springer.com/article/10.1007/s10584-026-04122-7)
+2026-03-03 05:47:48 | DEBUG   |   saved #33  Dam break flood vulnerability assessment using TELEMAC-2D and GIS: application t  (year=2026, doi=10.1007/s11069-025-07812-0, link=https://link.springer.com/article/10.1007/s11069-025-07812-0)
+2026-03-03 05:47:48 | DEBUG   |   saved #34  Cyber Supply Chain Risk Management: From Threats to Treatment  (year=2026, doi=10.1007/s10207-025-01207-9, link=https://link.springer.com/article/10.1007/s10207-025-01207-9)
+2026-03-03 05:47:48 | DEBUG   |   saved #35  Enhancing novel view synthesis with random patch radiance fields  (year=2026, doi=10.1007/s00371-026-04392-3, link=https://link.springer.com/article/10.1007/s00371-026-04392-3)
+2026-03-03 05:47:48 | DEBUG   |   saved #36  Between law and code: challenges and opportunities for automating privacy assess  (year=2026, doi=10.1007/s10515-026-00601-4, link=https://link.springer.com/article/10.1007/s10515-026-00601-4)
+2026-03-03 05:47:48 | DEBUG   |   saved #37  Generative AI and health misinformation: production, propagation, and mitigation  (year=2026, doi=10.1186/s12889-025-26148-9, link=https://link.springer.com/article/10.1186/s12889-025-26148-9)
+2026-03-03 05:47:48 | DEBUG   |   saved #38  Ataxia-telangiectasia mutated kinase inhibition overcomes gemcitabine resistance  (year=2026, doi=10.1038/s41417-026-01005-y, link=https://link.springer.com/article/10.1038/s41417-026-01005-y)
+2026-03-03 05:47:48 | DEBUG   |   saved #39  Cross: a cloud-native approach to automated remediation and self-healing in cybe  (year=2026, doi=10.1186/s42400-026-00549-8, link=https://link.springer.com/article/10.1186/s42400-026-00549-8)
+2026-03-03 05:47:48 | DEBUG   |   saved #40  Evaluating socio-ecological vulnerabilities and the impact of extreme weather ev  (year=2026, doi=10.1007/s10584-026-04127-2, link=https://link.springer.com/article/10.1007/s10584-026-04127-2)
+2026-03-03 05:47:48 | INFO    |   DB flush OK — 40 papers from SPRINGER
+2026-03-03 05:47:48 | INFO    | --- SPRINGER finished: 40 papers ---
+2026-03-03 05:47:48 | INFO    | 
+2026-03-03 05:47:48 | INFO    | ======================================================================
+2026-03-03 05:47:48 | INFO    | COLLECTION COMPLETE — 95 papers (ACM: 0, IEEE: 55, SPRINGER: 40)
+2026-03-03 05:47:48 | INFO    | ======================================================================
+2026-03-03 05:47:48 | INFO    | Shutting down WebDriver...
+2026-03-03 05:47:48 | INFO    | WebDriver closed.
