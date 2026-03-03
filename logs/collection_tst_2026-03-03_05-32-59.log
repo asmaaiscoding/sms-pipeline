@@ -1,8 +1,0 @@
-2026-03-03 05:32:59 | INFO    | ======================================================================
-2026-03-03 05:32:59 | INFO    | PIPELINE STEP: COLLECTION
-2026-03-03 05:32:59 | INFO    | Project: tst
-2026-03-03 05:32:59 | INFO    | Started: 2026-03-03_05-32-59 UTC
-2026-03-03 05:32:59 | INFO    | Log file: /app/logs/collection_tst_2026-03-03_05-32-59.log
-2026-03-03 05:32:59 | INFO    | Python: 3.12.12 (main, Feb 24 2026, 19:45:37) [GCC 14.2.0]
-2026-03-03 05:32:59 | INFO    | Platform: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.41
-2026-03-03 05:32:59 | INFO    | PID: 9
