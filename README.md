@@ -8,7 +8,7 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white)
 
-A production-grade, full-stack SaaS application for automating **Systematic Mapping Studies (SMS)** in software security research. Collects, deduplicates, filters, and enriches academic papers from ACM Digital Library, IEEE Xplore, and Springer — powered by AI relevance filtering and real-time pipeline progress.
+A production-grade, full-stack SaaS application for automating **Systematic Mapping Studies (SMS)** in software security research. Collects, deduplicates, filters, and enriches academic papers from **9 data sources** — ACM, IEEE, Springer, Elsevier, Wiley, Taylor & Francis, MDPI, SAGE, and a broad cross-publisher search — all via free APIs (OpenAlex + CrossRef). Powered by AI relevance filtering and real-time pipeline progress.
 
 ---
 
@@ -74,14 +74,14 @@ Suggested screenshots:
                      ┌─────────────┐       ┌──────────────┐      ┌──────────────┐
                      │  PostgreSQL │       │    Redis      │      │    Celery     │
                      │  (primary   │       │  (broker +    │      │   Workers     │
-                     │   database) │       │   pub/sub)    │      │  (scraping +  │
+                     │   database) │       │   pub/sub)    │      │  (API calls + │
                      └─────────────┘       └──────────────┘      │  processing)  │
                                                                   └──────────────┘
 ```
 
 - **Frontend** → React 18 SPA served by Nginx, proxies API/WebSocket to backend
 - **Backend** → FastAPI with async SQLAlchemy, JWT auth, rate limiting
-- **Workers** → Celery processes executing scraping and data processing in the background
+- **Workers** → Celery processes executing API-based collection and data processing in the background
 - **Database** → PostgreSQL 16 storing users, projects, papers, and jobs
 - **Broker** → Redis 7 for Celery task queuing, WebSocket pub/sub, and caching
 - **Real-time** → WebSocket endpoint delivers live job progress to the browser
@@ -99,7 +99,7 @@ Suggested screenshots:
 | Task Queue | Celery 5.4 + Redis broker |
 | Auth | JWT (python-jose) + bcrypt (passlib) |
 | AI Filtering | Anthropic Claude API (anthropic SDK) |
-| Scraping | Selenium 4.27 (headless Chromium) |
+| Paper Collection | OpenAlex API (primary) + CrossRef API (fallback) |
 | Data Processing | pandas, scikit-learn (TF-IDF dedup) |
 | Rate Limiting | slowapi |
 | Logging | structlog (JSON in prod, pretty in dev) |
@@ -137,7 +137,7 @@ sms_pipeline/
 ├── .dockerignore
 │
 ├── backend/
-│   ├── Dockerfile              # Python 3.12 + Chromium for headless scraping
+│   ├── Dockerfile              # Python 3.12 application image
 │   ├── requirements.txt        # Pinned Python dependencies
 │   ├── alembic.ini             # Alembic migration config
 │   ├── alembic/
@@ -169,13 +169,20 @@ sms_pipeline/
 │       │   ├── project.py
 │       │   ├── paper.py
 │       │   └── job.py
-│       ├── scrapers/           # Headless Selenium scrapers
-│       │   ├── base.py         # Chrome driver factory + anti-detection
-│       │   ├── acm.py          # ACM Digital Library scraper
-│       │   ├── ieee.py         # IEEE Xplore scraper
-│       │   └── springer.py     # SpringerLink scraper
+│       ├── scrapers/           # API-based paper collectors
+│       │   ├── base.py         # Shared utilities (driver compat layer)
+│       │   ├── api_base.py     # Generic OpenAlex + CrossRef base class
+│       │   ├── acm.py          # ACM Digital Library (DOI prefix 10.1145)
+│       │   ├── ieee.py         # IEEE Xplore (DOI prefix 10.1109)
+│       │   ├── springer.py     # Springer (DOI prefix 10.1007)
+│       │   ├── elsevier.py     # Elsevier / ScienceDirect (DOI prefix 10.1016)
+│       │   ├── wiley.py        # Wiley (DOI prefix 10.1002)
+│       │   ├── taylor_francis.py # Taylor & Francis (DOI prefix 10.1080)
+│       │   ├── mdpi.py         # MDPI (DOI prefix 10.3390)
+│       │   ├── sage.py         # SAGE Publications (DOI prefix 10.1177)
+│       │   └── scopus.py       # Broad cross-publisher search (all OpenAlex)
 │       ├── services/           # Business logic layer
-│       │   ├── collection.py   # Orchestrates scrapers → DB
+│       │   ├── collection.py   # Orchestrates API collectors → DB
 │       │   ├── deduplication.py# DOI exact + TF-IDF cosine similarity
 │       │   ├── filtering.py    # Claude API relevance classification
 │       │   └── pdf_finder.py   # OpenAlex → arXiv → S2 → BASE lookup
@@ -338,10 +345,8 @@ All configuration is via environment variables (`.env` file). Key settings:
 | `CLAUDE_BATCH_SIZE` | `40` | Papers per Claude API batch |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | `1440` | JWT access token lifetime (24 h) |
 | `REFRESH_TOKEN_EXPIRE_DAYS` | `30` | JWT refresh token lifetime |
-| `SELENIUM_HEADLESS` | `true` | Run Chrome in headless mode |
-| `SCRAPE_DELAY_MIN` | `2` | Min delay between scraping requests (seconds) |
-| `SCRAPE_DELAY_MAX` | `5` | Max delay between scraping requests (seconds) |
-| `SCRAPE_MAX_RETRIES` | `3` | Max retries per scraping request |
+| `API_REQUEST_DELAY` | `1` | Delay between API requests to OpenAlex/CrossRef (seconds) |
+| `API_MAX_RETRIES` | `3` | Max retries per API request on failure |
 | `TITLE_SIM_THRESHOLD` | `0.92` | TF-IDF cosine similarity threshold for dedup |
 | `CORS_ORIGINS` | `http://localhost:3000,...` | Allowed CORS origins (comma-separated or JSON array) |
 
@@ -353,11 +358,25 @@ Each step can be run individually or as a full pipeline from the UI.
 
 ### 1. Collection
 
-Scrapes academic papers from selected digital libraries using headless Chromium:
+Collects academic papers from selected sources via **free academic APIs** — no web scraping, no browser automation, no CAPTCHAs.
 
-- **ACM Digital Library** — Paginated search with DOI extraction
-- **IEEE Xplore** — API-style scraping with retry/backoff
-- **Springer** — Adaptive month-level subdivision for large result sets
+Each source uses a two-tier strategy:
+1. **OpenAlex API** (primary) — Free, open scholarly metadata covering 250M+ works. Filters by publisher and year range. Cursor-based pagination, polite pool via `mailto` parameter.
+2. **CrossRef API** (fallback) — If OpenAlex returns no results, falls back to CrossRef filtered by DOI prefix (e.g., `10.1145` for ACM) and publication date range.
+
+**Supported sources (9):**
+
+| Source | OpenAlex Publisher Filter | CrossRef DOI Prefix |
+|--------|--------------------------|---------------------|
+| ACM Digital Library | `ACM` | `10.1145` |
+| IEEE Xplore | `IEEE` | `10.1109` |
+| Springer | `Springer` | `10.1007` |
+| Elsevier / ScienceDirect | `Elsevier` | `10.1016` |
+| Wiley | `Wiley` | `10.1002` |
+| Taylor & Francis | `Taylor & Francis` | `10.1080` |
+| MDPI | `MDPI` | `10.3390` |
+| SAGE Publications | `SAGE` | `10.1177` |
+| Scopus (Broad) | *(no filter — all publishers)* | *(all prefixes)* |
 
 Papers are stored with: title, authors, year, publisher, DOI, abstract, link, and source metadata.
 
@@ -441,7 +460,7 @@ All endpoints are prefixed with `/api/v1`. Authentication uses Bearer JWT tokens
   "topic": "detection",
   "year_start": 2000,
   "year_end": 2026,
-  "sources": "acm,ieee,springer"
+  "sources": "acm,ieee,springer,elsevier,wiley"
 }
 ```
 
@@ -460,7 +479,7 @@ Topics `detection` and `remediation` use pre-configured search strings. Use `"to
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `source` | `string` | Filter by source (`acm`, `ieee`, `springer`) |
+| `source` | `string` | Filter by source (`acm`, `ieee`, `springer`, `elsevier`, `wiley`, `taylor_francis`, `mdpi`, `sage`, `scopus`) |
 | `year` | `integer` | Filter by publication year |
 | `relevance` | `string` | `pending`, `keep`, `remove` |
 | `is_duplicate` | `boolean` | Filter duplicates |
@@ -528,7 +547,7 @@ The React frontend provides:
 - **Login / Register** — Email + password authentication
 - **Dashboard** — Overview with stat cards (total projects, papers, completed, failed) and recent projects
 - **Projects List** — Card grid with status badges, stats, and delete
-- **New Project** — Form with topic selection (detection/remediation/custom), year range, source checkboxes, and custom search string editor
+- **New Project** — Form with topic selection (detection/remediation/custom), year range, source checkboxes (9 sources), and custom search string editor
 - **Project Detail** — Pipeline control panel, real-time progress bar via WebSocket, filterable/searchable papers table with pagination, XLSX/CSV export, jobs history, and stats breakdown by source/relevance
 
 ### Design System
@@ -568,7 +587,7 @@ Five core tables with UUID primary keys:
 | `topic` | ENUM | detection / remediation / custom |
 | `status` | ENUM | draft → collecting → … → completed |
 | `year_start` / `year_end` | INT | Search range (default: 2000–2026) |
-| `sources` | VARCHAR(256) | Comma-separated (acm,ieee,springer) |
+| `sources` | VARCHAR(512) | Comma-separated (acm,ieee,springer,elsevier,wiley,...) |
 | `total_collected` / `total_after_dedup` / `total_after_filter` / `total_with_pdf` | INT | Aggregate counters |
 | `created_at` / `updated_at` | TIMESTAMPTZ | Auto-set |
 
@@ -593,7 +612,7 @@ Five core tables with UUID primary keys:
 | `doi` | VARCHAR(512) | Indexed |
 | `link` | TEXT | Original publisher URL |
 | `abstract` | TEXT | |
-| `source` | VARCHAR(64) | acm / ieee / springer |
+| `source` | VARCHAR(64) | acm / ieee / springer / elsevier / wiley / taylor_francis / mdpi / sage / scopus |
 | `search_string_label` | VARCHAR(64) | Which search string found it |
 | `is_duplicate` | BOOLEAN | |
 | `duplicate_of_id` | UUID → papers (self) | SET NULL on delete |
@@ -624,7 +643,7 @@ Composite indexes: `(project_id, doi)`, `(project_id, source)`
 | Queue | Purpose |
 |-------|---------|
 | `default` | General tasks (dedup, filtering, PDF finding) |
-| `scraping` | Pipeline step tasks (collection, scraping) |
+| `scraping` | Collection tasks (API-based paper retrieval) |
 
 ### Periodic Tasks (Celery Beat)
 
@@ -769,7 +788,7 @@ Security measures built into the platform:
 | Component | Min RAM | Recommended |
 |-----------|---------|-------------|
 | Backend | 256 MB | 512 MB |
-| Celery Worker | 512 MB | 1 GB (scraping uses Chromium) |
+| Celery Worker | 256 MB | 512 MB |
 | PostgreSQL | 256 MB | 512 MB |
 | Redis | 64 MB | 128 MB |
 | Frontend (Nginx) | 32 MB | 64 MB |
@@ -780,10 +799,16 @@ Security measures built into the platform:
 
 ### Common Issues
 
-**Scraping fails with CAPTCHA errors**
-- Digital libraries may present CAPTCHAs for automated access
-- Increase `SCRAPE_DELAY_MIN` and `SCRAPE_DELAY_MAX` in `.env`
-- Consider using residential proxies for production scraping
+**Collection returns no results for a source**
+- OpenAlex publisher name filters are case-sensitive — verify the publisher string matches OpenAlex's data
+- Try the Scopus (Broad) source which searches across all publishers
+- Check your search string syntax — overly specific queries may yield zero results
+- CrossRef fallback will activate automatically if OpenAlex finds nothing
+
+**API rate limiting (429 errors)**
+- The scrapers automatically handle 429 responses with exponential backoff
+- OpenAlex polite pool requires a `mailto` parameter (already configured)
+- For very large collections, increase `API_REQUEST_DELAY` in `.env`
 
 **Celery worker not picking up tasks**
 ```bash
@@ -805,8 +830,8 @@ docker-compose exec backend alembic upgrade head
 - Verify the backend is accessible at the expected host
 
 **Out of memory (Celery worker)**
-- Chromium is memory-intensive; ensure workers have ≥ 512 MB
-- Scale horizontally instead of adding more concurrent tasks
+- Workers are lightweight since they only make API calls (no browser)
+- If processing very large datasets, scale horizontally instead of adding more concurrent tasks
 
 ---
 
@@ -825,4 +850,4 @@ Please ensure:
 
 ---
 
-> **Disclaimer:** This platform scrapes content from ACM Digital Library, IEEE Xplore, and Springer for academic research purposes. Users are responsible for ensuring compliance with each publisher's terms of service and applicable laws.
+> **Disclaimer:** This platform collects metadata from academic publishers via the OpenAlex and CrossRef APIs for academic research purposes. No copyrighted full-text content is downloaded or stored. Users are responsible for ensuring compliance with applicable terms of service and laws.
