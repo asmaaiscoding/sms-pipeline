@@ -1,0 +1,39 @@
+2026-03-04 01:22:16 | INFO    | ======================================================================
+2026-03-04 01:22:16 | INFO    | PIPELINE STEP: COLLECTION
+2026-03-04 01:22:16 | INFO    | Project: test
+2026-03-04 01:22:16 | INFO    | Started: 2026-03-04_01-22-16 UTC
+2026-03-04 01:22:16 | INFO    | Log file: /app/logs/collection_test_2026-03-04_01-22-16.log
+2026-03-04 01:22:16 | INFO    | Python: 3.12.13 (main, Mar  3 2026, 20:23:13) [GCC 14.2.0]
+2026-03-04 01:22:16 | INFO    | Platform: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.41
+2026-03-04 01:22:16 | INFO    | PID: 8
+2026-03-04 01:22:16 | INFO    | ======================================================================
+2026-03-04 01:22:16 | INFO    | ======================================================================
+2026-03-04 01:22:16 | INFO    | COLLECTION STARTED
+2026-03-04 01:22:16 | INFO    |   Project name : test
+2026-03-04 01:22:16 | INFO    |   Project ID   : 715d7453-4db8-4e53-a145-710d4d865229
+2026-03-04 01:22:16 | INFO    | ======================================================================
+2026-03-04 01:22:16 | INFO    | Configuration:
+2026-03-04 01:22:16 | INFO    |   Sources          : ACM
+2026-03-04 01:22:16 | INFO    |   Search strings   : 5
+2026-03-04 01:22:16 | INFO    |     [DET-1] → ("vulnerability" OR "vulnerabilities" OR "security flaw" OR "security weakness") AND ("detection" OR "identification" OR "prediction" OR "discovery" OR "analysis") AND ("software" OR "application" OR "source code" OR "program")
+2026-03-04 01:22:16 | INFO    |     [DET-2] → ("static analysis" OR "static code analysis" OR "program analysis" OR "SAST") AND ("vulnerability" OR "security flaw" OR "security weakness") AND ("software" OR "code" OR "application")
+2026-03-04 01:22:16 | INFO    |     [DET-3] → ("vulnerability" OR "security vulnerability") AND ("machine learning" OR "deep learning" OR "neural network" OR "learning-based" OR "data-driven") AND ("software" OR "source code" OR "program")
+2026-03-04 01:22:16 | INFO    |     [DET-4] → ("vulnerability detection" OR "vulnerability prediction") AND ("graph" OR "control flow graph" OR "program dependence graph" OR "code property graph" OR "graph neural network") AND ("software" OR "source code")
+2026-03-04 01:22:16 | INFO    |     [DET-5] → ("vulnerability detection" OR "security vulnerability") AND ("large language model" OR "LLM" OR "foundation model") AND ("software" OR "code")
+2026-03-04 01:22:16 | INFO    |   Year range       : 2026 – 2026
+2026-03-04 01:22:16 | INFO    |   Total year span  : 1 years
+2026-03-04 01:22:16 | INFO    | Estimated task count: 5 (sources × strings × years)
+2026-03-04 01:22:16 | INFO    | --- All scrapers are API-based — no Selenium WebDriver needed ---
+2026-03-04 01:22:16 | INFO    | 
+2026-03-04 01:22:16 | INFO    | ============================================================
+2026-03-04 01:22:16 | INFO    | [1/1] SOURCE: ACM
+2026-03-04 01:22:16 | INFO    |   Scraper class: app.scrapers.acm.ACMScraper
+2026-03-04 01:22:16 | INFO    | ============================================================
+2026-03-04 01:22:16 | DEBUG   |   Scraper class imported: <class 'app.scrapers.acm.ACMScraper'>
+2026-03-04 01:22:16 | INFO    | [ACM] Scraper initialised (API-based -- no Selenium/CAPTCHA)
+2026-03-04 01:22:16 | DEBUG   |   Scraper instance created
+2026-03-04 01:22:16 | INFO    |   Calling scraper.scrape() with 5 search strings, years 2026–2026
+2026-03-04 01:22:16 | INFO    | [ACM] scrape() called -- 5 search strings, years 2026-2026
+2026-03-04 01:22:16 | INFO    | [ACM] -- DET-1 | year 2026 --
+2026-03-04 01:22:16 | DEBUG   | [ACM] _collect(DET-1, 2026) -- trying OpenAlex first
+2026-03-04 01:22:16 | DEBUG   | [ACM-OA] GET page 1: https://api.openalex.org/works?search=%28%22vulnerability%22%20OR%20%22vulnerabilities%22%20OR%20%22security%20flaw%22%20OR%20%22security%20weakness%22%29%20AND%20%28%22detection%22%20OR%20%22identification%22%20OR%20%22prediction%22%20OR%20%22discovery%22%20OR%20%22analysis%22%29%20AND%20%28%22software%22%20OR%20%22application%22%20OR%20%22source%20code%22%20OR%20%22program%22%29&filter=publication_year%3A2026%2Clocations.source.publisher%3AACM&per_page=200&cursor=*&mailto=sms-pipeline@example.com
