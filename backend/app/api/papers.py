@@ -212,7 +212,7 @@ async def get_filtering_prompt(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Return the prompt the user should paste into Claude / ChatGPT."""
+    """Return the prompt the user should paste into an LLM."""
     await _verify_project_access(project_id, user, db)
 
     from app.services.filtering import FILTERING_PROMPT
@@ -229,9 +229,9 @@ async def get_filtering_prompt(
         "total_papers": total,
         "instructions": (
             "1. Click 'Download XLSX' to export your papers.\n"
-            "2. Open Claude (claude.ai) or ChatGPT.\n"
+            "2. Open any LLM chat interface.\n"
             "3. Upload the XLSX file and paste the prompt below.\n"
-            "4. Claude/ChatGPT will mark each paper as KEEP or REMOVE.\n"
+            "4. The LLM will mark each paper as KEEP or REMOVE.\n"
             "5. Come back here and update each paper's relevance, "
             "or use the bulk import below."
         ),

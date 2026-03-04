@@ -6,7 +6,7 @@ Interactive CLI that orchestrates the four steps of a Systematic Mapping Study:
 
   1. Collect papers       (ACM · IEEE · Springer)
   2. Deduplicate
-  3. Filter with Claude   (browser-assisted)
+  3. Automated Exclusion  (Groq API)
   4. Find PDF links       (OpenAlex · arXiv · Semantic Scholar · BASE)
 
 Run:
@@ -26,7 +26,6 @@ from config import (
 )
 from steps.collect import run_collection
 from steps.deduplicate import run_deduplication
-from steps.claude_filter import run_claude_filter
 from steps.find_links import run_link_finder
 
 
@@ -190,7 +189,7 @@ def _choose_step() -> int:
             "Run full pipeline  (collect → deduplicate → filter → find links)",
             "Step 1 only: Collect papers",
             "Step 2 only: Deduplicate",
-            "Step 3 only: Filter with Claude",
+            "Step 3 only: Automated Exclusion",
             "Step 4 only: Find PDF links",
         ],
     )
@@ -214,7 +213,7 @@ def main():
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     step = _choose_step()
-    # step: 1 = full pipeline, 2 = collect, 3 = dedup, 4 = claude, 5 = links
+    # step: 1 = full pipeline, 2 = collect, 3 = dedup, 4 = exclusion, 5 = links
     run_all = (step == 1)
 
     collected_path = os.path.join(OUTPUT_DIR, "all_collected.xlsx")
@@ -247,12 +246,15 @@ def main():
             collected_path = _ask_input_file("deduplication", collected_path)
         dedup_path = run_deduplication(collected_path, dedup_path)
 
-    # ── Step 3: Claude filter ─────────────────────────────────────────────────
+    # ── Step 3: Automated Exclusion ─────────────────────────────────────────────
     if run_all or step == 4:
         _hr()
         if step == 4:
-            dedup_path = _ask_input_file("Claude filter", dedup_path)
-        filtered_path = run_claude_filter(dedup_path, filtered_path)
+            dedup_path = _ask_input_file("automated exclusion", dedup_path)
+        # Automated exclusion is handled by the web pipeline (Groq API).
+        # In CLI mode, this step is a no-op — use the web UI instead.
+        print("  Automated exclusion is only available via the web UI (Groq API).")
+        filtered_path = dedup_path
 
     # ── Step 4: PDF links ─────────────────────────────────────────────────────
     if run_all or step == 5:

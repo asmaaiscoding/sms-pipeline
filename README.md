@@ -99,7 +99,7 @@ Suggested screenshots:
 | Migrations | Alembic 1.14 |
 | Task Queue | Celery 5.4 + Redis broker |
 | Auth | JWT (python-jose) + bcrypt (passlib) |
-| AI Filtering | Anthropic Claude API (anthropic SDK) |
+| AI Filtering | Groq API (llama-3.3-70b-versatile) |
 | Paper Collection | OpenAlex API (primary) + CrossRef API (fallback) |
 | Data Processing | pandas, scikit-learn (TF-IDF dedup) |
 | Rate Limiting | slowapi |
@@ -185,7 +185,8 @@ sms_pipeline/
 │       ├── services/           # Business logic layer
 │       │   ├── collection.py   # Orchestrates API collectors → DB
 │       │   ├── deduplication.py# DOI exact + TF-IDF cosine similarity
-│       │   ├── filtering.py    # Claude API relevance classification
+│       │   ├── filtering.py    # Manual relevance classification
+│       │   ├── automated_exclusion.py # Groq API automated exclusion
 │       │   └── pdf_finder.py   # OpenAlex → arXiv → S2 → BASE lookup
 │       ├── tasks/              # Celery task definitions
 │       │   ├── celery_app.py   # Celery factory + beat schedule
@@ -257,8 +258,8 @@ sms_pipeline/
    # REQUIRED — generate a strong random string
    SECRET_KEY=your-secret-key-change-me
 
-   # REQUIRED — get from https://console.anthropic.com/
-   ANTHROPIC_API_KEY=sk-ant-...
+   # REQUIRED — get from https://console.groq.com/
+   GROQ_API_KEYS=gsk_key1,gsk_key2,...
 
    # Optional — adjust as needed
    DATABASE_URL=postgresql+asyncpg://sms:sms_password@postgres:5432/sms_pipeline
@@ -341,9 +342,7 @@ All configuration is via environment variables (`.env` file). Key settings:
 | `REDIS_URL` | `redis://localhost:6379/0` | Redis connection |
 | `CELERY_BROKER_URL` | `redis://localhost:6379/1` | Celery broker URL |
 | `CELERY_RESULT_BACKEND` | `redis://localhost:6379/2` | Celery result backend URL |
-| `ANTHROPIC_API_KEY` | — | **Required.** Claude API key for AI filtering |
-| `CLAUDE_MODEL` | `claude-sonnet-4-20250514` | Claude model for filtering |
-| `CLAUDE_BATCH_SIZE` | `40` | Papers per Claude API batch |
+| `GROQ_API_KEYS` | — | **Required.** Comma-separated Groq API keys for automated exclusion |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | `1440` | JWT access token lifetime (24 h) |
 | `REFRESH_TOKEN_EXPIRE_DAYS` | `30` | JWT refresh token lifetime |
 | `API_REQUEST_DELAY` | `1` | Delay between API requests to OpenAlex/CrossRef (seconds) |
@@ -390,14 +389,15 @@ Two-pass deduplication strategy:
 
 Duplicates are flagged with `is_duplicate = true` and linked to the original via `duplicate_of_id`.
 
-### 3. AI Filtering
+### 3. Automated Exclusion
 
-Uses the Anthropic Claude API to classify papers as **KEEP** or **REMOVE** based on relevance to the study topic:
+Uses the Groq API (llama-3.3-70b-versatile) to classify papers as **INCLUDE** or **EXCLUDE** based on relevance to software security:
 
-- Papers are batched and sent with a system prompt describing the research scope
-- The model evaluates title + abstract to determine relevance
-- Failed API calls default to KEEP (conservative approach)
-- Progress is reported per-paper via WebSocket
+- Papers are processed in parallel using up to 5 Groq API keys
+- The model evaluates paper titles against a strict software-security-only prompt
+- Ambiguous papers default to EXCLUDE (high precision)
+- Failed API calls default to INCLUDE (conservative approach)
+- Progress is reported in real-time via WebSocket
 
 ### 4. PDF Link Discovery
 

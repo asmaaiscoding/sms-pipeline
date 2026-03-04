@@ -80,10 +80,6 @@ MAX_RETRIES = 3
 PDF_SEARCH_TIMEOUT = 15
 PDF_SEARCH_SLEEP = 1.0
 
-# ─── Claude filter settings ──────────────────────────────────────────────────
-CLAUDE_URL = "https://claude.ai/new"
-CLAUDE_BATCH_SIZE = 40        # papers per message
-
 # ─── Title-similarity threshold for deduplication ─────────────────────────────
 TITLE_SIM_THRESHOLD = 0.92
 

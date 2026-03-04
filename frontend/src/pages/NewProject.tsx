@@ -298,9 +298,7 @@ export default function NewProject() {
                 </label>
               ))}
             </div>
-            <p className="text-xs text-gray-400 mt-2">
-              All sources use free APIs (OpenAlex + CrossRef) — no CAPTCHA, no rate limits.
-            </p>
+
           </div>
         </div>
 

@@ -3,11 +3,10 @@ app/services/filtering.py
 ─────────────────────────
 Manual-filtering workflow.
 
-Instead of calling the Claude API (which requires a paid key), this step
-simply marks all non-duplicate papers as PENDING and tells the user to:
+This step marks all non-duplicate papers as PENDING and tells the user to:
 
 1. Download the XLSX from the Export button.
-2. Paste the papers into Claude / ChatGPT with the provided prompt.
+2. Paste the papers into an LLM with the provided prompt.
 3. Re-import the KEEP/REMOVE decisions (or manually toggle them in the UI).
 """
 
@@ -29,7 +28,7 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 
 # ═══════════════════════════════════════════════════════════════════════════════
-#  Prompt  (for the user to copy-paste into Claude / ChatGPT)
+#  Prompt  (for the user to copy-paste into an LLM)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 FILTERING_PROMPT = """\
@@ -71,7 +70,7 @@ def run_filtering_sync(
     "Filter" step — NO API key needed.
 
     Counts non-duplicate papers, keeps them all as PENDING, and returns a
-    message instructing the user to download the XLSX and use Claude / ChatGPT
+    message instructing the user to download the XLSX and use an LLM
     manually with FILTERING_PROMPT.
     """
     project = db.execute(
@@ -98,7 +97,7 @@ def run_filtering_sync(
         progress_cb(50, "Preparing papers for manual review…")
 
     # Ensure every non-duplicate paper is marked PENDING so the user can
-    # set KEEP / REMOVE after the manual Claude step.
+    # set KEEP / REMOVE after the manual filtering step.
     pending_count = 0
     for paper in papers:
         if paper.relevance == RelevanceDecision.PENDING:
@@ -111,7 +110,7 @@ def run_filtering_sync(
     if progress_cb:
         progress_cb(
             100,
-            f"Done — {total} papers ready. Download the XLSX and use Claude/ChatGPT to filter them.",
+            f"Done — {total} papers ready. Download the XLSX and use an LLM to filter them.",
         )
 
     return {
@@ -119,7 +118,7 @@ def run_filtering_sync(
         "pending": pending_count,
         "message": (
             f"{total} unique papers are ready for manual relevance filtering. "
-            "Download the XLSX file, upload it to Claude or ChatGPT with the "
+            "Download the XLSX file, upload it to an LLM with the "
             "provided prompt, then update the Relevance column in the app."
         ),
         "prompt": FILTERING_PROMPT,
