@@ -93,6 +93,7 @@ def run_collection_sync(
     flog.info("Estimated task count: %d (sources × strings × years)", total_tasks)
     completed_tasks = 0
     stats: dict = {}
+    dedup = _DedupTracker(db, project_id)
 
     # API-based scrapers don't need Selenium — driver is optional
     driver = None
@@ -150,11 +151,18 @@ def run_collection_sync(
                 continue
 
             count = 0
+            skipped_dup = 0
 
             for row_idx, row in df.iterrows():
-                title = str(row.get("Title", ""))
+                title = str(row.get("Title", "")).strip()
                 year = _safe_int(row.get("Year"))
-                doi = str(row.get("DOI", ""))
+                doi = str(row.get("DOI", "")).strip()
+
+                # ── Skip exact duplicates within this collection run ──
+                if dedup.is_duplicate(title, doi):
+                    skipped_dup += 1
+                    flog.debug("  SKIP duplicate: %s (doi=%s)", title[:80], doi or "—")
+                    continue
 
                 paper = Paper(
                     project_id=project_id,
@@ -175,13 +183,13 @@ def run_collection_sync(
 
             try:
                 db.flush()
-                flog.info("  DB flush OK — %d papers from %s", count, src_label)
+                flog.info("  DB flush OK — %d papers from %s (skipped %d duplicates)", count, src_label, skipped_dup)
             except Exception as exc:
                 flog.error("  DB flush FAILED for %s: %s", src_label, exc, exc_info=True)
                 raise
 
             stats[src] = count
-            flog.info("--- %s finished: %d papers ---", src_label, count)
+            flog.info("--- %s finished: %d papers (%d duplicates skipped) ---", src_label, count, skipped_dup)
 
             # Progress: source done
             collected_so_far = sum(stats.values())
@@ -229,6 +237,62 @@ def run_collection_sync(
                 flog.warning("WebDriver quit error (non-fatal): %s", exc)
         else:
             flog.info("No WebDriver to shut down (API-based scrapers).")
+
+
+def _norm_title_for_dedup(title: str) -> str:
+    """Lowercase, strip whitespace & collapse spaces for dedup comparison."""
+    import re
+    import unicodedata
+    if not title:
+        return ""
+    t = unicodedata.normalize("NFKD", title).lower().strip()
+    t = re.sub(r"[^a-z0-9\s]", " ", t)
+    return re.sub(r"\s+", " ", t).strip()
+
+
+def _norm_doi_for_dedup(doi: str) -> str:
+    """Normalize DOI for comparison."""
+    import re
+    if not doi:
+        return ""
+    doi = doi.strip().lower()
+    return re.sub(r"^https?://(dx\.)?doi\.org/", "", doi)
+
+
+class _DedupTracker:
+    """Per-run in-memory dedup tracker (not shared across Celery tasks)."""
+
+    def __init__(self, db: Session, project_id: UUID):
+        self._seen_dois: set[str] = set()
+        self._seen_titles: set[str] = set()
+        # Pre-load existing from DB once
+        existing = db.execute(
+            select(Paper.title, Paper.doi)
+            .where(Paper.project_id == project_id)
+        ).all()
+        for title, doi in existing:
+            nd = _norm_doi_for_dedup(doi)
+            if nd:
+                self._seen_dois.add(nd)
+            nt = _norm_title_for_dedup(title)
+            if nt:
+                self._seen_titles.add(nt)
+
+    def is_duplicate(self, title: str, doi: str) -> bool:
+        norm_doi = _norm_doi_for_dedup(doi)
+        norm_title = _norm_title_for_dedup(title)
+
+        if norm_doi and norm_doi in self._seen_dois:
+            return True
+        if norm_title and norm_title in self._seen_titles:
+            return True
+
+        # Register as seen
+        if norm_doi:
+            self._seen_dois.add(norm_doi)
+        if norm_title:
+            self._seen_titles.add(norm_title)
+        return False
 
 
 def _safe_int(val) -> Optional[int]:

@@ -33,33 +33,56 @@ GROQ_CHAT_URL = "https://api.groq.com/openai/v1/chat/completions"
 GROQ_MODEL = "llama-3.3-70b-versatile"
 
 EXCLUSION_PROMPT = """\
-You are an expert in software engineering and software security research.
+You are a strict academic paper screener for a Systematic Mapping Study focused \
+exclusively on **SOFTWARE security** — meaning security concerns that arise \
+within the SOFTWARE layer (source code, binaries, applications, libraries, \
+frameworks, APIs, software development processes).
 
-I will give you the title of an academic paper. Your task is to determine whether \
-this paper is relevant to **software security**.
+Task: Given the title (and abstract when available) of an academic paper, decide \
+whether it should be INCLUDED or EXCLUDED.
 
-A paper is RELEVANT (INCLUDE) if it focuses on:
-- Software vulnerability detection, analysis, testing, or remediation
-- Security flaws in source code, applications, or software systems
-- Tools, techniques, or methods for finding or fixing security issues in software
-- Secure software development practices or security-aware refactoring
-- Malware analysis of software artifacts
-- Software supply chain security
-- Security of APIs, web applications, mobile applications
-- Cryptographic implementations in software
-- Software fuzzing, penetration testing, or security auditing
+── INCLUDE only if the paper's PRIMARY focus is one of these SOFTWARE-LEVEL topics:
+• Vulnerability detection / analysis / classification in source code or binaries
+• Software vulnerability remediation, patching, or repair
+• Static analysis, dynamic analysis, symbolic execution, or taint analysis for security
+• Fuzz testing / fuzzing of software components
+• Secure coding practices, security-aware code review, or security refactoring
+• Software penetration testing or security auditing of applications
+• Malware analysis, reverse engineering of malicious software
+• Security of web applications, mobile applications, desktop applications
+• API security, authentication / authorization implementation flaws in software
+• Software supply-chain security (dependency vulnerabilities, package managers)
+• DevSecOps, CI/CD pipeline security, SAST/DAST/IAST tools
+• Security-related software metrics, vulnerability prediction models in code
+• Cryptographic API misuse or insecure cryptographic implementations in software
 
-A paper is NOT RELEVANT (EXCLUDE) if it focuses on:
-- Network security without a software angle (firewalls, intrusion detection at network level)
-- Hardware security, IoT physical-layer security
-- Pure cryptography theory without software implementation
-- General software engineering without any security concern
-- Non-software security topics (physical security, policy, governance, privacy law)
-- Medical, biological, or unrelated domains
+── EXCLUDE if the paper's PRIMARY focus is any of the following (even if it \
+mentions "security"):
+• Network security, firewall rules, intrusion detection/prevention systems (IDS/IPS)
+• Hardware security, side-channel attacks on chips, TPM, TEE at hardware level
+• IoT security focused on device/hardware/protocol layer, not software
+• Cloud infrastructure security, VM isolation (unless it's about software config flaws)
+• Cyber-physical systems security (SCADA, power grids) without a software code focus
+• Wireless / radio / protocol-level security (Bluetooth, Zigbee, 5G)
+• Pure cryptography theory, mathematical proofs, new cipher design
+• Information security management, governance, risk frameworks, compliance, policy
+• Privacy, GDPR, data protection law / regulations
+• Social engineering, phishing awareness, human factors in security
+• Digital forensics focused on disk/network/memory forensics (not software-level)
+• General software engineering with no security dimension
+• Biometrics, physical access control
+• Any domain outside computer science (medicine, biology, finance, etc.)
+
+── Decision rules:
+1. If the title/abstract is ambiguous, lean toward EXCLUDE — we want high precision.
+2. A paper that merely USES software but studies network/hardware/policy security \
+is still EXCLUDED.
+3. "Security testing" counts as INCLUDE only if it tests the software itself, not \
+the network or infrastructure.
 
 Respond with ONLY one word: INCLUDE or EXCLUDE
 
-Paper title: "{title}"
+Title: "{title}"
 """
 
 

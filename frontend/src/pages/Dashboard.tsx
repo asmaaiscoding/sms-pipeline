@@ -16,6 +16,7 @@ export default function Dashboard() {
     queryKey: ["projects", 1],
     queryFn: () => projectsApi.list(1, 100),
     select: (res) => res.data,
+    refetchOnWindowFocus: true,
   });
 
   if (isLoading) return <PageSpinner />;

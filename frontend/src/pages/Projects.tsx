@@ -22,11 +22,36 @@ export default function Projects() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => projectsApi.delete(id),
+    onMutate: async (id) => {
+      // Cancel running queries so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: ["projects"] });
+      // Snapshot previous data
+      const prev = queryClient.getQueryData(["projects", 1]);
+      // Optimistically remove the project from the cache
+      queryClient.setQueryData(["projects", 1], (old: any) => {
+        if (!old?.data?.items) return old;
+        return {
+          ...old,
+          data: {
+            ...old.data,
+            items: old.data.items.filter((p: Project) => p.id !== id),
+            total: old.data.total - 1,
+          },
+        };
+      });
+      return { prev };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
       toast.success("Project deleted");
     },
-    onError: (err) => toast.error(getErrorMessage(err)),
+    onError: (err, _id, context) => {
+      // Roll back on error
+      if (context?.prev) queryClient.setQueryData(["projects", 1], context.prev);
+      toast.error(getErrorMessage(err));
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+    },
   });
 
   const handleDelete = (id: string, name: string) => {
