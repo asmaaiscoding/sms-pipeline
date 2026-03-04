@@ -14,6 +14,7 @@ export type ProjectStatus =
   | "collecting"
   | "deduplicating"
   | "filtering"
+  | "excluding"
   | "finding_links"
   | "completed"
   | "failed";
@@ -23,8 +24,10 @@ export type JobType =
   | "collect"
   | "deduplicate"
   | "filter"
+  | "automated_exclusion"
   | "find_links"
-  | "full_pipeline";
+  | "full_pipeline"
+  | "custom_pipeline";
 export type JobStatus =
   | "pending"
   | "running"

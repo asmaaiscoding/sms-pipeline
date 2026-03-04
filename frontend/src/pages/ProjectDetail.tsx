@@ -1,11 +1,11 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   useQuery,
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { projectsApi, papersApi, jobsApi, exportsApi } from "@/api/endpoints";
+import { projectsApi, papersApi, jobsApi, exportsApi, uploadApi } from "@/api/endpoints";
 import { getErrorMessage } from "@/api/client";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import {
@@ -20,7 +20,6 @@ import {
   Play,
   Download,
   FileText,
-  Filter,
   Copy,
   CheckCircle2,
   Link as LinkIcon,
@@ -29,18 +28,45 @@ import {
   ChevronRight,
   Search,
   XCircle,
-  ClipboardCopy,
-  MessageSquare,
   StopCircle,
   Trash2,
+  Upload,
+  ShieldCheck,
+  X,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import type { ProgressEvent, JobType, PaperFilters } from "@/types";
 
-const PIPELINE_STEPS: { type: JobType; label: string; icon: React.ElementType; desc: string }[] = [
-  { type: "collect", label: "Collect", icon: Layers, desc: "Collect papers from selected sources via APIs" },
-  { type: "deduplicate", label: "Deduplicate", icon: Copy, desc: "Find and mark duplicates" },
-  { type: "find_links", label: "Find PDFs", icon: LinkIcon, desc: "Locate open-access PDF links" },
+const PIPELINE_STEPS: {
+  key: string;
+  label: string;
+  icon: React.ElementType;
+  desc: string;
+}[] = [
+  {
+    key: "collect",
+    label: "1. Collect",
+    icon: Layers,
+    desc: "Collect papers from selected sources via APIs",
+  },
+  {
+    key: "deduplicate",
+    label: "2. Deduplicate",
+    icon: Copy,
+    desc: "Find and mark duplicates (DOI + title similarity)",
+  },
+  {
+    key: "automated_exclusion",
+    label: "3. Automated Exclusion",
+    icon: ShieldCheck,
+    desc: "AI-powered exclusion of non-software-security papers (Groq)",
+  },
+  {
+    key: "find_links",
+    label: "4. Find PDFs",
+    icon: LinkIcon,
+    desc: "Locate open-access PDF links from multiple sources",
+  },
 ];
 
 export default function ProjectDetail() {
@@ -60,7 +86,13 @@ export default function ProjectDetail() {
   const [paperPage, setPaperPage] = useState(1);
   const [filters, setFilters] = useState<PaperFilters>({});
   const [searchInput, setSearchInput] = useState("");
-  const [showFilterPrompt, setShowFilterPrompt] = useState(false);
+
+  // Step selection state
+  const [selectedSteps, setSelectedSteps] = useState<Set<string>>(new Set());
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // ── Queries ──────────────────────────────────────────────────────────────
   const projectQuery = useQuery({
@@ -82,13 +114,6 @@ export default function ProjectDetail() {
     queryFn: () => papersApi.stats(id!),
     select: (res) => res.data,
     enabled: !!id,
-  });
-
-  const promptQuery = useQuery({
-    queryKey: ["filtering-prompt", id],
-    queryFn: () => papersApi.filteringPrompt(id!),
-    select: (res) => res.data,
-    enabled: !!id && showFilterPrompt,
   });
 
   const jobsQuery = useQuery({
@@ -135,7 +160,8 @@ export default function ProjectDetail() {
 
   // ── Mutations ────────────────────────────────────────────────────────────
   const launchJob = useMutation({
-    mutationFn: (jobType: JobType) => jobsApi.create(id!, jobType),
+    mutationFn: ({ jobType, steps }: { jobType: JobType; steps?: string[] }) =>
+      jobsApi.create(id!, jobType, steps),
     onSuccess: (res) => {
       const job = res.data;
       setActiveJob({
@@ -146,7 +172,7 @@ export default function ProjectDetail() {
         status: "pending",
       });
       queryClient.invalidateQueries({ queryKey: ["jobs", id] });
-      toast.success(`${job.job_type} job launched`);
+      toast.success(`Pipeline job launched`);
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   });
@@ -207,6 +233,84 @@ export default function ProjectDetail() {
     setPaperPage(1);
   };
 
+  // ── Step selection handlers ──────────────────────────────────────────────
+  const toggleStep = (stepKey: string) => {
+    setSelectedSteps((prev) => {
+      const next = new Set(prev);
+      if (next.has(stepKey)) {
+        next.delete(stepKey);
+      } else {
+        next.add(stepKey);
+      }
+      return next;
+    });
+  };
+
+  const handleStartPipeline = async () => {
+    if (selectedSteps.size === 0) {
+      toast.error("Please select at least one pipeline step");
+      return;
+    }
+
+    const steps = PIPELINE_STEPS
+      .filter((s) => selectedSteps.has(s.key))
+      .map((s) => s.key);
+
+    // If "collect" is not selected, user must import a file
+    if (!steps.includes("collect")) {
+      // Check if project already has papers
+      const hasData = (project?.total_collected ?? 0) > 0;
+      if (!hasData) {
+        setShowImportModal(true);
+        return;
+      }
+    }
+
+    // Launch custom pipeline
+    if (steps.length === 1) {
+      launchJob.mutate({ jobType: steps[0] as JobType });
+    } else {
+      launchJob.mutate({ jobType: "custom_pipeline", steps });
+    }
+  };
+
+  const handleFileUpload = async () => {
+    if (!importFile) {
+      toast.error("Please select a file");
+      return;
+    }
+    setIsUploading(true);
+    try {
+      const res = await uploadApi.uploadPapers(id!, importFile);
+      toast.success(`Imported ${res.data.imported} papers`);
+      if (res.data.columns_unmapped.length > 0) {
+        toast(`Unmapped columns: ${res.data.columns_unmapped.join(", ")}`, {
+          icon: "\u2139\uFE0F",
+          duration: 5000,
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ["project", id] });
+      queryClient.invalidateQueries({ queryKey: ["papers", id] });
+      queryClient.invalidateQueries({ queryKey: ["paper-stats", id] });
+      setShowImportModal(false);
+      setImportFile(null);
+
+      // Now launch the remaining steps (without collect)
+      const steps = PIPELINE_STEPS
+        .filter((s) => selectedSteps.has(s.key) && s.key !== "collect")
+        .map((s) => s.key);
+      if (steps.length === 1) {
+        launchJob.mutate({ jobType: steps[0] as JobType });
+      } else if (steps.length > 1) {
+        launchJob.mutate({ jobType: "custom_pipeline", steps });
+      }
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   // ── Loading ──────────────────────────────────────────────────────────────
   if (projectQuery.isLoading) return <PageSpinner />;
   if (!projectQuery.data) return <EmptyState icon={FileText} title="Not found" description="Project not found." />;
@@ -258,13 +362,16 @@ export default function ProjectDetail() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Collected" value={project.total_collected} icon={Layers} color="blue" />
         <StatCard label="Unique" value={project.total_after_dedup} icon={Copy} color="purple" />
-        <StatCard label="Relevant" value={project.total_after_filter} icon={CheckCircle2} color="green" />
+        <StatCard label="After Exclusion" value={project.total_after_filter} icon={ShieldCheck} color="green" />
         <StatCard label="With PDF" value={project.total_with_pdf} icon={LinkIcon} color="yellow" />
       </div>
 
       {/* Pipeline Controls */}
       <div className="card p-6">
-        <h2 className="text-sm font-semibold text-gray-900 mb-4">Pipeline</h2>
+        <h2 className="text-sm font-semibold text-gray-900 mb-2">Pipeline</h2>
+        <p className="text-xs text-gray-500 mb-4">
+          Select the steps you want to run, then click Start. If you skip Collection, you'll be asked to import a file.
+        </p>
 
         {activeJob && (
           <div className="mb-6 rounded-lg bg-brand-50 border border-brand-200 p-4 space-y-2">
@@ -290,107 +397,187 @@ export default function ProjectDetail() {
           </div>
         )}
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {PIPELINE_STEPS.map((step) => (
-            <button
-              key={step.type}
-              onClick={() => launchJob.mutate(step.type)}
-              disabled={!!activeJob || launchJob.isPending}
-              className="flex items-start gap-3 rounded-lg border border-gray-200 p-4 text-left hover:border-brand-300 hover:bg-brand-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <div className="rounded-lg bg-brand-100 p-2">
-                <step.icon className="h-4 w-4 text-brand-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">{step.label}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{step.desc}</p>
-              </div>
-            </button>
-          ))}
-        </div>
-
-        {/* Manual Filtering Workflow */}
-        <div className="mt-6 rounded-lg border-2 border-dashed border-amber-300 bg-amber-50 p-5">
-          <div className="flex items-start gap-3">
-            <div className="rounded-lg bg-amber-100 p-2">
-              <Filter className="h-5 w-5 text-amber-600" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-sm font-semibold text-amber-900">
-                Step 3: Manual Relevance Filtering
-              </h3>
-              <p className="text-xs text-amber-700 mt-1 leading-relaxed">
-                After collecting and deduplicating, download the XLSX file and
-                upload it to <strong>Claude</strong> (claude.ai) or{" "}
-                <strong>ChatGPT</strong> with the prompt below. The AI will mark
-                each paper as KEEP or REMOVE based on software security relevance.
-              </p>
-
-              <div className="mt-3 flex flex-wrap gap-2">
-                <button
-                  onClick={() => handleExport("xlsx")}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-amber-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-700 transition-colors"
+        {/* Step Selection Grid */}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {PIPELINE_STEPS.map((step) => {
+            const isSelected = selectedSteps.has(step.key);
+            return (
+              <button
+                key={step.key}
+                onClick={() => toggleStep(step.key)}
+                disabled={!!activeJob}
+                className={`
+                  relative flex items-start gap-3 rounded-lg border-2 p-4 text-left transition-all
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                  ${isSelected
+                    ? "border-brand-500 bg-brand-50 ring-1 ring-brand-200"
+                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                  }
+                `}
+              >
+                {/* Checkbox indicator */}
+                <div
+                  className={`
+                    mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors
+                    ${isSelected
+                      ? "border-brand-500 bg-brand-500"
+                      : "border-gray-300"
+                    }
+                  `}
                 >
-                  <Download className="h-3.5 w-3.5" />
-                  Download XLSX
-                </button>
-                <button
-                  onClick={() => setShowFilterPrompt(!showFilterPrompt)}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-white border border-amber-300 px-3 py-1.5 text-xs font-medium text-amber-800 hover:bg-amber-100 transition-colors"
-                >
-                  <MessageSquare className="h-3.5 w-3.5" />
-                  {showFilterPrompt ? "Hide Prompt" : "Show Prompt for Claude/ChatGPT"}
-                </button>
-              </div>
-
-              {showFilterPrompt && promptQuery.data && (
-                <div className="mt-4 space-y-3">
-                  <div className="rounded-md bg-white border border-amber-200 p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold text-amber-900 uppercase tracking-wide">
-                        Prompt to paste
-                      </span>
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(promptQuery.data.prompt);
-                          toast.success("Prompt copied to clipboard!");
-                        }}
-                        className="inline-flex items-center gap-1 rounded bg-amber-100 px-2 py-1 text-xs text-amber-700 hover:bg-amber-200 transition-colors"
-                      >
-                        <ClipboardCopy className="h-3 w-3" />
-                        Copy
-                      </button>
-                    </div>
-                    <pre className="whitespace-pre-wrap text-xs text-gray-700 leading-relaxed font-mono bg-gray-50 rounded p-3 max-h-64 overflow-y-auto">
-                      {promptQuery.data.prompt}
-                    </pre>
-                  </div>
-                  <div className="rounded-md bg-white border border-amber-200 p-4">
-                    <span className="text-xs font-semibold text-amber-900 uppercase tracking-wide">
-                      Instructions
-                    </span>
-                    <pre className="whitespace-pre-wrap text-xs text-gray-700 leading-relaxed mt-2">
-                      {promptQuery.data.instructions}
-                    </pre>
-                  </div>
+                  {isSelected && (
+                    <CheckCircle2 className="h-3.5 w-3.5 text-white" />
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <step.icon className={`h-4 w-4 ${isSelected ? "text-brand-600" : "text-gray-400"}`} />
+                    <p className={`text-sm font-medium ${isSelected ? "text-brand-900" : "text-gray-900"}`}>
+                      {step.label}
+                    </p>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">{step.desc}</p>
+                </div>
+              </button>
+            );
+          })}
         </div>
 
-        {/* Full pipeline button */}
-        <div className="mt-4 flex justify-center">
+        {/* Start button */}
+        <div className="mt-5 flex items-center justify-between">
+          <div className="text-xs text-gray-500">
+            {selectedSteps.size === 0
+              ? "No steps selected"
+              : `${selectedSteps.size} step${selectedSteps.size > 1 ? "s" : ""} selected`}
+            {selectedSteps.size > 0 && !selectedSteps.has("collect") && (
+              <span className="ml-2 text-amber-600 font-medium">
+                (file import required)
+              </span>
+            )}
+          </div>
           <button
-            onClick={() => launchJob.mutate("full_pipeline")}
-            disabled={!!activeJob || launchJob.isPending}
+            onClick={handleStartPipeline}
+            disabled={!!activeJob || launchJob.isPending || selectedSteps.size === 0}
             className="btn-primary"
           >
             <Play className="h-4 w-4" />
-            Run Full Pipeline (Collect + Dedup + Find PDFs)
+            Start Pipeline
           </button>
         </div>
       </div>
+
+      {/* File Import Modal */}
+      {showImportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-lg rounded-xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Import Papers</h3>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  Since you're skipping Collection, upload your papers file
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowImportModal(false);
+                  setImportFile(null);
+                }}
+                className="rounded-lg p-1 hover:bg-gray-100 transition-colors"
+              >
+                <X className="h-5 w-5 text-gray-400" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="rounded-lg border-2 border-dashed border-gray-300 p-8 text-center hover:border-brand-400 transition-colors">
+                <Upload className="mx-auto h-10 w-10 text-gray-400" />
+                <p className="mt-3 text-sm text-gray-600">
+                  Upload a <strong>CSV</strong> or <strong>XLSX</strong> file
+                </p>
+                <p className="mt-1 text-xs text-gray-400">
+                  Columns will be auto-mapped. Missing columns (DOI, abstract, etc.) will be filled with defaults.
+                </p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".csv,.xlsx,.xls"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) setImportFile(f);
+                  }}
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="mt-4 inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  <Upload className="h-4 w-4" />
+                  Choose File
+                </button>
+              </div>
+
+              {importFile && (
+                <div className="flex items-center gap-3 rounded-lg bg-green-50 border border-green-200 px-4 py-3">
+                  <FileText className="h-5 w-5 text-green-600" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-green-900 truncate">
+                      {importFile.name}
+                    </p>
+                    <p className="text-xs text-green-600">
+                      {(importFile.size / 1024).toFixed(1)} KB
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setImportFile(null)}
+                    className="text-green-400 hover:text-green-600"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+
+              <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">
+                <p className="text-xs text-amber-800">
+                  <strong>Column mapping:</strong> We'll automatically map columns like "Title", "Year", "Authors", "DOI", "Abstract", "Publisher", etc.
+                  Any unrecognized columns will be noted. Missing columns will be filled with empty defaults.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4">
+              <button
+                onClick={() => {
+                  setShowImportModal(false);
+                  setImportFile(null);
+                }}
+                className="btn-ghost"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleFileUpload}
+                disabled={!importFile || isUploading}
+                className="btn-primary"
+              >
+                {isUploading ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Importing…
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4" />
+                    Import & Start Pipeline
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Papers Table */}
       <div className="card">

@@ -22,8 +22,10 @@ class JobType(str, enum.Enum):
     COLLECT = "collect"
     DEDUPLICATE = "deduplicate"
     FILTER = "filter"
+    AUTOMATED_EXCLUSION = "automated_exclusion"
     FIND_LINKS = "find_links"
     FULL_PIPELINE = "full_pipeline"
+    CUSTOM_PIPELINE = "custom_pipeline"
 
 
 class JobStatus(str, enum.Enum):

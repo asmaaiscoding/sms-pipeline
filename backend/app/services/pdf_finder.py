@@ -1,8 +1,11 @@
 """
 app/services/pdf_finder.py
 ──────────────────────────
-Find direct PDF links via OpenAlex, arXiv, Semantic Scholar, and BASE.
+Find direct PDF links via multiple sources:
+  OpenAlex, arXiv, Semantic Scholar, BASE, Unpaywall, CORE, DOI-direct.
 Runs synchronously inside Celery workers.
+
+Strict title matching ensures we return the correct PDF, not another paper's.
 """
 
 from __future__ import annotations
@@ -52,10 +55,16 @@ def _norm(title) -> str:
 
 
 def _titles_match(a, b, threshold: float = 0.75) -> bool:
+    """Jaccard similarity on word sets. Higher threshold = stricter match."""
     wa, wb = set(_norm(a).split()), set(_norm(b).split())
     if not wa or not wb:
         return False
     return len(wa & wb) / len(wa | wb) >= threshold
+
+
+def _titles_match_strict(a, b) -> bool:
+    """Strict match: normalized titles must be very similar (>= 0.85 Jaccard)."""
+    return _titles_match(a, b, threshold=0.85)
 
 
 def _clean_doi(doi) -> str:
@@ -65,6 +74,7 @@ def _clean_doi(doi) -> str:
 
 
 def _is_pdf(url: str) -> bool:
+    """Check if URL actually serves a PDF by reading the first bytes."""
     if not url:
         return False
     try:
@@ -76,7 +86,71 @@ def _is_pdf(url: str) -> bool:
         return False
 
 
+def _is_pdf_url_pattern(url: str) -> bool:
+    """Quick check if URL looks like a PDF URL before doing a HEAD request."""
+    if not url:
+        return False
+    url_lower = url.lower()
+    return (
+        url_lower.endswith(".pdf") or
+        "/pdf/" in url_lower or
+        "pdf" in url_lower.split("?")[0].split("/")[-1]
+    )
+
+
 # ── Sources ───────────────────────────────────────────────────────────────────
+
+def _try_doi_direct(title: str, doi: str) -> Optional[str]:
+    """Try to get PDF directly from the DOI resolver / publisher page."""
+    if not doi:
+        return None
+    try:
+        # Many publishers serve PDF at known URL patterns
+        doi_url = f"https://doi.org/{doi}"
+
+        # Try Sci-Hub style patterns and publisher direct links
+        # Check if the DOI resolves to a page with a PDF link
+        r = _SESSION.get(doi_url, timeout=TIMEOUT, allow_redirects=True)
+        final_url = r.url
+
+        # arXiv
+        if "arxiv.org" in final_url:
+            arxiv_id = re.search(r"arxiv\.org/abs/([^\s?#]+)", final_url)
+            if arxiv_id:
+                pdf = f"https://arxiv.org/pdf/{arxiv_id.group(1)}.pdf"
+                if _is_pdf(pdf):
+                    return pdf
+
+        # MDPI — open access
+        if "mdpi.com" in final_url:
+            pdf_url = final_url.rstrip("/") + "/pdf"
+            if _is_pdf(pdf_url):
+                return pdf_url
+
+        # IEEE — try the PDF stamp URL
+        if "ieeexplore.ieee.org" in final_url:
+            arnumber = re.search(r"/document/(\d+)", final_url)
+            if arnumber:
+                pdf_url = f"https://ieeexplore.ieee.org/stampPDF/getPDF.jsp?arnumber={arnumber.group(1)}"
+                if _is_pdf(pdf_url):
+                    return pdf_url
+
+        # ACM — try /doi/pdf/ pattern
+        if "dl.acm.org" in final_url:
+            pdf_url = final_url.replace("/doi/", "/doi/pdf/")
+            if _is_pdf(pdf_url):
+                return pdf_url
+
+        # SpringerLink — try /content/pdf/ pattern
+        if "link.springer.com" in final_url:
+            pdf_url = final_url.replace("/article/", "/content/pdf/") + ".pdf"
+            if _is_pdf(pdf_url):
+                return pdf_url
+
+    except Exception as e:
+        logger.debug("DOI direct error: %s", e)
+    return None
+
 
 def _try_openalex(title: str, doi: str) -> Optional[str]:
     try:
@@ -85,7 +159,7 @@ def _try_openalex(title: str, doi: str) -> Optional[str]:
         if r.status_code != 200:
             return None
         for w in r.json().get("results", []):
-            if not _titles_match(title, w.get("title", "")):
+            if not _titles_match_strict(title, w.get("title", "")):
                 continue
             if doi:
                 wdoi = (w.get("doi") or "").replace("https://doi.org/", "")
@@ -110,11 +184,14 @@ def _try_arxiv(title: str, doi: str) -> Optional[str]:
             )
             if r.status_code == 200:
                 for entry in re.findall(r"<entry>(.*?)</entry>", r.text, re.S):
-                    m = re.search(r"<id>http://arxiv\.org/abs/([^<]+)</id>", entry)
-                    if m:
-                        pdf = f"https://arxiv.org/pdf/{m.group(1)}.pdf"
-                        if _is_pdf(pdf):
-                            return pdf
+                    # Verify title matches
+                    tm = re.search(r"<title>(.*?)</title>", entry, re.S)
+                    if tm and _titles_match_strict(title, tm.group(1).strip().replace("\n", " ")):
+                        m = re.search(r"<id>http://arxiv\.org/abs/([^<]+)</id>", entry)
+                        if m:
+                            pdf = f"https://arxiv.org/pdf/{m.group(1)}.pdf"
+                            if _is_pdf(pdf):
+                                return pdf
             time.sleep(SLEEP)
 
         r = _SESSION.get(
@@ -124,7 +201,7 @@ def _try_arxiv(title: str, doi: str) -> Optional[str]:
         if r.status_code == 200:
             for entry in re.findall(r"<entry>(.*?)</entry>", r.text, re.S):
                 tm = re.search(r"<title>(.*?)</title>", entry, re.S)
-                if tm and _titles_match(title, tm.group(1).strip().replace("\n", " ")):
+                if tm and _titles_match_strict(title, tm.group(1).strip().replace("\n", " ")):
                     im = re.search(r"<id>http://arxiv\.org/abs/([^<]+)</id>", entry)
                     if im:
                         pdf = f"https://arxiv.org/pdf/{im.group(1)}.pdf"
@@ -145,7 +222,7 @@ def _try_semantic_scholar(title: str, doi: str) -> Optional[str]:
         if r.status_code != 200:
             return None
         for p in r.json().get("data", []):
-            if not _titles_match(title, p.get("title", "")):
+            if not _titles_match_strict(title, p.get("title", "")):
                 continue
             if doi:
                 pdoi = p.get("externalIds", {}).get("DOI", "")
@@ -178,7 +255,7 @@ def _try_base(title: str, doi: str) -> Optional[str]:
             dtitles = doc.get("dctitle") or []
             if isinstance(dtitles, str):
                 dtitles = [dtitles]
-            if not any(_titles_match(title, t) for t in dtitles):
+            if not any(_titles_match_strict(title, t) for t in dtitles):
                 continue
             for link in doc.get("dclink") or []:
                 if isinstance(link, str) and _is_pdf(link):
@@ -191,11 +268,68 @@ def _try_base(title: str, doi: str) -> Optional[str]:
     return None
 
 
+def _try_unpaywall(title: str, doi: str) -> Optional[str]:
+    """Unpaywall provides free legal PDF links for papers with DOIs."""
+    if not doi:
+        return None
+    try:
+        url = f"https://api.unpaywall.org/v2/{quote(doi)}?email=sms-pipeline@example.org"
+        r = _SESSION.get(url, timeout=TIMEOUT)
+        if r.status_code != 200:
+            return None
+        data = r.json()
+        # Verify title
+        api_title = data.get("title", "")
+        if api_title and not _titles_match_strict(title, api_title):
+            return None
+        # Check best OA location
+        best = data.get("best_oa_location") or {}
+        pdf_url = best.get("url_for_pdf", "")
+        if pdf_url and _is_pdf(pdf_url):
+            return pdf_url
+        # Check all OA locations
+        for loc in data.get("oa_locations", []):
+            pdf_url = loc.get("url_for_pdf", "")
+            if pdf_url and _is_pdf(pdf_url):
+                return pdf_url
+    except Exception as e:
+        logger.debug("Unpaywall error: %s", e)
+    return None
+
+
+def _try_core(title: str, doi: str) -> Optional[str]:
+    """CORE aggregates open-access research outputs."""
+    try:
+        url = f"https://api.core.ac.uk/v3/search/works?q={quote(title)}&limit=5"
+        r = _SESSION.get(url, timeout=TIMEOUT)
+        if r.status_code != 200:
+            return None
+        for result in r.json().get("results", []):
+            result_title = result.get("title", "")
+            if not _titles_match_strict(title, result_title):
+                continue
+            # Check download URL
+            dl_url = result.get("downloadUrl", "")
+            if dl_url and _is_pdf(dl_url):
+                return dl_url
+            # Check links
+            for link in result.get("links", []):
+                link_url = link.get("url", "") if isinstance(link, dict) else str(link)
+                if link_url and _is_pdf(link_url):
+                    return link_url
+    except Exception as e:
+        logger.debug("CORE error: %s", e)
+    return None
+
+
 _PIPELINE = [
-    ("OpenAlex", _try_openalex),
-    ("arXiv", _try_arxiv),
-    ("SemanticScholar", _try_semantic_scholar),
-    ("BASE", _try_base),
+    ("DOI-Direct",        _try_doi_direct),
+    ("Unpaywall",         _try_unpaywall),
+    ("OpenAlex",          _try_openalex),
+    ("arXiv",             _try_arxiv),
+    ("SemanticScholar",   _try_semantic_scholar),
+    ("CORE",              _try_core),
+    ("BASE",              _try_base),
 ]
 
 

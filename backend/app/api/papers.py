@@ -1,7 +1,7 @@
 """
 app/api/papers.py
 ─────────────────
-Paper listing, detail, stats, and manual updates.
+Paper listing, detail, stats, file import, and manual updates.
 """
 
 from __future__ import annotations
@@ -10,12 +10,12 @@ import math
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, UploadFile, File
 from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import PaginationParams, get_current_user
-from app.core.exceptions import ForbiddenError, NotFoundError
+from app.core.exceptions import BadRequestError, ForbiddenError, NotFoundError
 from app.database import get_db
 from app.models.paper import Paper, RelevanceDecision
 from app.models.project import Project
@@ -273,3 +273,55 @@ async def import_relevance(
 
     await db.commit()
     return {"updated": updated, "total_submitted": len(decisions)}
+
+
+@router.post("/upload")
+async def upload_papers_file(
+    project_id: UUID,
+    file: UploadFile = File(...),
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Upload a CSV or XLSX file to import papers into the project.
+    Columns are automatically mapped and missing ones are filled with defaults.
+    """
+    project = await _verify_project_access(project_id, user, db)
+
+    if not file.filename:
+        raise BadRequestError("No file provided")
+
+    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
+    if ext not in ("csv", "xlsx", "xls"):
+        raise BadRequestError("Unsupported file format. Use .csv or .xlsx")
+
+    content = await file.read()
+    if len(content) == 0:
+        raise BadRequestError("Empty file")
+
+    # Run import in a sync context (pandas is sync)
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import Session as SyncSession, sessionmaker
+    from app.config import get_settings
+    from app.services.file_import import import_file_to_project
+
+    settings = get_settings()
+    sync_engine = create_engine(settings.DATABASE_URL_SYNC)
+    SyncSessionFactory = sessionmaker(bind=sync_engine)
+    sync_db = SyncSessionFactory()
+
+    try:
+        result = import_file_to_project(sync_db, project_id, content, file.filename)
+    except ValueError as e:
+        raise BadRequestError(str(e))
+    except Exception as e:
+        sync_db.rollback()
+        raise BadRequestError(f"Failed to import file: {str(e)}")
+    finally:
+        sync_db.close()
+        sync_engine.dispose()
+
+    # Refresh async session to see new data
+    await db.execute(select(Project).where(Project.id == project_id))
+
+    return result

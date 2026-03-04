@@ -1,0 +1,42 @@
+2026-03-04 00:32:55 | INFO    | ======================================================================
+2026-03-04 00:32:55 | INFO    | PIPELINE STEP: AUTOMATED_EXCLUSION
+2026-03-04 00:32:55 | INFO    | Project: lasttime
+2026-03-04 00:32:55 | INFO    | Started: 2026-03-04_00-32-55 UTC
+2026-03-04 00:32:55 | INFO    | Log file: /app/logs/automated_exclusion_lasttime_2026-03-04_00-32-55.log
+2026-03-04 00:32:55 | INFO    | Python: 3.12.13 (main, Mar  3 2026, 20:23:13) [GCC 14.2.0]
+2026-03-04 00:32:55 | INFO    | Platform: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.41
+2026-03-04 00:32:55 | INFO    | PID: 9
+2026-03-04 00:32:55 | INFO    | ======================================================================
+2026-03-04 00:32:55 | INFO    | === Automated exclusion started for project 'lasttime' ===
+2026-03-04 00:32:55 | INFO    | Using 5 Groq API key(s)
+2026-03-04 00:32:56 | INFO    | Processing 9467 papers with 5 API key(s)
+2026-03-04 00:32:56 | INFO    |   #3 [EXCLUDE] 'Vulnerability and the computational logic of fear: insights from the horror genr' (key ...rUoK)
+2026-03-04 00:32:56 | INFO    |   #4 [EXCLUDE] 'Vulnerability of precast concrete decks to vertical earthquakes' (key ...EgBl)
+2026-03-04 00:32:56 | INFO    |   #1 [EXCLUDE] 'A Resonator-Based Active Sensing Tag for Lactate Detection in Saline Solutions' (key ...ylLQ)
+2026-03-04 00:32:56 | INFO    |   #2 [EXCLUDE] 'The AuTOMATIC trial: a multicentre digitally-automated, Bayesian, adaptive, para' (key ...yVpC)
+2026-03-04 00:32:56 | INFO    |   #5 [EXCLUDE] 'AI-Powered Collaborative Security for Multi-domain SDN' (key ...9RJK)
+2026-03-04 00:32:57 | INFO    |   #8 [EXCLUDE] 'Enhanced Rice Leaf Disease Classification and Estimation Via ConvNeXT Incorporat' (key ...rUoK)
+2026-03-04 00:32:57 | INFO    |   #9 [EXCLUDE] 'Bottom-up modeling of phoneme learning: Universal sensitivity and language-speci' (key ...EgBl)
+2026-03-04 00:32:57 | INFO    |   #6 [EXCLUDE] 'Edge-Deployable ML Agent for Real-Time Tactic and Technique Attribution in Micro' (key ...ylLQ)
+2026-03-04 00:32:57 | INFO    |   #10 [EXCLUDE] 'A fully-matched sequential LMBA with arbitrary impedance transformation ratio: A' (key ...9RJK)
+2026-03-04 00:32:57 | INFO    |   #7 [EXCLUDE] 'RNAi-Based Gene Silencing Technologies as New Plant Breeding Techniques (NPBT)' (key ...yVpC)
+2026-03-04 00:32:57 | INFO    |   #14 [EXCLUDE] 'NASA analysis of space mission options for the 2025 planetary defense conference' (key ...EgBl)
+2026-03-04 00:32:57 | INFO    |   #11 [EXCLUDE] 'Rainfall Patterns—Plant-Based Proteins—Child Malnutrition: How Are They Linked i' (key ...ylLQ)
+2026-03-04 00:32:57 | INFO    |   #13 [EXCLUDE] 'Indifferentiability' (key ...rUoK)
+2026-03-04 00:32:57 | INFO    |   #15 [EXCLUDE] 'Ethical Implications and Governance Solutions for the Convergence of AI and Synt' (key ...9RJK)
+2026-03-04 00:32:57 | INFO    |   #12 [EXCLUDE] 'A land-based tank aquaculture system coupled with effluent treatment ponds: Effe' (key ...yVpC)
+2026-03-04 00:32:58 | INFO    |   #17 [EXCLUDE] 'Software Architecture Recovery Augmented With Semantics' (key ...yVpC)
+2026-03-04 00:32:58 | INFO    |   #19 [EXCLUDE] 'Regional vulnerability of hippocampal subfields in schizophrenia and bipolar dis' (key ...EgBl)
+2026-03-04 00:32:58 | INFO    |   #18 [EXCLUDE] 'Prospective validation and real-time implementation of an automated machine lear' (key ...rUoK)
+2026-03-04 00:32:58 | INFO    |   #16 [EXCLUDE] 'Efficient Updatable PSI from Asymmetric PSI and PSU' (key ...ylLQ)
+2026-03-04 00:32:58 | INFO    |   #20 [EXCLUDE] 'Automated manufacturing of large-diameter bolted spherical joints in spatial gri' (key ...9RJK)
+2026-03-04 00:32:58 | INFO    |   #22 [EXCLUDE] 'A systematic analysis of generative artificial intelligence for supply chain tra' (key ...yVpC)
+2026-03-04 00:32:58 | INFO    |   #24 [EXCLUDE] 'Cryptology and Network Security' (key ...EgBl)
+2026-03-04 00:32:58 | INFO    |   #23 [EXCLUDE] 'Exploring spatial disparities of work-shaped social vulnerability and resilience' (key ...rUoK)
+2026-03-04 00:32:58 | INFO    |   #25 [EXCLUDE] 'Towards urban climate justice: Integrating social vulnerability in climate adapt' (key ...9RJK)
+2026-03-04 00:32:58 | INFO    |   #21 [EXCLUDE] 'Accumulation and transformation of C6, C9 and C12 phenols from the peel, leaves ' (key ...ylLQ)
+2026-03-04 00:32:59 | INFO    |   #27 [INCLUDE] 'Comparing Information System Security of Asymmetric and Symmetric Cryptography K' (key ...yVpC)
+2026-03-04 00:32:59 | INFO    |   #26 [EXCLUDE] 'Suppression of Harmonic Vibration in Active Magnetic Bearing Rotor System With F' (key ...ylLQ)
+2026-03-04 00:32:59 | INFO    |   #28 [EXCLUDE] 'FlowMon: A Workflow-Driven Visual Tool for Automated Monitoring Script Generatio' (key ...rUoK)
+2026-03-04 00:32:59 | INFO    |   #29 [EXCLUDE] 'Microbial strategies for soda saline-alkali soil remediation: The role of haloal' (key ...EgBl)
+2026-03-04 00:32:59 | INFO    |   #30 [EXCLUDE] 'AnonymTracker: Anonymously Traceable Copyright Protection for Federated Learning' (key ...9RJK)

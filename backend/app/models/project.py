@@ -29,6 +29,7 @@ class ProjectStatus(str, enum.Enum):
     COLLECTING = "collecting"
     DEDUPLICATING = "deduplicating"
     FILTERING = "filtering"
+    EXCLUDING = "excluding"
     FINDING_LINKS = "finding_links"
     COMPLETED = "completed"
     FAILED = "failed"

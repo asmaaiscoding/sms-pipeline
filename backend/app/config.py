@@ -68,6 +68,15 @@ class Settings(BaseSettings):
     # ── Deduplication ─────────────────────────────────────────────────────────
     TITLE_SIM_THRESHOLD: float = 0.92
 
+    # ── Groq (Automated Exclusion) ────────────────────────────────────────────
+    # Stored as a raw comma-separated string so pydantic-settings never tries
+    # to JSON-decode it.  Use .groq_api_key_list to get the parsed list.
+    GROQ_API_KEYS: str = ""
+
+    @property
+    def groq_api_key_list(self) -> List[str]:
+        return [k.strip() for k in self.GROQ_API_KEYS.split(",") if k.strip()]
+
     # ── PDF Finder ────────────────────────────────────────────────────────────
     PDF_SEARCH_TIMEOUT: int = 15
     PDF_SEARCH_SLEEP: float = 1.0

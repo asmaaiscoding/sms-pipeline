@@ -86,14 +86,30 @@ export const jobsApi = {
       params: { page, per_page: perPage },
     }),
 
-  create: (projectId: string, jobType: JobType) =>
-    api.post<Job>(`/projects/${projectId}/jobs`, { job_type: jobType }),
+  create: (projectId: string, jobType: JobType, steps?: string[]) =>
+    api.post<Job>(`/projects/${projectId}/jobs`, {
+      job_type: jobType,
+      steps: steps,
+    }),
 
   get: (projectId: string, jobId: string) =>
     api.get<Job>(`/projects/${projectId}/jobs/${jobId}`),
 
   cancel: (projectId: string, jobId: string) =>
     api.post(`/projects/${projectId}/jobs/${jobId}/cancel`),
+};
+
+// ── File Upload ──────────────────────────────────────────────────────────────
+export const uploadApi = {
+  uploadPapers: (projectId: string, file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return api.post<{ imported: number; columns_mapped: Record<string, string>; columns_unmapped: string[] }>(
+      `/projects/${projectId}/papers/upload`,
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
+  },
 };
 
 // ── Exports ──────────────────────────────────────────────────────────────────

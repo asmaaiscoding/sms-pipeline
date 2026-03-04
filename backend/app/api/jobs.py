@@ -102,7 +102,8 @@ async def create_job(
     await db.commit()
 
     # Dispatch to Celery
-    task = run_pipeline_step.delay(str(job.id), str(project_id), body.job_type.value)
+    custom_steps = body.steps if body.job_type.value == "custom_pipeline" and body.steps else None
+    task = run_pipeline_step.delay(str(job.id), str(project_id), body.job_type.value, custom_steps)
 
     # Update celery_task_id
     job.celery_task_id = task.id

@@ -44,6 +44,7 @@ _STEP_MAP = {
     "collect": ("app.services.collection", "run_collection_sync", ProjectStatus.COLLECTING),
     "deduplicate": ("app.services.deduplication", "run_deduplication_sync", ProjectStatus.DEDUPLICATING),
     "filter": ("app.services.filtering", "run_filtering_sync", ProjectStatus.FILTERING),
+    "automated_exclusion": ("app.services.automated_exclusion", "run_automated_exclusion_sync", ProjectStatus.EXCLUDING),
     "find_links": ("app.services.pdf_finder", "run_pdf_finder_sync", ProjectStatus.FINDING_LINKS),
 }
 
@@ -91,8 +92,8 @@ def _make_progress_cb(job_id: str, project_id: str, db: Session):
 
 
 @shared_task(name="app.tasks.pipeline.run_pipeline_step", bind=True, max_retries=1)
-def run_pipeline_step(self, job_id: str, project_id: str, step_type: str):
-    """Execute a single pipeline step or the full pipeline."""
+def run_pipeline_step(self, job_id: str, project_id: str, step_type: str, custom_steps: list[str] | None = None):
+    """Execute a single pipeline step, the full pipeline, or a custom set of steps."""
     db = SyncSession()
 
     try:
@@ -104,7 +105,12 @@ def run_pipeline_step(self, job_id: str, project_id: str, step_type: str):
 
         _publish_progress(job_id, project_id, "running", 0, f"Starting {step_type}…")
 
-        steps_to_run = _FULL_PIPELINE_ORDER if step_type == "full_pipeline" else [step_type]
+        if step_type == "custom_pipeline" and custom_steps:
+            steps_to_run = custom_steps
+        elif step_type == "full_pipeline":
+            steps_to_run = _FULL_PIPELINE_ORDER
+        else:
+            steps_to_run = [step_type]
 
         combined_result = {}
 

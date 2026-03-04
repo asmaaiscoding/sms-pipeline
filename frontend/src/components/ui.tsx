@@ -80,6 +80,7 @@ export function StatusBadge({ status }: { status: string }) {
     collecting: "badge-blue",
     deduplicating: "badge-blue",
     filtering: "badge-yellow",
+    excluding: "badge-yellow",
     finding_links: "badge-yellow",
     completed: "badge-green",
     failed: "badge-red",

@@ -18,6 +18,8 @@ from app.models.job import JobStatus, JobType
 class JobCreate(BaseModel):
     job_type: JobType
     config: Optional[Dict[str, Any]] = None
+    # For custom_pipeline: list of steps to run in order
+    steps: Optional[List[str]] = None
 
 
 class JobResponse(BaseModel):

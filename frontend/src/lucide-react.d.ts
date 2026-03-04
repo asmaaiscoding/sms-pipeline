@@ -37,4 +37,6 @@ declare module "lucide-react" {
   export const ClipboardCopy: LucideIcon;
   export const MessageSquare: LucideIcon;
   export const StopCircle: LucideIcon;
+  export const Upload: LucideIcon;
+  export const ShieldCheck: LucideIcon;
 }
