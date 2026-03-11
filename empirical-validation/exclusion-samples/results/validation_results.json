@@ -1,0 +1,144 @@
+{
+  "sample_sizes": [
+    50,
+    100,
+    150,
+    200
+  ],
+  "results": [
+    {
+      "tp": 0,
+      "fp": 3,
+      "fn": 0,
+      "tn": 47,
+      "precision": 0.0,
+      "recall": 0.0,
+      "specificity": 0.94,
+      "f1": 0.0,
+      "cohens_kappa": 0.0,
+      "accuracy": 0.94,
+      "sample_size": 50
+    },
+    {
+      "tp": 4,
+      "fp": 6,
+      "fn": 1,
+      "tn": 89,
+      "precision": 0.4,
+      "recall": 0.8,
+      "specificity": 0.9368,
+      "f1": 0.5333,
+      "cohens_kappa": 0.5,
+      "accuracy": 0.93,
+      "sample_size": 100
+    },
+    {
+      "tp": 5,
+      "fp": 15,
+      "fn": 2,
+      "tn": 128,
+      "precision": 0.25,
+      "recall": 0.7143,
+      "specificity": 0.8951,
+      "f1": 0.3704,
+      "cohens_kappa": 0.3236,
+      "accuracy": 0.8867,
+      "sample_size": 150
+    },
+    {
+      "tp": 5,
+      "fp": 16,
+      "fn": 7,
+      "tn": 172,
+      "precision": 0.2381,
+      "recall": 0.4167,
+      "specificity": 0.9149,
+      "f1": 0.303,
+      "cohens_kappa": 0.2454,
+      "accuracy": 0.885,
+      "sample_size": 200
+    }
+  ],
+  "averages": {
+    "precision": 0.222,
+    "recall": 0.4828,
+    "f1": 0.3017,
+    "cohens_kappa": 0.2672,
+    "accuracy": 0.9104
+  },
+  "error_examples": {
+    "50": {
+      "false_exclusions": [],
+      "false_inclusions": [
+        "Detecting Metadata-Related Bugs in Enterprise Applications",
+        "On the use of package managers by the C++ open-source community",
+        "Intrusion tolerant software architectures"
+      ]
+    },
+    "100": {
+      "false_exclusions": [
+        "Malware Analysis Using Modified Genetic Algorithm in Cyber-Physical Systems"
+      ],
+      "false_inclusions": [
+        "PRAST: Using Logic Bombs to Exploit the Android Permission Model and a Module Based Solution",
+        "EnCus: Customizing Search Space for Automated Program Repair",
+        "TAMED: Transitional Approaches for LFI Resilient State Machine Encoding",
+        "The Effectiveness of Security Interventions on GitHub",
+        "L-WMxD: Lexical based Webmail XSS Discoverer",
+        "Trusted Software Repair for System Resiliency"
+      ]
+    },
+    "150": {
+      "false_exclusions": [
+        "Robust and Attack Resilient Logic Locking with a High Application-Level Impact",
+        "How Secure is the Healthcare Network from Insider Attacks? An Audit Guideline for Vulnerability Analysis"
+      ],
+      "false_inclusions": [
+        "Strict control dependence and its effect on dynamic information flow analyses",
+        "EffFix: Efficient and Effective Repair of Pointer Manipulating Programs",
+        "Stealth Extension Exfiltration (SEE) Attacks: Stealing User Data without Permissions via Browser Extensions",
+        "llasm: Naming Functions in Binaries by Fusing Encoder-only and Decoder-only LLMs",
+        "Detecting Integer Overflow Errors in Java Source Code via Machine Learning",
+        "Understanding and Detecting Overlay-based Android Malware at Market Scales",
+        "Assessing Smart Contracts Security Technical Debts",
+        "Redacting sensitive information in software artifacts",
+        "Security Metrics for Object-Oriented Class Designs",
+        "An Observational Investigation of Reverse Engineers' Process and Mental Models",
+        "Detecting SQL Injection Vulnerabilities in Web Services",
+        "A Machine Learning Approach to Malicious JavaScript Detection using Fixed Length Vector Representation",
+        "An Authorization Framework with OAuth for FinTech Servers",
+        "Browshing a new way of phishing using a malicious browser extension",
+        "Efficient symbolic execution of strings for validating web applications"
+      ]
+    },
+    "200": {
+      "false_exclusions": [
+        "User Behavior Analytics for Anomaly Detection Using LSTM Autoencoder - Insider Threat Detection",
+        "CoAP and MQTT Based Models to Deliver Software and Security Updates to IoT Devices over the Air",
+        "Vulnerability of smallholder rural households to food insecurity in Eastern Ethiopia",
+        "capsAEUL: Slow HTTP DoS Attack Detection using Autoencoders through Unsupervised Learning",
+        "Investigating Vulnerabilities in OpenFlow Discovery Protocol: Novel Attacks and Their Defense",
+        "Managing IoT Cyber-Security Using Programmable Telemetry and Machine Learning",
+        "Vulnerability ranking of meters for protection against attacks targeting power system state estimation"
+      ],
+      "false_inclusions": [
+        "Towards exploring the code reuse from stack overflow during software development",
+        "DualSC: Automatic Generation and Summarization of Shellcode via Transformer and Dual Learning",
+        "Understanding and defending the binder attack surface in Android",
+        "Securing Verified IO Programs Against Unverified Code in F*",
+        "Malware Secrets: De-Obfuscating in the Cloud",
+        "Characterizing and predicting which bugs get fixed",
+        "HyFuzz: A NextG Hybrid Testing Platform for Multi-step Deep Fuzzing and Performance Assessment from Virtualization to Ov",
+        "A Security Pattern for Key-Value NoSQL Database Authorization",
+        "Improving Dependability of Onboard Deep Learning with Resilient TensorFlow",
+        "GNNFingers: A Fingerprinting Framework for Verifying Ownerships of Graph Neural Networks",
+        "Runtime monitoring of web service conversations",
+        "Reducing combinatorics in GUI testing of android applications",
+        "The \u2018as code\u2019 activities: development anti-patterns for infrastructure as code",
+        "Mitigating Regression Faults Induced by Feature Evolution in Deep Learning Systems",
+        "Using Large-Scale Anomaly Detection on Code to Improve Kotlin Compiler",
+        "LCBPA: An Enhanced Deep Neural Network-Oriented Bug Prioritization and Assignment Technique Using Content-Based Filterin"
+      ]
+    }
+  }
+}

@@ -1,0 +1,417 @@
+{
+  "default_threshold": 0.92,
+  "num_samples": 10,
+  "default_results": [
+    {
+      "tp": 85,
+      "fp": 54,
+      "fn": 54,
+      "tn": 270,
+      "precision": 0.6115,
+      "recall": 0.6115,
+      "f1": 0.6115,
+      "sample": 1,
+      "total": 463,
+      "ground_truth_dups": 139,
+      "predicted_dups": 139
+    },
+    {
+      "tp": 86,
+      "fp": 28,
+      "fn": 28,
+      "tn": 235,
+      "precision": 0.7544,
+      "recall": 0.7544,
+      "f1": 0.7544,
+      "sample": 2,
+      "total": 377,
+      "ground_truth_dups": 114,
+      "predicted_dups": 114
+    },
+    {
+      "tp": 85,
+      "fp": 51,
+      "fn": 51,
+      "tn": 266,
+      "precision": 0.625,
+      "recall": 0.625,
+      "f1": 0.625,
+      "sample": 3,
+      "total": 453,
+      "ground_truth_dups": 136,
+      "predicted_dups": 136
+    },
+    {
+      "tp": 74,
+      "fp": 38,
+      "fn": 38,
+      "tn": 221,
+      "precision": 0.6607,
+      "recall": 0.6607,
+      "f1": 0.6607,
+      "sample": 4,
+      "total": 371,
+      "ground_truth_dups": 112,
+      "predicted_dups": 112
+    },
+    {
+      "tp": 92,
+      "fp": 33,
+      "fn": 32,
+      "tn": 255,
+      "precision": 0.736,
+      "recall": 0.7419,
+      "f1": 0.739,
+      "sample": 5,
+      "total": 412,
+      "ground_truth_dups": 124,
+      "predicted_dups": 125
+    },
+    {
+      "tp": 74,
+      "fp": 33,
+      "fn": 32,
+      "tn": 211,
+      "precision": 0.6916,
+      "recall": 0.6981,
+      "f1": 0.6948,
+      "sample": 6,
+      "total": 350,
+      "ground_truth_dups": 106,
+      "predicted_dups": 107
+    },
+    {
+      "tp": 87,
+      "fp": 39,
+      "fn": 39,
+      "tn": 255,
+      "precision": 0.6905,
+      "recall": 0.6905,
+      "f1": 0.6905,
+      "sample": 7,
+      "total": 420,
+      "ground_truth_dups": 126,
+      "predicted_dups": 126
+    },
+    {
+      "tp": 95,
+      "fp": 34,
+      "fn": 34,
+      "tn": 265,
+      "precision": 0.7364,
+      "recall": 0.7364,
+      "f1": 0.7364,
+      "sample": 8,
+      "total": 428,
+      "ground_truth_dups": 129,
+      "predicted_dups": 129
+    },
+    {
+      "tp": 103,
+      "fp": 45,
+      "fn": 44,
+      "tn": 298,
+      "precision": 0.6959,
+      "recall": 0.7007,
+      "f1": 0.6983,
+      "sample": 9,
+      "total": 490,
+      "ground_truth_dups": 147,
+      "predicted_dups": 148
+    },
+    {
+      "tp": 77,
+      "fp": 35,
+      "fn": 35,
+      "tn": 224,
+      "precision": 0.6875,
+      "recall": 0.6875,
+      "f1": 0.6875,
+      "sample": 10,
+      "total": 371,
+      "ground_truth_dups": 112,
+      "predicted_dups": 112
+    }
+  ],
+  "sensitivity": {
+    "0.8": {
+      "avg_precision": 0.6892,
+      "avg_recall": 0.6914,
+      "avg_f1": 0.6903,
+      "avg_fp": 39.0,
+      "avg_fn": 38.6
+    },
+    "0.85": {
+      "avg_precision": 0.6892,
+      "avg_recall": 0.6914,
+      "avg_f1": 0.6903,
+      "avg_fp": 39.0,
+      "avg_fn": 38.6
+    },
+    "0.9": {
+      "avg_precision": 0.6889,
+      "avg_recall": 0.6907,
+      "avg_f1": 0.6898,
+      "avg_fp": 39.0,
+      "avg_fn": 38.7
+    },
+    "0.92": {
+      "avg_precision": 0.6889,
+      "avg_recall": 0.6907,
+      "avg_f1": 0.6898,
+      "avg_fp": 39.0,
+      "avg_fn": 38.7
+    },
+    "0.95": {
+      "avg_precision": 0.6889,
+      "avg_recall": 0.6907,
+      "avg_f1": 0.6898,
+      "avg_fp": 39.0,
+      "avg_fn": 38.7
+    }
+  },
+  "fp_examples": [
+    {
+      "sample": 1,
+      "index": 128,
+      "title": "Effective Evaluation of Relationship-Based Access Control Policy Mining",
+      "doi": "10.1145/3532105.3535022"
+    },
+    {
+      "sample": 1,
+      "index": 256,
+      "title": "Ethchecker: a context-guided fuzzing for smart contracts",
+      "doi": "10.1007/s11227-024-05954-9"
+    },
+    {
+      "sample": 1,
+      "index": 258,
+      "title": "EFVD: A Framework of Source Code Vulnerability Detection via Fusion of Enhanced Graph Representation",
+      "doi": "10.1145/3732365.3732421"
+    },
+    {
+      "sample": 2,
+      "index": 260,
+      "title": "Parallel post-processing with MPI-Bash",
+      "doi": "10.1109/HUST.2014.9"
+    },
+    {
+      "sample": 2,
+      "index": 265,
+      "title": "Customers perspectives on adoption of cloud computing in banking sector",
+      "doi": "10.1007/s10799-016-0270-8"
+    },
+    {
+      "sample": 2,
+      "index": 142,
+      "title": "Interdisciplinary problem solving workshops for grizzly bear conservation in Banff National Park, Ca",
+      "doi": "10.1007/s11077-009-9075-5"
+    },
+    {
+      "sample": 3,
+      "index": 128,
+      "title": "QueryCheetah: Fast Automated Discovery of Attribute Inference Attacks Against Query-Based Systems",
+      "doi": "10.1145/3658644.3690272"
+    },
+    {
+      "sample": 3,
+      "index": 130,
+      "title": "A mixed criticality approach for the security of critical flows in a network-on-chip",
+      "doi": "10.1145/3015037.3015048"
+    },
+    {
+      "sample": 3,
+      "index": 263,
+      "title": "An analysis of call-site patching without strong hardware support for self-modifying-code",
+      "doi": "10.1145/3357390.3361027"
+    },
+    {
+      "sample": 4,
+      "index": 129,
+      "title": "Target Identification for CNS Diseases by Transcriptional Profiling",
+      "doi": "10.1038/npp.2008.172"
+    },
+    {
+      "sample": 4,
+      "index": 266,
+      "title": "Unleashing the Tiger: Inference Attacks on Split Learning",
+      "doi": "10.1145/3460120.3485259"
+    },
+    {
+      "sample": 4,
+      "index": 270,
+      "title": "A Java-based science portal for neutron scattering experiments",
+      "doi": "10.1145/1294325.1294329"
+    },
+    {
+      "sample": 5,
+      "index": 130,
+      "title": "Formalization and co-simulation of attacks on cyber-physical systems",
+      "doi": "10.1007/s11416-019-00344-9"
+    },
+    {
+      "sample": 5,
+      "index": 259,
+      "title": "Hearing thresholds in European sea bass (Dicentrarchus labrax): new insights into auditory sensitivi",
+      "doi": "10.1007/s10695-025-01628-2"
+    },
+    {
+      "sample": 5,
+      "index": 132,
+      "title": "Focusing on symptoms rather than diagnoses in brain dysfunction: Conscious and nonconscious expressi",
+      "doi": "10.1007/BF03033572"
+    },
+    {
+      "sample": 6,
+      "index": 257,
+      "title": "Tracking Triadic Cardinality Distributions for Burst Detection in Social Activity Streams",
+      "doi": "10.1145/2817946.2817955"
+    },
+    {
+      "sample": 6,
+      "index": 141,
+      "title": "Large Language Model Supply Chain: Open Problems From the Security Perspective",
+      "doi": "10.1145/3713081.3731747"
+    },
+    {
+      "sample": 6,
+      "index": 272,
+      "title": "Introduction to the Special Issue on the Lifecycle of IoT (In)security",
+      "doi": "10.1145/3569901"
+    },
+    {
+      "sample": 7,
+      "index": 258,
+      "title": "Analysis of security vulnerabilities in the movie production and distribution process",
+      "doi": "10.1145/947380.947383"
+    },
+    {
+      "sample": 7,
+      "index": 391,
+      "title": "SMARCA4 deficient tumours are vulnerable to KDM6A/UTX and KDM6B/JMJD3 blockade",
+      "doi": "10.1038/s41467-021-24618-3"
+    }
+  ],
+  "fn_examples": [
+    {
+      "sample": 1,
+      "index": 1,
+      "title": "On Indirectly Dependent Documentation in the Context of Code Evolution",
+      "doi": "10.1109/ICSE43902.2021.00134"
+    },
+    {
+      "sample": 1,
+      "index": 130,
+      "title": "Research and Implementation of a Multi-Modal AI-Driven Psychological Assessment and Analysis System ",
+      "doi": "10.1145/3768184.3768283"
+    },
+    {
+      "sample": 1,
+      "index": 4,
+      "title": "Hybridroid: Static Analysis Framework For Android Hybrid Applications",
+      "doi": "10.1145/2970276.2970368"
+    },
+    {
+      "sample": 2,
+      "index": 129,
+      "title": "Exploration and practice of industrial control system information security incident emergency exerci",
+      "doi": "10.1145/3444370.3444596"
+    },
+    {
+      "sample": 2,
+      "index": 3,
+      "title": "Putting the semantics into semantic versioning",
+      "doi": "10.1145/3426428.3426922"
+    },
+    {
+      "sample": 2,
+      "index": 138,
+      "title": "Leveraging compression in the tableau data engine",
+      "doi": "10.1145/2588555.2595639"
+    },
+    {
+      "sample": 3,
+      "index": 4,
+      "title": "An  Exploration  of  How  Generative  AI  Affects  Workflow  and  Collaboration  in  a  Software  En",
+      "doi": "10.1145/3758317.3759680"
+    },
+    {
+      "sample": 3,
+      "index": 261,
+      "title": "Failure Prediction in Cloud-based Storage Systems: A Survey",
+      "doi": "10.1145/3794843"
+    },
+    {
+      "sample": 3,
+      "index": 6,
+      "title": "Adressing problems with external validity of repository mining studies through a smart data platform",
+      "doi": "10.1145/2901739.2901753"
+    },
+    {
+      "sample": 4,
+      "index": 1,
+      "title": "Linux kernel vulnerabilities",
+      "doi": "10.1145/2103799.2103805"
+    },
+    {
+      "sample": 4,
+      "index": 130,
+      "title": "CoLoTa: A Dataset for Entity-based Commonsense Reasoning over Long-Tail Knowledge",
+      "doi": "10.1145/3726302.3730291"
+    },
+    {
+      "sample": 4,
+      "index": 133,
+      "title": "The 7Th Workshop On Active Internet Measurements (Aims7) Report",
+      "doi": "10.1145/2875951.2875960"
+    },
+    {
+      "sample": 5,
+      "index": 0,
+      "title": "Evaluation of Random Delay Insertion against DPA on FPGAs",
+      "doi": "10.1145/1857927.1857938"
+    },
+    {
+      "sample": 5,
+      "index": 134,
+      "title": "Managing biodiversity under climate change: challenges, frameworks, and tools for adaptation",
+      "doi": "10.1007/s10531-017-1362-4"
+    },
+    {
+      "sample": 5,
+      "index": 8,
+      "title": "Formalization and co-simulation of attacks on cyber-physical systems",
+      "doi": "10.1007/s11416-019-00344-9"
+    },
+    {
+      "sample": 6,
+      "index": 132,
+      "title": "Fuzzy-Based Assessment Of Groundwater Intrinsic Vulnerability Of A Volcanic Aquifer In The Chilean A",
+      "doi": "10.1007/s10661-018-6758-4"
+    },
+    {
+      "sample": 6,
+      "index": 10,
+      "title": "Supercomputer Technologies In Russia: Status And Problems Of Development",
+      "doi": "10.1134/S1019331615060027"
+    },
+    {
+      "sample": 6,
+      "index": 14,
+      "title": "Multi-Cluster Visualization and Live Reporting of Static Analysis Security Testing (SAST) Warnings",
+      "doi": "10.1109/8901629"
+    },
+    {
+      "sample": 7,
+      "index": 138,
+      "title": "An Empirical Study On The Influential Factors Affecting Continuous Usage Of Mobile Cloud Service",
+      "doi": "10.1007/s10586-017-1518-8"
+    },
+    {
+      "sample": 7,
+      "index": 18,
+      "title": "Assessing Readiness for a National Health Insurance Scheme: A Malaysian Perspective",
+      "doi": "10.1145/3785171.3785190"
+    }
+  ]
+}
