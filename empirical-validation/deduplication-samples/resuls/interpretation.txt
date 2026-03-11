@@ -1,0 +1,65 @@
+======================================================================
+DEDUPLICATION VALIDATION -- INTERPRETATION OF RESULTS
+======================================================================
+
+1. OVERVIEW
+----------------------------------------
+Number of samples evaluated: 10
+Deduplication method: 3-pass (DOI + exact title + TF-IDF cosine)
+Evaluation: group-aware (detects duplication regardless of which member is removed)
+
+  Sample  1: 463 papers, 139 known duplicates  ->  P=1.000  R=1.000  F1=1.000
+  Sample  2: 377 papers, 114 known duplicates  ->  P=1.000  R=1.000  F1=1.000
+  Sample  3: 453 papers, 136 known duplicates  ->  P=1.000  R=1.000  F1=1.000
+  Sample  4: 371 papers, 112 known duplicates  ->  P=1.000  R=1.000  F1=1.000
+  Sample  5: 412 papers, 124 known duplicates  ->  P=1.000  R=1.000  F1=1.000
+  Sample  6: 350 papers, 106 known duplicates  ->  P=0.991  R=1.000  F1=0.995
+  Sample  7: 420 papers, 126 known duplicates  ->  P=1.000  R=1.000  F1=1.000
+  Sample  8: 428 papers, 129 known duplicates  ->  P=0.992  R=1.000  F1=0.996
+  Sample  9: 490 papers, 147 known duplicates  ->  P=1.000  R=1.000  F1=1.000
+  Sample 10: 371 papers, 112 known duplicates  ->  P=1.000  R=1.000  F1=1.000
+
+2. METHOD DESCRIPTION
+----------------------------------------
+  The deduplication pipeline uses three sequential passes:
+    Pass 1 - DOI exact match: papers sharing the same normalised DOI
+            are grouped; the most complete record is kept.
+    Pass 2 - Exact normalised title: among remaining papers, those with
+            identical normalised titles (NFKD + lowercase + '&'->'and'
+            + strip punctuation) are grouped; the most complete is kept.
+    Pass 3 - TF-IDF cosine similarity: among remaining papers, titles
+            are vectorised with character n-grams (3-4); pairs with
+            cosine similarity >= 0.85 are merged, keeping the more
+            complete record.
+
+  Evaluation uses GROUP-AWARE metrics: a ground-truth duplicate is
+  counted as detected (TP) if any member of its duplicate group was
+  flagged for removal. This eliminates wrong-survivor bias where the
+  algorithm correctly identifies a duplicate pair but removes a
+  different member than the one labelled 'DUPLICATE' in the ground truth.
+
+3. AGGREGATE PERFORMANCE
+----------------------------------------
+  Average Precision : 0.998
+  Average Recall    : 1.000
+  Average F1        : 0.999
+
+  Precision is EXCELLENT -- virtually no unique papers are wrongly merged.
+  Recall is EXCELLENT -- virtually all true duplicates are detected.
+
+4. ERROR ANALYSIS
+----------------------------------------
+  Total false positive examples (unique papers wrongly removed): 2
+  Total false negative examples (duplicates missed): 0
+
+  Sample FALSE POSITIVES (unique papers incorrectly flagged as duplicates):
+    Sample 6: 19th Annual Conference of the International Society for Quality of Life Research
+    Sample 8: PathFinder
+
+5. CONCLUSION
+----------------------------------------
+  The 3-pass deduplication pipeline achieves EXCELLENT performance.
+  The combination of DOI matching, exact-title matching, and TF-IDF
+  cosine similarity effectively covers all major duplication patterns.
+
+======================================================================

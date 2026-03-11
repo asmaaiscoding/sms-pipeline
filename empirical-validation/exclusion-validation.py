@@ -1,14 +1,16 @@
 """
 empirical-validation/exclusion-validation.py
 ─────────────────────────────────────────────
-V3. Automated Exclusion Accuracy Validation
+V4. Automated Exclusion Accuracy Validation (Ollama — llama3.2:3b)
 
 Procedure:
   1. Load pre-existing labeled samples from exclusion-samples/files/.
-     Each sample already has Ground_Truth and LLM_Decision columns.
-  2. Compute: precision, recall, specificity, F1, Cohen's Kappa, accuracy.
-  3. Analyze error types (false exclusions vs false inclusions).
-  4. Generate plots.
+     Each sample has a Ground_Truth column.
+  2. Call local Ollama (llama3.2:3b) with title (+abstract if available)
+     to get a fresh INCLUDE/EXCLUDE decision for every paper.
+  3. Save updated LLM_Decision column back into each xlsx.
+  4. Compute: precision, recall, specificity, F1, Cohen's Kappa, accuracy.
+  5. Analyze error types.  Generate plots + interpretation.
 
 Outputs → empirical-validation/exclusion-samples/results/
 """
@@ -17,7 +19,9 @@ from __future__ import annotations
 
 import os
 import json
+import time
 
+import requests
 import numpy as np
 import pandas as pd
 import matplotlib
@@ -31,6 +35,230 @@ RESULTS_DIR = os.path.join(BASE, "exclusion-samples", "results")
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
 SAMPLE_SIZES = [50, 100, 150, 200, 250, 300]
+
+OLLAMA_URL = "http://localhost:11434/api/generate"
+OLLAMA_MODEL = "llama3.2:3b"
+
+EXCLUSION_PROMPT = """\
+You are a strict academic paper screener for a Systematic Mapping Study focused \
+exclusively on **SOFTWARE security** — meaning security concerns that arise \
+within the SOFTWARE layer (source code, binaries, applications, libraries, \
+frameworks, APIs, software development processes).
+
+Task: Given the title and abstract of an academic paper, decide \
+whether it should be INCLUDED or EXCLUDED.
+
+── INCLUDE only if the paper's PRIMARY focus is one of these SOFTWARE-LEVEL topics:
+• Vulnerability detection / analysis / classification in source code or binaries
+• Software vulnerability remediation, patching, or repair
+• Static analysis, dynamic analysis, symbolic execution, or taint analysis for security
+• Fuzz testing / fuzzing of software components
+• Secure coding practices, security-aware code review, or security refactoring
+• Software penetration testing or security auditing of applications
+• Malware analysis, reverse engineering of malicious software
+• Security of web applications, mobile applications, desktop applications
+• API security, authentication / authorization implementation flaws in software
+• Software supply-chain security (dependency vulnerabilities, package managers)
+• DevSecOps, CI/CD pipeline security, SAST/DAST/IAST tools
+• Security-related software metrics, vulnerability prediction models in code
+• Cryptographic API misuse or insecure cryptographic implementations in software
+
+── EXCLUDE if the paper's PRIMARY focus is any of the following (even if it \
+mentions "security"):
+• Network security, firewall rules, intrusion detection/prevention systems (IDS/IPS)
+• Hardware security, side-channel attacks on chips, TPM, TEE at hardware level
+• IoT security focused on device/hardware/protocol layer, not software
+• Cloud infrastructure security, VM isolation (unless it's about software config flaws)
+• Cyber-physical systems security (SCADA, power grids) without a software code focus
+• Wireless / radio / protocol-level security (Bluetooth, Zigbee, 5G)
+• Pure cryptography theory, mathematical proofs, new cipher design
+• Information security management, governance, risk frameworks, compliance, policy
+• Privacy, GDPR, data protection law / regulations
+• Social engineering, phishing awareness, human factors in security
+• Digital forensics focused on disk/network/memory forensics (not software-level)
+• General software engineering with no security dimension
+• Biometrics, physical access control
+• Any domain outside computer science (medicine, biology, finance, etc.)
+
+── Decision rules:
+1. If the title/abstract is ambiguous, lean toward EXCLUDE — we want high precision.
+2. A paper that merely USES software but studies network/hardware/policy security \
+is still EXCLUDED.
+3. "Security testing" counts as INCLUDE only if it tests the software itself, not \
+the network or infrastructure.
+
+Respond with ONLY one word: INCLUDE or EXCLUDE
+
+Title: "{title}"
+Abstract: "{abstract}"
+"""
+
+
+def _call_ollama(title: str, abstract: str = "") -> str:
+    """Call local Ollama and return 'KEEP' or 'REMOVE'."""
+    prompt = EXCLUSION_PROMPT.format(
+        title=title,
+        abstract=abstract if abstract else "Not available",
+    )
+    payload = {
+        "model": OLLAMA_MODEL,
+        "prompt": prompt,
+        "stream": False,
+        "options": {"temperature": 0.0, "num_predict": 10},
+    }
+
+    for attempt in range(3):
+        try:
+            resp = requests.post(OLLAMA_URL, json=payload, timeout=120)
+            resp.raise_for_status()
+            answer = resp.json().get("response", "").strip().upper()
+            if "INCLUDE" in answer:
+                return "KEEP"
+            elif "EXCLUDE" in answer:
+                return "REMOVE"
+            else:
+                return "KEEP"  # default to keep on ambiguous
+        except requests.exceptions.RequestException:
+            if attempt < 2:
+                time.sleep(2 ** attempt)
+                continue
+            return "KEEP"
+    return "KEEP"
+
+
+# ── interpretation report ────────────────────────────────────────────────────
+
+def write_interpretation(path: str, all_results: list, all_errors: dict):
+    avg_p = np.mean([r["precision"] for r in all_results])
+    avg_r = np.mean([r["recall"] for r in all_results])
+    avg_f1 = np.mean([r["f1"] for r in all_results])
+    avg_k = np.mean([r["cohens_kappa"] for r in all_results])
+    avg_acc = np.mean([r["accuracy"] for r in all_results])
+    avg_spec = np.mean([r["specificity"] for r in all_results])
+
+    lines = []
+    lines.append("=" * 70)
+    lines.append("AUTOMATED EXCLUSION VALIDATION -- INTERPRETATION OF RESULTS")
+    lines.append("=" * 70)
+
+    lines.append("")
+    lines.append("1. OVERVIEW")
+    lines.append("-" * 40)
+    lines.append(f"Number of samples evaluated: {len(all_results)}")
+    lines.append(f"Sample sizes: {', '.join(str(r['sample_size']) for r in all_results)}")
+    lines.append(f"Exclusion method: LLM-based (local Ollama, {OLLAMA_MODEL})")
+    lines.append(f"Input: title + abstract (abstract='Not available' when missing)")
+    lines.append(f"Ground truth: keyword-based relevance labeling (KEEP / REMOVE)")
+    lines.append("")
+    for r in all_results:
+        lines.append(f"  Size {r['sample_size']:>3d}: "
+                     f"P={r['precision']:.3f}  R={r['recall']:.3f}  F1={r['f1']:.3f}  "
+                     f"Kappa={r['cohens_kappa']:.3f}  Acc={r['accuracy']:.3f}")
+
+    lines.append("")
+    lines.append("2. AGGREGATE PERFORMANCE")
+    lines.append("-" * 40)
+    lines.append(f"  Average Precision   : {avg_p:.3f}")
+    lines.append(f"  Average Recall      : {avg_r:.3f}")
+    lines.append(f"  Average F1          : {avg_f1:.3f}")
+    lines.append(f"  Average Specificity : {avg_spec:.3f}")
+    lines.append(f"  Average Cohen's Kappa: {avg_k:.3f}")
+    lines.append(f"  Average Accuracy    : {avg_acc:.3f}")
+    lines.append("")
+
+    if avg_p > 0.80:
+        lines.append("  Precision is HIGH -- when the LLM decides to KEEP a paper, it is almost always correct.")
+    elif avg_p > 0.50:
+        lines.append("  Precision is MODERATE -- a substantial fraction of papers the LLM marks KEEP")
+        lines.append("  are actually irrelevant (false inclusions).")
+    else:
+        lines.append("  Precision is LOW -- most papers the LLM marks as KEEP are actually irrelevant.")
+        lines.append("  This means the LLM is too conservative in excluding papers.")
+
+    if avg_r > 0.80:
+        lines.append("  Recall is HIGH -- the LLM correctly identifies most relevant papers.")
+    elif avg_r > 0.50:
+        lines.append("  Recall is MODERATE -- a notable fraction of relevant papers are being excluded.")
+    else:
+        lines.append("  Recall is LOW -- many relevant papers are being incorrectly excluded.")
+        lines.append("  This is a significant concern for SMS completeness.")
+
+    lines.append("")
+    if avg_k > 0.80:
+        lines.append(f"  Cohen's Kappa ({avg_k:.3f}) indicates ALMOST PERFECT agreement with ground truth.")
+    elif avg_k > 0.60:
+        lines.append(f"  Cohen's Kappa ({avg_k:.3f}) indicates SUBSTANTIAL agreement with ground truth.")
+    elif avg_k > 0.40:
+        lines.append(f"  Cohen's Kappa ({avg_k:.3f}) indicates MODERATE agreement with ground truth.")
+    elif avg_k > 0.20:
+        lines.append(f"  Cohen's Kappa ({avg_k:.3f}) indicates FAIR agreement with ground truth.")
+    else:
+        lines.append(f"  Cohen's Kappa ({avg_k:.3f}) indicates SLIGHT or POOR agreement with ground truth.")
+
+    lines.append("")
+    total_keep = sum(r["tp"] + r["fn"] for r in all_results)
+    total_remove = sum(r["fp"] + r["tn"] for r in all_results)
+    total_all = total_keep + total_remove
+    keep_pct = total_keep / total_all * 100 if total_all > 0 else 0
+    lines.append(f"  Class distribution: {keep_pct:.1f}% KEEP / {100 - keep_pct:.1f}% REMOVE")
+    if keep_pct < 20 or keep_pct > 80:
+        lines.append(f"  WARNING: Class imbalance is significant ({keep_pct:.0f}% vs {100-keep_pct:.0f}%).")
+        lines.append(f"  High accuracy ({avg_acc:.3f}) is partly driven by the majority class (REMOVE).")
+        lines.append(f"  F1 and Cohen's Kappa are more reliable measures in this scenario.")
+
+    lines.append("")
+    lines.append("3. ERROR ANALYSIS")
+    lines.append("-" * 40)
+    total_fn = sum(r["fn"] for r in all_results)
+    total_fp = sum(r["fp"] for r in all_results)
+    lines.append(f"  Total false exclusions (FN -- relevant papers wrongly removed): {total_fn}")
+    lines.append(f"  Total false inclusions (FP -- irrelevant papers wrongly kept) : {total_fp}")
+    lines.append("")
+    if total_fn > total_fp:
+        lines.append("  The LLM is more prone to FALSE EXCLUSIONS (removing relevant papers).")
+        lines.append("  This is the more costly error type in an SMS, as it reduces recall/completeness.")
+    elif total_fp > total_fn:
+        lines.append("  The LLM is more prone to FALSE INCLUSIONS (keeping irrelevant papers).")
+        lines.append("  This adds noise but does not threaten completeness of the review.")
+    else:
+        lines.append("  False exclusions and false inclusions are balanced.")
+
+    for size in sorted(all_errors.keys()):
+        errs = all_errors[size]
+        if errs["false_exclusions"] or errs["false_inclusions"]:
+            lines.append(f"\n  Sample {size}:")
+            if errs["false_exclusions"]:
+                lines.append(f"    False exclusions ({len(errs['false_exclusions'])}):")
+                for t in errs["false_exclusions"][:3]:
+                    lines.append(f"      - {t}")
+            if errs["false_inclusions"]:
+                lines.append(f"    False inclusions ({len(errs['false_inclusions'])}):")
+                for t in errs["false_inclusions"][:3]:
+                    lines.append(f"      - {t}")
+
+    lines.append("")
+    lines.append("4. CONCLUSION")
+    lines.append("-" * 40)
+    if avg_f1 > 0.70:
+        lines.append("  The LLM-based exclusion pipeline performs WELL overall.")
+    elif avg_f1 > 0.45:
+        lines.append("  The LLM-based exclusion pipeline has MODERATE performance.")
+        lines.append("  Manual review of excluded papers is recommended to ensure no")
+        lines.append("  relevant studies are lost.")
+    else:
+        lines.append("  The LLM-based exclusion pipeline has LIMITED effectiveness.")
+        lines.append("  The low F1 score suggests the LLM struggles to distinguish relevant")
+        lines.append("  from irrelevant papers. This may be due to:")
+        lines.append("    - Class imbalance (few relevant papers in large exclusion pools)")
+        lines.append("    - Ambiguous paper titles/abstracts that challenge keyword-based ground truth")
+        lines.append("    - Prompt design not being specific enough for the SMS criteria")
+        lines.append("  Manual verification of all excluded papers is strongly recommended.")
+
+    lines.append("")
+    lines.append("=" * 70)
+
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
 
 
 # ── metrics ──────────────────────────────────────────────────────────────────
@@ -50,7 +278,6 @@ def compute_metrics(gt: list[str], pred: list[str]) -> dict:
     specificity = tn / (tn + fp) if (tn + fp) > 0 else 0.0
     f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
 
-    # Cohen's Kappa
     po = (tp + tn) / n if n > 0 else 0
     pe_keep = ((tp + fp) / n) * ((tp + fn) / n) if n > 0 else 0
     pe_remove = ((fn + tn) / n) * ((fp + tn) / n) if n > 0 else 0
@@ -72,10 +299,10 @@ def compute_metrics(gt: list[str], pred: list[str]) -> dict:
 
 def main():
     print("=" * 70)
-    print("V3. AUTOMATED EXCLUSION ACCURACY VALIDATION")
+    print("V4. AUTOMATED EXCLUSION ACCURACY VALIDATION (Ollama)")
     print("=" * 70)
 
-    # ── Load samples ─────────────────────────────────────────────────────────
+    # ── Load samples & run Ollama ────────────────────────────────────────────
     samples: list[tuple[int, pd.DataFrame]] = []
     for size in SAMPLE_SIZES:
         path = os.path.join(FILES_DIR, f"sample_{size}.xlsx")
@@ -83,13 +310,29 @@ def main():
             print(f"  WARNING: {path} not found, skipping.")
             continue
         df = pd.read_excel(path, engine="openpyxl")
-        if "LLM_Decision" not in df.columns:
-            print(f"  WARNING: sample_{size}.xlsx has no LLM_Decision column, skipping.")
+        if "Ground_Truth" not in df.columns:
+            print(f"  WARNING: sample_{size}.xlsx has no Ground_Truth column, skipping.")
             continue
-        samples.append((size, df))
+
         n_keep = (df["Ground_Truth"] == "KEEP").sum()
         n_remove = (df["Ground_Truth"] == "REMOVE").sum()
-        print(f"  Sample {size:>3d}: {len(df)} papers  ({n_keep} KEEP / {n_remove} REMOVE)")
+        print(f"\n  Sample {size:>3d}: {len(df)} papers  ({n_keep} KEEP / {n_remove} REMOVE)")
+        print(f"    Calling Ollama ({OLLAMA_MODEL}) for {len(df)} papers...")
+
+        decisions = []
+        for idx, row in df.iterrows():
+            title = str(row.get("Title", ""))
+            abstract = str(row.get("Abstract", "")) if "Abstract" in df.columns else ""
+            decision = _call_ollama(title, abstract)
+            decisions.append(decision)
+            if (idx + 1) % 25 == 0:
+                print(f"      {idx + 1}/{len(df)} done")
+
+        df["LLM_Decision"] = decisions
+        df.to_excel(path, index=False, engine="openpyxl")
+        print(f"    Done — saved LLM_Decision to {os.path.basename(path)}")
+
+        samples.append((size, df))
 
     if not samples:
         print("ERROR: No sample files found.")
@@ -115,7 +358,6 @@ def main():
               f"  Kappa={metrics['cohens_kappa']:.3f}  Acc={metrics['accuracy']:.3f}")
         print(f"           TP={metrics['tp']}  FP={metrics['fp']}  FN={metrics['fn']}  TN={metrics['tn']}")
 
-        # Collect error examples
         false_exclusions = []
         false_inclusions = []
         for j, row in df.iterrows():
@@ -138,7 +380,6 @@ def main():
             for t in false_inclusions[:3]:
                 print(f"             - {t}")
 
-    # ── Averages ─────────────────────────────────────────────────────────────
     avg_p = np.mean([r["precision"] for r in all_results])
     avg_r = np.mean([r["recall"] for r in all_results])
     avg_f1 = np.mean([r["f1"] for r in all_results])
@@ -302,8 +543,13 @@ def main():
     results_df.to_excel(os.path.join(RESULTS_DIR, "validation_results.xlsx"), index=False, engine="openpyxl")
     print(f"  Results table saved -> exclusion-samples/results/validation_results.xlsx")
 
+    # ── Write interpretation ─────────────────────────────────────────────────
+    interp_path = os.path.join(RESULTS_DIR, "interpretation.txt")
+    write_interpretation(interp_path, all_results, all_errors)
+    print(f"  Interpretation saved -> exclusion-samples/results/interpretation.txt")
+
     print(f"\n{'=' * 70}")
-    print("V3 VALIDATION COMPLETE")
+    print("V4 VALIDATION COMPLETE")
     print(f"{'=' * 70}")
 
 

@@ -1,53 +1,45 @@
-"""
+﻿"""
 empirical-validation/dedup-validation.py
-─────────────────────────────────────────
-V2. Deduplication Precision / Recall Validation
+
+V4. Deduplication Precision / Recall Validation
 
 Procedure:
-  1. Load combined detection + remediation papers.
-  2. Create 10 samples of 300-500 papers, each containing known duplicates.
-     Duplicates are created by:
-       a) Including naturally occurring DOI duplicates from the pool.
-       b) Injecting synthetic duplicates (exact copies, near-identical titles).
-  3. Run the two-pass deduplication (DOI + TF-IDF title) on each sample.
-  4. Compute precision, recall, F1.
-  5. Sensitivity analysis: vary TF-IDF threshold (0.80…0.95).
-  6. Analyze false positives (unique papers wrongly merged) and
-     false negatives (true duplicates missed).
+  1. Load pre-existing samples from deduplication-samples/files/.
+     Each sample has a Ground_Truth column (DUPLICATE / UNIQUE).
+  2. Run 3-pass deduplication (DOI + exact title + TF-IDF cosine).
+  3. Compute GROUP-AWARE precision, recall, F1.
+     A ground-truth duplicate is "detected" if ANY member of its
+     duplicate group was predicted for removal (fixes wrong-survivor bias).
+  4. Analyze false positives and false negatives.
+  5. Generate interpretation report.
 
-Outputs → empirical-validation/deduplication-samples/
+Outputs -> empirical-validation/deduplication-samples/resuls/
 """
 
 from __future__ import annotations
 
 import os
 import re
-import sys
 import json
-import random
 import unicodedata
-from typing import Optional
 
 import numpy as np
 import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
 
-# ── paths ────────────────────────────────────────────────────────────────────
+# -- paths -----------------------------------------------------------------
 BASE = os.path.dirname(os.path.abspath(__file__))
-DETECTION_PATH = os.path.join(BASE, "detection_all_collected_papers.xlsx")
-REMEDIATION_PATH = os.path.join(BASE, "remediation_all_collected_papers.xlsx")
-SAMPLES_DIR = os.path.join(BASE, "deduplication-samples")
-os.makedirs(SAMPLES_DIR, exist_ok=True)
+FILES_DIR = os.path.join(BASE, "deduplication-samples", "files")
+RESULTS_DIR = os.path.join(BASE, "deduplication-samples", "resuls")
+os.makedirs(RESULTS_DIR, exist_ok=True)
 
-SEED = 42
-random.seed(SEED)
-np.random.seed(SEED)
+NUM_SAMPLES = 10
 
-# ── dedup helpers (mirroring steps/deduplicate.py) ───────────────────────────
+# -- normalisation helpers (mirrors steps/deduplicate.py) ------------------
 
 def _norm_doi(doi) -> str:
     if not isinstance(doi, str) or doi.strip() == "":
@@ -60,6 +52,7 @@ def _norm_title(title) -> str:
     if not isinstance(title, str):
         return ""
     title = unicodedata.normalize("NFKD", title).lower().strip()
+    title = title.replace("&", "and")
     title = re.sub(r"[^a-z0-9\s]", " ", title)
     return re.sub(r"\s+", " ", title).strip()
 
@@ -68,9 +61,12 @@ def _completeness(row: pd.Series) -> int:
     return sum(1 for v in row if isinstance(v, str) and v.strip())
 
 
-def run_dedup(df: pd.DataFrame, threshold: float = 0.92) -> set:
+# -- 3-pass dedup ----------------------------------------------------------
+
+def run_dedup(df: pd.DataFrame) -> set:
     """
-    Run deduplication on a DataFrame. Returns the set of *indices* flagged as duplicates.
+    Run 3-pass deduplication: DOI + exact title + TF-IDF cosine.
+    Returns the set of *indices* flagged for removal.
     """
     df = df.copy()
     df["_doi"] = df["DOI"].apply(_norm_doi) if "DOI" in df.columns else ""
@@ -89,7 +85,22 @@ def run_dedup(df: pd.DataFrame, threshold: float = 0.92) -> set:
             best = max(indices, key=lambda i: df.at[i, "_comp"])
             removed.update(i for i in indices if i != best)
 
-    # Pass 2: Title TF-IDF cosine
+    # Pass 2: exact normalised title
+    title_groups: dict = {}
+    for idx in df.index:
+        if idx in removed:
+            continue
+        nt = df.at[idx, "_title"]
+        if nt:
+            title_groups.setdefault(nt, []).append(idx)
+    for indices in title_groups.values():
+        if len(indices) > 1:
+            best = max(indices, key=lambda i: df.at[i, "_comp"])
+            for i in indices:
+                if i != best and i not in removed:
+                    removed.add(i)
+
+    # Pass 3: TF-IDF cosine similarity
     remaining = [i for i in df.index if i not in removed]
     titles = df.loc[remaining, "_title"].tolist()
     if len(titles) >= 2:
@@ -104,7 +115,7 @@ def run_dedup(df: pd.DataFrame, threshold: float = 0.92) -> set:
                 j_real = remaining[j_pos]
                 if j_real in removed:
                     continue
-                if sim[i_pos, j_pos] >= threshold:
+                if sim[i_pos, j_pos] >= 0.85:
                     loser = j_real if df.at[i_real, "_comp"] >= df.at[j_real, "_comp"] else i_real
                     removed.add(loser)
                     if loser == i_real:
@@ -113,98 +124,86 @@ def run_dedup(df: pd.DataFrame, threshold: float = 0.92) -> set:
     return removed
 
 
-# ── sample creation ──────────────────────────────────────────────────────────
+# -- group-aware metrics ---------------------------------------------------
 
-def _perturb_title(title: str) -> str:
-    """Create a near-duplicate title by small perturbations."""
-    perturbations = [
-        lambda t: t.replace(":", " -"),
-        lambda t: t.replace("-", "–"),
-        lambda t: t + " ",
-        lambda t: t.lower().title(),
-        lambda t: re.sub(r"\s+", "  ", t),
-        lambda t: t.replace("and", "&"),
-        lambda t: t.replace("using", "Using"),
-    ]
-    fn = random.choice(perturbations)
-    return fn(title)
-
-
-def create_sample(pool: pd.DataFrame, sample_id: int,
-                  target_size: int = None) -> tuple[pd.DataFrame, set]:
+def _build_groups(df: pd.DataFrame) -> dict[int, set[int]]:
     """
-    Create one sample with known duplicates.
-
-    Returns (sample_df, ground_truth_dup_indices).
-    ground_truth_dup_indices are the indices in sample_df that are duplicates.
+    Build duplicate groups using union-find over DOI + normalised title.
+    Returns {root_index: set_of_member_indices}.
     """
-    if target_size is None:
-        target_size = random.randint(300, 500)
+    parent = {idx: idx for idx in df.index}
 
-    # Number of unique papers to start with
-    n_unique = int(target_size * 0.70)  # ~70% unique base
-    n_dupes = target_size - n_unique     # ~30% will be duplicates
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
 
-    # Sample unique papers from pool
-    base_papers = pool.sample(n=min(n_unique, len(pool)), random_state=SEED + sample_id)
-    base_papers = base_papers.reset_index(drop=True)
+    def union(a, b):
+        a, b = find(a), find(b)
+        if a != b:
+            parent[a] = b
 
-    # Create duplicates
-    dup_rows = []
-    dup_indices = set()
+    # DOI unions
+    doi_map: dict[str, int] = {}
+    for idx in df.index:
+        doi = _norm_doi(df.at[idx, "DOI"]) if "DOI" in df.columns else ""
+        if doi:
+            if doi in doi_map:
+                union(idx, doi_map[doi])
+            else:
+                doi_map[doi] = idx
 
-    for i in range(n_dupes):
-        # Pick a random paper from the base to duplicate
-        src_idx = random.randint(0, len(base_papers) - 1)
-        src = base_papers.iloc[src_idx].copy()
+    # Title unions
+    title_map: dict[str, int] = {}
+    for idx in df.index:
+        nt = _norm_title(df.at[idx, "Title"]) if "Title" in df.columns else ""
+        if nt:
+            if nt in title_map:
+                union(idx, title_map[nt])
+            else:
+                title_map[nt] = idx
 
-        dup_type = random.choice(["exact_doi", "near_title", "exact_copy"])
-
-        if dup_type == "exact_doi":
-            # Same DOI, possibly different title formatting
-            row = src.copy()
-            if isinstance(row.get("Title"), str):
-                row["Title"] = _perturb_title(row["Title"])
-            row["Source"] = random.choice(["ACM", "IEEE", "Springer"])
-        elif dup_type == "near_title":
-            # No DOI but near-identical title
-            row = src.copy()
-            row["DOI"] = ""
-            if isinstance(row.get("Title"), str):
-                row["Title"] = _perturb_title(row["Title"])
-        else:  # exact_copy
-            row = src.copy()
-
-        dup_rows.append(row)
-
-    # Combine base + duplicates
-    if dup_rows:
-        dup_df = pd.DataFrame(dup_rows)
-        sample = pd.concat([base_papers, dup_df], ignore_index=True)
-        # Ground truth: the appended rows (indices n_unique .. n_unique+n_dupes-1) are duplicates
-        dup_indices = set(range(n_unique, n_unique + len(dup_rows)))
-    else:
-        sample = base_papers.copy()
-
-    # Shuffle to mix duplicates in
-    shuffle_order = list(sample.index)
-    random.shuffle(shuffle_order)
-    sample = sample.iloc[shuffle_order].reset_index(drop=True)
-
-    # Remap dup_indices after shuffle
-    old_to_new = {old: new for new, old in enumerate(shuffle_order)}
-    dup_indices_remapped = {old_to_new[i] for i in dup_indices if i in old_to_new}
-
-    return sample, dup_indices_remapped
+    groups: dict[int, set[int]] = {}
+    for idx in df.index:
+        root = find(idx)
+        groups.setdefault(root, set()).add(idx)
+    return groups
 
 
-# ── metrics ──────────────────────────────────────────────────────────────────
+def compute_metrics(df: pd.DataFrame, gt_dups: set, pred_removed: set) -> dict:
+    """
+    Group-aware dedup metrics.
 
-def compute_metrics(ground_truth_dups: set, predicted_dups: set, total: int) -> dict:
-    tp = len(ground_truth_dups & predicted_dups)
-    fp = len(predicted_dups - ground_truth_dups)
-    fn = len(ground_truth_dups - predicted_dups)
-    tn = total - tp - fp - fn
+    TP: a ground-truth duplicate whose group has at least one predicted removal
+        (the algorithm detected the duplication — which member it removed is irrelevant).
+    FN: a ground-truth duplicate whose group has NO predicted removals.
+    FP: a predicted removal whose group contains NO ground-truth duplicates at all
+        (the algorithm wrongly merged unrelated papers).
+    """
+    groups = _build_groups(df)
+
+    # map each index → its group set
+    idx_to_group: dict[int, set[int]] = {}
+    for _root, members in groups.items():
+        for idx in members:
+            idx_to_group[idx] = members
+
+    tp = fn = 0
+    for idx in gt_dups:
+        group = idx_to_group.get(idx, {idx})
+        if group & pred_removed:
+            tp += 1
+        else:
+            fn += 1
+
+    fp = 0
+    for idx in pred_removed:
+        group = idx_to_group.get(idx, {idx})
+        if not (group & gt_dups):
+            fp += 1
+
+    tn = len(df) - tp - fp - fn
 
     precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
     recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
@@ -218,300 +217,315 @@ def compute_metrics(ground_truth_dups: set, predicted_dups: set, total: int) -> 
     }
 
 
-# ── main validation ─────────────────────────────────────────────────────────
+# -- interpretation report -------------------------------------------------
+
+def write_interpretation(path: str, results: list, fp_examples: list, fn_examples: list):
+    avg_p = np.mean([r["precision"] for r in results])
+    avg_r = np.mean([r["recall"] for r in results])
+    avg_f1 = np.mean([r["f1"] for r in results])
+
+    lines = []
+    lines.append("=" * 70)
+    lines.append("DEDUPLICATION VALIDATION -- INTERPRETATION OF RESULTS")
+    lines.append("=" * 70)
+
+    lines.append("")
+    lines.append("1. OVERVIEW")
+    lines.append("-" * 40)
+    lines.append(f"Number of samples evaluated: {len(results)}")
+    lines.append(f"Deduplication method: 3-pass (DOI + exact title + TF-IDF cosine)")
+    lines.append(f"Evaluation: group-aware (detects duplication regardless of which member is removed)")
+    lines.append("")
+    for r in results:
+        lines.append(f"  Sample {r['sample']:2d}: {r['total']} papers, "
+                     f"{r['ground_truth_dups']} known duplicates  ->  "
+                     f"P={r['precision']:.3f}  R={r['recall']:.3f}  F1={r['f1']:.3f}")
+
+    lines.append("")
+    lines.append("2. METHOD DESCRIPTION")
+    lines.append("-" * 40)
+    lines.append("  The deduplication pipeline uses three sequential passes:")
+    lines.append("    Pass 1 - DOI exact match: papers sharing the same normalised DOI")
+    lines.append("            are grouped; the most complete record is kept.")
+    lines.append("    Pass 2 - Exact normalised title: among remaining papers, those with")
+    lines.append("            identical normalised titles (NFKD + lowercase + '&'->'and'")
+    lines.append("            + strip punctuation) are grouped; the most complete is kept.")
+    lines.append("    Pass 3 - TF-IDF cosine similarity: among remaining papers, titles")
+    lines.append("            are vectorised with character n-grams (3-4); pairs with")
+    lines.append("            cosine similarity >= 0.85 are merged, keeping the more")
+    lines.append("            complete record.")
+    lines.append("")
+    lines.append("  Evaluation uses GROUP-AWARE metrics: a ground-truth duplicate is")
+    lines.append("  counted as detected (TP) if any member of its duplicate group was")
+    lines.append("  flagged for removal. This eliminates wrong-survivor bias where the")
+    lines.append("  algorithm correctly identifies a duplicate pair but removes a")
+    lines.append("  different member than the one labelled 'DUPLICATE' in the ground truth.")
+
+    lines.append("")
+    lines.append("3. AGGREGATE PERFORMANCE")
+    lines.append("-" * 40)
+    lines.append(f"  Average Precision : {avg_p:.3f}")
+    lines.append(f"  Average Recall    : {avg_r:.3f}")
+    lines.append(f"  Average F1        : {avg_f1:.3f}")
+    lines.append("")
+    if avg_p > 0.95:
+        lines.append("  Precision is EXCELLENT -- virtually no unique papers are wrongly merged.")
+    elif avg_p > 0.85:
+        lines.append("  Precision is HIGH -- few unique papers are being wrongly merged.")
+    elif avg_p > 0.65:
+        lines.append("  Precision is MODERATE -- some unique papers are being wrongly flagged.")
+    else:
+        lines.append("  Precision is LOW -- many unique papers are being incorrectly removed.")
+    if avg_r > 0.95:
+        lines.append("  Recall is EXCELLENT -- virtually all true duplicates are detected.")
+    elif avg_r > 0.85:
+        lines.append("  Recall is HIGH -- most true duplicates are correctly detected.")
+    elif avg_r > 0.65:
+        lines.append("  Recall is MODERATE -- a notable fraction of true duplicates are missed.")
+    else:
+        lines.append("  Recall is LOW -- many true duplicates escape detection.")
+
+    lines.append("")
+    lines.append("4. ERROR ANALYSIS")
+    lines.append("-" * 40)
+    lines.append(f"  Total false positive examples (unique papers wrongly removed): {len(fp_examples)}")
+    lines.append(f"  Total false negative examples (duplicates missed): {len(fn_examples)}")
+    lines.append("")
+    if fp_examples:
+        lines.append("  Sample FALSE POSITIVES (unique papers incorrectly flagged as duplicates):")
+        for ex in fp_examples[:10]:
+            lines.append(f"    Sample {ex['sample']}: {ex['title']}")
+    if fn_examples:
+        lines.append("")
+        lines.append("  Sample FALSE NEGATIVES (true duplicates that were missed):")
+        for ex in fn_examples[:10]:
+            lines.append(f"    Sample {ex['sample']}: {ex['title']}")
+
+    lines.append("")
+    lines.append("5. CONCLUSION")
+    lines.append("-" * 40)
+    if avg_f1 > 0.95:
+        lines.append("  The 3-pass deduplication pipeline achieves EXCELLENT performance.")
+        lines.append("  The combination of DOI matching, exact-title matching, and TF-IDF")
+        lines.append("  cosine similarity effectively covers all major duplication patterns.")
+    elif avg_f1 > 0.85:
+        lines.append("  The 3-pass deduplication pipeline performs WELL.")
+        lines.append("  Most duplicates are detected across all three passes.")
+    elif avg_f1 > 0.65:
+        lines.append("  The 3-pass deduplication pipeline has MODERATE performance.")
+        lines.append("  Some duplicates are not caught; further tuning may help.")
+    else:
+        lines.append("  The 3-pass deduplication pipeline has LIMITED effectiveness.")
+        lines.append("  Additional heuristics or lower thresholds may be needed.")
+
+    lines.append("")
+    lines.append("=" * 70)
+
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+
+
+# -- main validation -------------------------------------------------------
 
 def main():
     print("=" * 70)
-    print("V2. DEDUPLICATION PRECISION / RECALL VALIDATION")
+    print("V4. DEDUPLICATION PRECISION / RECALL VALIDATION (3-pass + group-aware)")
     print("=" * 70)
 
-    NUM_SAMPLES = 10
-    THRESHOLDS = [0.80, 0.85, 0.90, 0.92, 0.95]
+    # -- Load samples from xlsx --------------------------------------------
+    samples: list[tuple[pd.DataFrame, set]] = []
+    for i in range(NUM_SAMPLES):
+        path = os.path.join(FILES_DIR, f"sample_{i+1:02d}.xlsx")
+        if not os.path.exists(path):
+            print(f"  WARNING: {path} not found, skipping.")
+            continue
+        df = pd.read_excel(path, engine="openpyxl")
+        if "Ground_Truth" not in df.columns:
+            print(f"  WARNING: sample_{i+1:02d}.xlsx has no Ground_Truth column, skipping.")
+            continue
+        gt_dups = set(df.index[df["Ground_Truth"] == "DUPLICATE"].tolist())
+        samples.append((df, gt_dups))
+        print(f"  Sample {i+1:2d}: {len(df)} papers, {len(gt_dups)} known duplicates")
 
-    # ── Load or create samples ───────────────────────────────────────────────
-    samples = []
-    all_cached = all(
-        os.path.exists(os.path.join(SAMPLES_DIR, f"sample_{i+1:02d}.xlsx"))
-        and os.path.exists(os.path.join(SAMPLES_DIR, f"sample_{i+1:02d}_ground_truth.json"))
-        for i in range(NUM_SAMPLES)
-    )
+    if not samples:
+        print("ERROR: No sample files found.")
+        return
 
-    if all_cached:
-        print("\n  Loading cached samples ...")
-        for i in range(NUM_SAMPLES):
-            sample_df = pd.read_excel(os.path.join(SAMPLES_DIR, f"sample_{i+1:02d}.xlsx"), engine="openpyxl")
-            with open(os.path.join(SAMPLES_DIR, f"sample_{i+1:02d}_ground_truth.json")) as f:
-                gt_dups = set(json.load(f))
-            samples.append((sample_df, gt_dups))
-            print(f"  Sample {i+1:2d}: {len(sample_df)} papers, {len(gt_dups)} known duplicates (cached)")
-    else:
-        print("\n  Ground-truth files missing — generating samples once ...")
-        print("  Loading detection papers ...")
-        det_df = pd.read_excel(DETECTION_PATH, engine="openpyxl")
-        print(f"    {len(det_df)} detection papers")
-        print("  Loading remediation papers ...")
-        rem_df = pd.read_excel(REMEDIATION_PATH, engine="openpyxl")
-        print(f"    {len(rem_df)} remediation papers")
-        pool = pd.concat([det_df, rem_df], ignore_index=True)
-        pool = pool[pool["Title"].notna() & (pool["Title"].str.strip() != "")]
-        print(f"    Combined pool: {len(pool)} papers")
+    # -- Run 3-pass deduplication with group-aware metrics -----------------
+    print(f"\n{'=' * 70}")
+    print("DEDUPLICATION RESULTS (3-pass + group-aware metrics)")
+    print(f"{'=' * 70}")
 
-        for i in range(NUM_SAMPLES):
-            target = random.randint(300, 500)
-            sample_df, gt_dups = create_sample(pool, sample_id=i, target_size=target)
-            sample_df.to_excel(os.path.join(SAMPLES_DIR, f"sample_{i+1:02d}.xlsx"), index=False, engine="openpyxl")
-            with open(os.path.join(SAMPLES_DIR, f"sample_{i+1:02d}_ground_truth.json"), "w") as f:
-                json.dump(sorted(gt_dups), f)
-            samples.append((sample_df, gt_dups))
-            print(f"  Sample {i+1:2d}: {len(sample_df)} papers, {len(gt_dups)} known duplicates (created)")
-        print("  Samples & ground-truth saved — next runs will skip pool loading.")
-
-    # ── Run deduplication at default threshold (0.92) ────────────────────────
-    print(f"\n{'─' * 70}")
-    print("DEDUPLICATION RESULTS (threshold = 0.92)")
-    print(f"{'─' * 70}")
-
-    default_results = []
+    results = []
     for i, (sample_df, gt_dups) in enumerate(samples):
-        pred_dups = run_dedup(sample_df, threshold=0.92)
-        metrics = compute_metrics(gt_dups, pred_dups, len(sample_df))
+        pred_dups = run_dedup(sample_df)
+        metrics = compute_metrics(sample_df, gt_dups, pred_dups)
         metrics["sample"] = i + 1
         metrics["total"] = len(sample_df)
         metrics["ground_truth_dups"] = len(gt_dups)
         metrics["predicted_dups"] = len(pred_dups)
-        default_results.append(metrics)
+        results.append(metrics)
         print(f"  Sample {i+1:2d}: P={metrics['precision']:.3f}  R={metrics['recall']:.3f}  F1={metrics['f1']:.3f}"
               f"  (TP={metrics['tp']} FP={metrics['fp']} FN={metrics['fn']})")
 
-    # Averages
-    avg_p = np.mean([r["precision"] for r in default_results])
-    avg_r = np.mean([r["recall"] for r in default_results])
-    avg_f1 = np.mean([r["f1"] for r in default_results])
+    avg_p = np.mean([r["precision"] for r in results])
+    avg_r = np.mean([r["recall"] for r in results])
+    avg_f1 = np.mean([r["f1"] for r in results])
     print(f"\n  AVERAGE:   P={avg_p:.3f}  R={avg_r:.3f}  F1={avg_f1:.3f}")
 
-    # ── Sensitivity analysis ─────────────────────────────────────────────────
-    print(f"\n{'─' * 70}")
-    print("SENSITIVITY ANALYSIS")
-    print(f"{'─' * 70}")
-
-    sensitivity_results = {t: [] for t in THRESHOLDS}
-    for threshold in THRESHOLDS:
-        for i, (sample_df, gt_dups) in enumerate(samples):
-            pred_dups = run_dedup(sample_df, threshold=threshold)
-            metrics = compute_metrics(gt_dups, pred_dups, len(sample_df))
-            sensitivity_results[threshold].append(metrics)
-
-        avg_p = np.mean([m["precision"] for m in sensitivity_results[threshold]])
-        avg_r = np.mean([m["recall"] for m in sensitivity_results[threshold]])
-        avg_f1 = np.mean([m["f1"] for m in sensitivity_results[threshold]])
-        print(f"  Threshold {threshold:.2f}: AVG P={avg_p:.3f}  R={avg_r:.3f}  F1={avg_f1:.3f}")
-
-    # ── Precision-Recall curve plot ──────────────────────────────────────────
-    avg_precisions = []
-    avg_recalls = []
-    avg_f1s = []
-    std_precisions = []
-    std_recalls = []
-    std_f1s = []
-    for t in THRESHOLDS:
-        avg_precisions.append(np.mean([m["precision"] for m in sensitivity_results[t]]))
-        avg_recalls.append(np.mean([m["recall"] for m in sensitivity_results[t]]))
-        avg_f1s.append(np.mean([m["f1"] for m in sensitivity_results[t]]))
-        std_precisions.append(np.std([m["precision"] for m in sensitivity_results[t]]))
-        std_recalls.append(np.std([m["recall"] for m in sensitivity_results[t]]))
-        std_f1s.append(np.std([m["f1"] for m in sensitivity_results[t]]))
-
+    # -- Plots -------------------------------------------------------------
     plt.rcParams.update({
-        "font.size": 11,
-        "axes.titlesize": 13,
-        "axes.labelsize": 12,
-        "xtick.labelsize": 10,
-        "ytick.labelsize": 10,
-        "legend.fontsize": 10,
+        "font.size": 11, "axes.titlesize": 13, "axes.labelsize": 12,
+        "xtick.labelsize": 10, "ytick.labelsize": 10, "legend.fontsize": 10,
         "figure.facecolor": "white",
     })
 
-    # ── Figure 1: Per-sample results at default threshold ────────────────────
+    n_samples = len(samples)
+    sample_ids = list(range(1, n_samples + 1))
+    x = np.arange(n_samples)
+    w = 0.25
+
+    # Figure 1: Per-sample metrics + TP/FP/FN
     fig1, axes1 = plt.subplots(1, 2, figsize=(14, 5))
 
-    sample_ids = list(range(1, NUM_SAMPLES + 1))
-    p_vals = [r["precision"] for r in default_results]
-    r_vals = [r["recall"] for r in default_results]
-    f1_vals = [r["f1"] for r in default_results]
-
-    x = np.arange(NUM_SAMPLES)
-    w = 0.25
-    axes1[0].bar(x - w, p_vals, w, label="Precision", color="#4C72B0", edgecolor="white", linewidth=0.5)
-    axes1[0].bar(x, r_vals, w, label="Recall", color="#55A868", edgecolor="white", linewidth=0.5)
-    axes1[0].bar(x + w, f1_vals, w, label="F1", color="#C44E52", edgecolor="white", linewidth=0.5)
-    axes1[0].axhline(y=avg_f1s[THRESHOLDS.index(0.92)], color="#C44E52", linestyle="--", alpha=0.5, label=f"Avg F1 = {avg_f1s[THRESHOLDS.index(0.92)]:.3f}")
+    axes1[0].bar(x - w, [r["precision"] for r in results], w, label="Precision", color="#4C72B0", edgecolor="white", linewidth=0.5)
+    axes1[0].bar(x, [r["recall"] for r in results], w, label="Recall", color="#55A868", edgecolor="white", linewidth=0.5)
+    axes1[0].bar(x + w, [r["f1"] for r in results], w, label="F1", color="#C44E52", edgecolor="white", linewidth=0.5)
+    axes1[0].axhline(y=avg_f1, color="#C44E52", linestyle="--", alpha=0.5, label=f"Avg F1 = {avg_f1:.3f}")
     axes1[0].set_xlabel("Sample")
     axes1[0].set_ylabel("Score")
-    axes1[0].set_title("Per-Sample Metrics (threshold = 0.92)")
+    axes1[0].set_title("Per-Sample Metrics (3-pass)")
     axes1[0].set_xticks(x)
     axes1[0].set_xticklabels(sample_ids)
     axes1[0].set_ylim(0, 1.05)
     axes1[0].legend(loc="lower right", framealpha=0.9)
     axes1[0].grid(True, alpha=0.2, axis="y")
 
-    # Confusion counts per sample
-    tp_vals = [r["tp"] for r in default_results]
-    fp_vals = [r["fp"] for r in default_results]
-    fn_vals = [r["fn"] for r in default_results]
-    axes1[1].bar(x - w, tp_vals, w, label="TP", color="#55A868", edgecolor="white", linewidth=0.5)
-    axes1[1].bar(x, fp_vals, w, label="FP", color="#DD8452", edgecolor="white", linewidth=0.5)
-    axes1[1].bar(x + w, fn_vals, w, label="FN", color="#8172B3", edgecolor="white", linewidth=0.5)
+    axes1[1].bar(x - w, [r["tp"] for r in results], w, label="TP", color="#55A868", edgecolor="white", linewidth=0.5)
+    axes1[1].bar(x, [r["fp"] for r in results], w, label="FP", color="#DD8452", edgecolor="white", linewidth=0.5)
+    axes1[1].bar(x + w, [r["fn"] for r in results], w, label="FN", color="#8172B3", edgecolor="white", linewidth=0.5)
     axes1[1].set_xlabel("Sample")
     axes1[1].set_ylabel("Count")
-    axes1[1].set_title("TP / FP / FN per Sample (threshold = 0.92)")
+    axes1[1].set_title("TP / FP / FN per Sample (3-pass)")
     axes1[1].set_xticks(x)
     axes1[1].set_xticklabels(sample_ids)
     axes1[1].legend(loc="upper right", framealpha=0.9)
     axes1[1].grid(True, alpha=0.2, axis="y")
 
     fig1.tight_layout(pad=2.0)
-    fig1.savefig(os.path.join(SAMPLES_DIR, "per_sample_results.png"), dpi=150, bbox_inches="tight")
+    fig1.savefig(os.path.join(RESULTS_DIR, "per_sample_results.png"), dpi=150, bbox_inches="tight")
     plt.close(fig1)
     print(f"\n  Per-sample plot saved -> per_sample_results.png")
 
-    # ── Figure 2: Sensitivity analysis ───────────────────────────────────────
-    fig2, axes2 = plt.subplots(1, 3, figsize=(18, 5.5))
+    # Figure 2: Box plots + aggregate error breakdown
+    fig2, axes2 = plt.subplots(1, 2, figsize=(14, 5))
 
-    # Plot 1: Metrics vs threshold with error bands
-    axes2[0].errorbar(THRESHOLDS, avg_precisions, yerr=std_precisions, fmt="s-",
-                      label="Precision", color="#4C72B0", capsize=4, markersize=7, linewidth=2)
-    axes2[0].errorbar(THRESHOLDS, avg_recalls, yerr=std_recalls, fmt="o-",
-                      label="Recall", color="#55A868", capsize=4, markersize=7, linewidth=2)
-    axes2[0].errorbar(THRESHOLDS, avg_f1s, yerr=std_f1s, fmt="^-",
-                      label="F1", color="#C44E52", capsize=4, markersize=7, linewidth=2)
-    axes2[0].set_xlabel("TF-IDF Threshold")
-    axes2[0].set_ylabel("Score (mean ± std)")
-    axes2[0].set_title("Metrics vs. TF-IDF Threshold")
-    axes2[0].legend(framealpha=0.9)
-    axes2[0].set_ylim(0, 1.05)
-    axes2[0].grid(True, alpha=0.2)
-
-    # Plot 2: FP / FN bar chart
-    avg_fps = []
-    avg_fns = []
-    for t in THRESHOLDS:
-        avg_fps.append(np.mean([m["fp"] for m in sensitivity_results[t]]))
-        avg_fns.append(np.mean([m["fn"] for m in sensitivity_results[t]]))
-    x_pos = np.arange(len(THRESHOLDS))
-    width = 0.35
-    bars_fp = axes2[1].bar(x_pos - width / 2, avg_fps, width, label="False Positives",
-                           color="#DD8452", edgecolor="white", linewidth=0.5)
-    bars_fn = axes2[1].bar(x_pos + width / 2, avg_fns, width, label="False Negatives",
-                           color="#8172B3", edgecolor="white", linewidth=0.5)
-    for bar in bars_fp:
-        axes2[1].text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.5,
-                      f"{bar.get_height():.1f}", ha="center", va="bottom", fontsize=9)
-    for bar in bars_fn:
-        axes2[1].text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.5,
-                      f"{bar.get_height():.1f}", ha="center", va="bottom", fontsize=9)
-    axes2[1].set_xlabel("TF-IDF Threshold")
-    axes2[1].set_ylabel("Average Count")
-    axes2[1].set_title("Avg False Positives vs False Negatives")
-    axes2[1].set_xticks(x_pos)
-    axes2[1].set_xticklabels([f"{t:.2f}" for t in THRESHOLDS])
-    axes2[1].legend(framealpha=0.9)
-    axes2[1].grid(True, alpha=0.2, axis="y")
-
-    # Plot 3: Box plot of F1 across samples per threshold
-    f1_by_threshold = [[m["f1"] for m in sensitivity_results[t]] for t in THRESHOLDS]
-    bp = axes2[2].boxplot(f1_by_threshold, tick_labels=[f"{t:.2f}" for t in THRESHOLDS],
+    bp_data = [
+        [r["precision"] for r in results],
+        [r["recall"] for r in results],
+        [r["f1"] for r in results],
+    ]
+    bp = axes2[0].boxplot(bp_data, tick_labels=["Precision", "Recall", "F1"],
                           patch_artist=True, widths=0.5)
-    colors = ["#4C72B0", "#55A868", "#DD8452", "#C44E52", "#8172B3"]
-    for patch, color in zip(bp["boxes"], colors):
+    bp_colors = ["#4C72B0", "#55A868", "#C44E52"]
+    for patch, color in zip(bp["boxes"], bp_colors):
         patch.set_facecolor(color)
         patch.set_alpha(0.7)
-    axes2[2].set_xlabel("TF-IDF Threshold")
-    axes2[2].set_ylabel("F1 Score")
-    axes2[2].set_title("F1 Distribution Across Samples")
-    axes2[2].set_ylim(0, 1.05)
-    axes2[2].grid(True, alpha=0.2, axis="y")
+    axes2[0].set_ylabel("Score")
+    axes2[0].set_title("Metric Distributions Across Samples")
+    axes2[0].set_ylim(0, 1.05)
+    axes2[0].grid(True, alpha=0.2, axis="y")
+
+    total_fp = sum(r["fp"] for r in results)
+    total_fn = sum(r["fn"] for r in results)
+    total_tp = sum(r["tp"] for r in results)
+    bars = axes2[1].bar(["True Positives", "False Positives", "False Negatives"],
+                        [total_tp, total_fp, total_fn],
+                        color=["#55A868", "#DD8452", "#8172B3"],
+                        edgecolor="white", linewidth=0.5)
+    for bar in bars:
+        h = bar.get_height()
+        axes2[1].text(bar.get_x() + bar.get_width() / 2, h + 1,
+                      str(int(h)), ha="center", va="bottom", fontsize=11, fontweight="bold")
+    axes2[1].set_ylabel("Total Count (all samples)")
+    axes2[1].set_title("Aggregate Error Breakdown")
+    axes2[1].grid(True, alpha=0.2, axis="y")
 
     fig2.tight_layout(pad=2.0)
-    plot_path = os.path.join(SAMPLES_DIR, "sensitivity_analysis.png")
-    fig2.savefig(plot_path, dpi=150, bbox_inches="tight")
+    fig2.savefig(os.path.join(RESULTS_DIR, "error_analysis.png"), dpi=150, bbox_inches="tight")
     plt.close(fig2)
-    print(f"  Sensitivity plot saved -> sensitivity_analysis.png")
+    print(f"  Error analysis plot saved -> error_analysis.png")
 
-    # ── False positive / false negative detailed analysis ────────────────────
-    print(f"\n{'─' * 70}")
-    print("FALSE POSITIVE / FALSE NEGATIVE ANALYSIS (threshold = 0.92)")
-    print(f"{'─' * 70}")
+    # -- FP / FN detailed analysis -----------------------------------------
+    print(f"\n{'=' * 70}")
+    print("FALSE POSITIVE / FALSE NEGATIVE ANALYSIS")
+    print(f"{'=' * 70}")
 
-    all_fp_examples = []
-    all_fn_examples = []
+    all_fp_examples, all_fn_examples = [], []
     for i, (sample_df, gt_dups) in enumerate(samples):
-        pred_dups = run_dedup(sample_df, threshold=0.92)
-        fp_indices = pred_dups - gt_dups
-        fn_indices = gt_dups - pred_dups
+        pred_dups = run_dedup(sample_df)
+        groups = _build_groups(sample_df)
+        idx_to_group: dict[int, set[int]] = {}
+        for _root, members in groups.items():
+            for idx in members:
+                idx_to_group[idx] = members
 
-        for idx in list(fp_indices)[:3]:  # up to 3 examples per sample
-            title = sample_df.at[idx, "Title"] if idx in sample_df.index else "?"
-            doi = sample_df.at[idx, "DOI"] if idx in sample_df.index else "?"
-            all_fp_examples.append({"sample": i + 1, "index": idx, "title": str(title)[:100], "doi": str(doi)})
-        for idx in list(fn_indices)[:3]:
-            title = sample_df.at[idx, "Title"] if idx in sample_df.index else "?"
-            doi = sample_df.at[idx, "DOI"] if idx in sample_df.index else "?"
-            all_fn_examples.append({"sample": i + 1, "index": idx, "title": str(title)[:100], "doi": str(doi)})
+        # FP: predicted removal whose group has no GT dups
+        for idx in pred_dups:
+            group = idx_to_group.get(idx, {idx})
+            if not (group & gt_dups):
+                title = sample_df.at[idx, "Title"] if idx in sample_df.index else "?"
+                doi = sample_df.at[idx, "DOI"] if idx in sample_df.index else "?"
+                all_fp_examples.append({"sample": i + 1, "index": idx, "title": str(title)[:100], "doi": str(doi)})
 
-    print(f"\n  Total FP examples collected: {len(all_fp_examples)}")
+        # FN: GT dup whose group has no predicted removal
+        for idx in gt_dups:
+            group = idx_to_group.get(idx, {idx})
+            if not (group & pred_dups):
+                title = sample_df.at[idx, "Title"] if idx in sample_df.index else "?"
+                doi = sample_df.at[idx, "DOI"] if idx in sample_df.index else "?"
+                all_fn_examples.append({"sample": i + 1, "index": idx, "title": str(title)[:100], "doi": str(doi)})
+
+    print(f"\n  FP examples: {len(all_fp_examples)}")
     for ex in all_fp_examples[:10]:
-        print(f"    Sample {ex['sample']}: '{ex['title']}' (DOI: {ex['doi']})")
-
-    print(f"\n  Total FN examples collected: {len(all_fn_examples)}")
+        print(f"    Sample {ex['sample']}: '{ex['title']}'")
+    print(f"\n  FN examples: {len(all_fn_examples)}")
     for ex in all_fn_examples[:10]:
-        print(f"    Sample {ex['sample']}: '{ex['title']}' (DOI: {ex['doi']})")
+        print(f"    Sample {ex['sample']}: '{ex['title']}'")
 
-    # ── Save comprehensive results ───────────────────────────────────────────
+    # -- Save results ------------------------------------------------------
     results_summary = {
-        "default_threshold": 0.92,
-        "num_samples": NUM_SAMPLES,
-        "default_results": default_results,
-        "sensitivity": {},
+        "method": "3-pass (DOI + title + TF-IDF) with group-aware metrics",
+        "num_samples": len(samples),
+        "results": results,
+        "averages": {
+            "precision": round(float(avg_p), 4),
+            "recall": round(float(avg_r), 4),
+            "f1": round(float(avg_f1), 4),
+        },
         "fp_examples": all_fp_examples[:20],
         "fn_examples": all_fn_examples[:20],
     }
-    for t in THRESHOLDS:
-        mets = sensitivity_results[t]
-        results_summary["sensitivity"][str(t)] = {
-            "avg_precision": round(np.mean([m["precision"] for m in mets]), 4),
-            "avg_recall": round(np.mean([m["recall"] for m in mets]), 4),
-            "avg_f1": round(np.mean([m["f1"] for m in mets]), 4),
-            "avg_fp": round(np.mean([m["fp"] for m in mets]), 2),
-            "avg_fn": round(np.mean([m["fn"] for m in mets]), 2),
-        }
 
-    results_path = os.path.join(SAMPLES_DIR, "validation_results.json")
-    with open(results_path, "w") as f:
+    with open(os.path.join(RESULTS_DIR, "validation_results.json"), "w") as f:
         json.dump(results_summary, f, indent=2)
-    print(f"\n  Results saved -> {results_path}")
+    print(f"\n  Results saved -> validation_results.json")
 
-    # Save results table as xlsx too
     rows = []
-    for t in THRESHOLDS:
-        for i, m in enumerate(sensitivity_results[t]):
-            rows.append({
-                "Threshold": t,
-                "Sample": i + 1,
-                "Precision": m["precision"],
-                "Recall": m["recall"],
-                "F1": m["f1"],
-                "TP": m["tp"],
-                "FP": m["fp"],
-                "FN": m["fn"],
-                "TN": m["tn"],
-            })
-    results_df = pd.DataFrame(rows)
-    results_xlsx = os.path.join(SAMPLES_DIR, "validation_results.xlsx")
-    results_df.to_excel(results_xlsx, index=False, engine="openpyxl")
-    print(f"  Results table saved -> {results_xlsx}")
+    for r in results:
+        rows.append({"Sample": r["sample"], "Precision": r["precision"],
+                     "Recall": r["recall"], "F1": r["f1"],
+                     "TP": r["tp"], "FP": r["fp"], "FN": r["fn"], "TN": r["tn"]})
+    pd.DataFrame(rows).to_excel(os.path.join(RESULTS_DIR, "validation_results.xlsx"), index=False, engine="openpyxl")
+    print(f"  Results table saved -> validation_results.xlsx")
+
+    # -- Write interpretation ----------------------------------------------
+    interp_path = os.path.join(RESULTS_DIR, "interpretation.txt")
+    write_interpretation(interp_path, results, all_fp_examples, all_fn_examples)
+    print(f"  Interpretation saved -> interpretation.txt")
 
     print(f"\n{'=' * 70}")
-    print("V2 VALIDATION COMPLETE")
+    print("V4 VALIDATION COMPLETE")
     print(f"{'=' * 70}")
 
 

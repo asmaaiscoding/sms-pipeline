@@ -3,9 +3,10 @@ steps/deduplicate.py
 --------------------
 Step 2 — Remove duplicate papers from an xlsx file.
 
-Strategy (by priority):
-  1. Identical normalised DOI   → keep the row with the most fields filled
-  2. Near-identical title (TF-IDF cosine ≥ threshold) → same rule
+Strategy (three passes):
+  1. Identical normalised DOI  → keep the row with the most fields filled.
+  2. Identical normalised title → keep the row with the most fields filled.
+  3. TF-IDF title cosine similarity ≥ 0.85 → keep the more complete row.
 
 Usage (stand-alone):
     python -m steps.deduplicate input.xlsx output.xlsx
@@ -17,25 +18,13 @@ import os
 import re
 import sys
 import unicodedata
-from typing import Optional
 
 import numpy as np
 import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
-from config import TITLE_SIM_THRESHOLD, OUTPUT_DIR
-
-# Lazy import — sklearn is heavy; only load when actually deduplicating
-TfidfVectorizer = None
-cosine_similarity = None
-
-
-def _ensure_sklearn():
-    global TfidfVectorizer, cosine_similarity
-    if TfidfVectorizer is None:
-        from sklearn.feature_extraction.text import TfidfVectorizer as _T
-        from sklearn.metrics.pairwise import cosine_similarity as _C
-        TfidfVectorizer = _T
-        cosine_similarity = _C
+from config import OUTPUT_DIR
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -54,6 +43,7 @@ def _norm_title(title) -> str:
     if not isinstance(title, str):
         return ""
     title = unicodedata.normalize("NFKD", title).lower().strip()
+    title = title.replace("&", "and")
     title = re.sub(r"[^a-z0-9\s]", " ", title)
     return re.sub(r"\s+", " ", title).strip()
 
@@ -67,56 +57,69 @@ def _completeness(row: pd.Series) -> int:
 #  Core deduplication
 # ═══════════════════════════════════════════════════════════════════════════════
 
-def deduplicate(df: pd.DataFrame, threshold: float = TITLE_SIM_THRESHOLD) -> pd.DataFrame:
-    """Return a copy of *df* with duplicates removed."""
+def deduplicate(df: pd.DataFrame) -> pd.DataFrame:
+    """Return a copy of *df* with duplicates removed (DOI + title + TF-IDF)."""
     df = df.copy()
-    df["_doi"]  = df["DOI"].apply(_norm_doi)   if "DOI"   in df.columns else ""
+    df["_doi"] = df["DOI"].apply(_norm_doi) if "DOI" in df.columns else ""
     df["_title"] = df["Title"].apply(_norm_title) if "Title" in df.columns else ""
     df["_comp"] = df.apply(_completeness, axis=1)
 
     removed: set = set()
 
-    # ── 1. DOI-based ──────────────────────────────────────────────────────────
+    # ── Pass 1: DOI-based deduplication ───────────────────────────────────────
     doi_groups: dict = {}
     for idx, doi in df["_doi"].items():
         if doi:
             doi_groups.setdefault(doi, []).append(idx)
 
-    doi_removed = set()
     for indices in doi_groups.values():
         if len(indices) > 1:
             best = max(indices, key=lambda i: df.at[i, "_comp"])
-            doi_removed.update(i for i in indices if i != best)
-    removed |= doi_removed
-    print(f"[DEDUP] Removed by DOI:   {len(doi_removed)}")
+            removed.update(i for i in indices if i != best)
+    print(f"[DEDUP] Pass 1 — removed by DOI: {len(removed)}")
 
-    # ── 2. Title-similarity ───────────────────────────────────────────────────
+    # ── Pass 2: Exact normalised title ────────────────────────────────────────
+    title_removed = 0
+    title_groups: dict = {}
+    for idx in df.index:
+        if idx in removed:
+            continue
+        nt = df.at[idx, "_title"]
+        if nt:
+            title_groups.setdefault(nt, []).append(idx)
+
+    for indices in title_groups.values():
+        if len(indices) > 1:
+            best = max(indices, key=lambda i: df.at[i, "_comp"])
+            for i in indices:
+                if i != best and i not in removed:
+                    removed.add(i)
+                    title_removed += 1
+    print(f"[DEDUP] Pass 2 — removed by exact title: {title_removed}")
+
+    # ── Pass 3: TF-IDF cosine similarity ─────────────────────────────────────
+    tfidf_removed = 0
     remaining = [i for i in df.index if i not in removed]
     titles = df.loc[remaining, "_title"].tolist()
-
-    title_removed: set = set()
     if len(titles) >= 2:
-        _ensure_sklearn()
         vec = TfidfVectorizer(analyzer="char_wb", ngram_range=(3, 4))
         tfidf = vec.fit_transform(titles)
         sim = cosine_similarity(tfidf)
         np.fill_diagonal(sim, 0)
-
         for i_pos, i_real in enumerate(remaining):
-            if i_real in title_removed:
+            if i_real in removed:
                 continue
             for j_pos in range(i_pos + 1, len(remaining)):
                 j_real = remaining[j_pos]
-                if j_real in title_removed:
+                if j_real in removed:
                     continue
-                if sim[i_pos, j_pos] >= threshold:
+                if sim[i_pos, j_pos] >= 0.85:
                     loser = j_real if df.at[i_real, "_comp"] >= df.at[j_real, "_comp"] else i_real
-                    title_removed.add(loser)
+                    removed.add(loser)
+                    tfidf_removed += 1
                     if loser == i_real:
                         break
-
-    removed |= title_removed
-    print(f"[DEDUP] Removed by title: {len(title_removed)}")
+    print(f"[DEDUP] Pass 3 — removed by TF-IDF title similarity: {tfidf_removed}")
 
     final = (
         df.drop(index=list(removed))

@@ -1,19 +1,16 @@
 """
 app/services/automated_exclusion.py
 ────────────────────────────────────
-Automated exclusion using Groq API.
+Automated exclusion using local Ollama (llama3.2:3b).
 
-Sends paper titles to Groq LLM (llama3) and asks for an INCLUDE/EXCLUDE
+Sends paper title + abstract to the LLM and asks for an INCLUDE/EXCLUDE
 decision based on software security relevance.
-
-Uses up to 5 API keys in round-robin to maximise throughput.
 """
 
 from __future__ import annotations
 
 import logging
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Callable, Dict, List, Optional, Tuple
 from uuid import UUID
 
@@ -29,8 +26,8 @@ from app.core.pipeline_logger import get_pipeline_logger
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
-GROQ_CHAT_URL = "https://api.groq.com/openai/v1/chat/completions"
-GROQ_MODEL = "llama-3.3-70b-versatile"
+OLLAMA_URL = "http://localhost:11434/api/generate"
+OLLAMA_MODEL = "llama3.2:3b"
 
 EXCLUSION_PROMPT = """\
 You are a strict academic paper screener for a Systematic Mapping Study focused \
@@ -38,7 +35,7 @@ exclusively on **SOFTWARE security** — meaning security concerns that arise \
 within the SOFTWARE layer (source code, binaries, applications, libraries, \
 frameworks, APIs, software development processes).
 
-Task: Given the title (and abstract when available) of an academic paper, decide \
+Task: Given the title and abstract of an academic paper, decide \
 whether it should be INCLUDED or EXCLUDED.
 
 ── INCLUDE only if the paper's PRIMARY focus is one of these SOFTWARE-LEVEL topics:
@@ -83,54 +80,42 @@ the network or infrastructure.
 Respond with ONLY one word: INCLUDE or EXCLUDE
 
 Title: "{title}"
+Abstract: "{abstract}"
 """
 
 
-def _call_groq(api_key: str, title: str, max_retries: int = 3) -> str:
-    """Call Groq API and return 'INCLUDE' or 'EXCLUDE'."""
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    }
+def _call_ollama(title: str, abstract: str = "", max_retries: int = 3) -> str:
+    """Call local Ollama and return 'INCLUDE' or 'EXCLUDE'."""
+    prompt = EXCLUSION_PROMPT.format(
+        title=title,
+        abstract=abstract if abstract else "Not available",
+    )
     payload = {
-        "model": GROQ_MODEL,
-        "messages": [
-            {"role": "user", "content": EXCLUSION_PROMPT.format(title=title)}
-        ],
-        "temperature": 0.0,
-        "max_tokens": 10,
+        "model": OLLAMA_MODEL,
+        "prompt": prompt,
+        "stream": False,
+        "options": {
+            "temperature": 0.0,
+            "num_predict": 10,
+        },
     }
 
     for attempt in range(max_retries):
         try:
-            resp = requests.post(
-                GROQ_CHAT_URL,
-                headers=headers,
-                json=payload,
-                timeout=30,
-            )
-
-            if resp.status_code == 429:
-                # Rate limited — wait and retry
-                wait = min(2 ** attempt * 2, 30)
-                logger.warning("Groq rate limited (key ...%s), waiting %ds", api_key[-4:], wait)
-                time.sleep(wait)
-                continue
-
+            resp = requests.post(OLLAMA_URL, json=payload, timeout=120)
             resp.raise_for_status()
-            data = resp.json()
-            answer = data["choices"][0]["message"]["content"].strip().upper()
+            answer = resp.json().get("response", "").strip().upper()
 
             if "INCLUDE" in answer:
                 return "INCLUDE"
             elif "EXCLUDE" in answer:
                 return "EXCLUDE"
             else:
-                logger.warning("Unexpected Groq response for '%s': %s", title[:60], answer)
-                return "INCLUDE"  # When in doubt, keep the paper
+                logger.warning("Unexpected Ollama response for '%s': %s", title[:60], answer)
+                return "INCLUDE"
 
         except requests.exceptions.RequestException as e:
-            logger.warning("Groq API error (attempt %d): %s", attempt + 1, e)
+            logger.warning("Ollama API error (attempt %d): %s", attempt + 1, e)
             if attempt < max_retries - 1:
                 time.sleep(2 ** attempt)
                 continue
@@ -139,30 +124,13 @@ def _call_groq(api_key: str, title: str, max_retries: int = 3) -> str:
     return "INCLUDE"
 
 
-def _process_batch(
-    papers_batch: List[Tuple[int, Paper]],
-    api_key: str,
-    flog,
-) -> List[Tuple[int, str, str]]:
-    """Process a batch of papers with one API key. Returns [(index, paper_title, decision)]."""
-    results = []
-    for idx, paper in papers_batch:
-        decision = _call_groq(api_key, paper.title)
-        flog.info("  #%d [%s] '%s' (key ...%s)", idx + 1, decision, paper.title[:80], api_key[-4:])
-        results.append((idx, paper.title, decision))
-        # Small delay to avoid rate limiting
-        time.sleep(0.3)
-    return results
-
-
 def run_automated_exclusion_sync(
     db: Session,
     project_id: UUID,
     progress_cb: Optional[Callable[[float, str], None]] = None,
 ) -> dict:
     """
-    Automated exclusion step — uses Groq to classify papers.
-    Distributes work across available API keys for speed.
+    Automated exclusion step — uses local Ollama to classify papers.
     """
     project = db.execute(
         select(Project).where(Project.id == project_id)
@@ -170,17 +138,6 @@ def run_automated_exclusion_sync(
 
     flog = get_pipeline_logger("automated_exclusion", project.name)
     flog.info("=== Automated exclusion started for project '%s' ===", project.name)
-
-    api_keys = settings.groq_api_key_list
-    if not api_keys:
-        error_msg = "No Groq API keys configured. Set GROQ_API_KEYS in .env"
-        flog.error(error_msg)
-        if progress_cb:
-            progress_cb(100, error_msg)
-        return {"error": error_msg, "total": 0, "included": 0, "excluded": 0}
-
-    num_keys = len(api_keys)
-    flog.info("Using %d Groq API key(s)", num_keys)
 
     # Get non-duplicate papers that haven't been decided yet
     papers = db.execute(
@@ -200,53 +157,30 @@ def run_automated_exclusion_sync(
             progress_cb(100, "No papers to process for exclusion")
         return {"total": 0, "included": 0, "excluded": 0}
 
-    flog.info("Processing %d papers with %d API key(s)", total, num_keys)
+    flog.info("Processing %d papers with Ollama (%s)", total, OLLAMA_MODEL)
     if progress_cb:
-        progress_cb(5, f"Processing {total} papers with {num_keys} Groq API key(s)…")
+        progress_cb(5, f"Processing {total} papers with Ollama ({OLLAMA_MODEL})…")
 
-    # Distribute papers across API keys
-    indexed_papers = list(enumerate(papers))
-    batches: List[List[Tuple[int, Paper]]] = [[] for _ in range(num_keys)]
-    for i, (idx, paper) in enumerate(indexed_papers):
-        batches[i % num_keys].append((idx, paper))
-
-    # Process in parallel using ThreadPoolExecutor
-    all_results: List[Tuple[int, str, str]] = []
-    processed = 0
-
-    with ThreadPoolExecutor(max_workers=num_keys) as executor:
-        futures = {
-            executor.submit(_process_batch, batch, api_keys[i], flog): i
-            for i, batch in enumerate(batches)
-            if batch  # skip empty batches
-        }
-
-        for future in as_completed(futures):
-            try:
-                batch_results = future.result()
-                all_results.extend(batch_results)
-                processed += len(batch_results)
-
-                if progress_cb:
-                    pct = min((processed / total) * 95 + 5, 99)
-                    progress_cb(pct, f"Processed {processed}/{total} papers…")
-            except Exception as e:
-                logger.exception("Batch processing error: %s", e)
-                flog.error("Batch processing error: %s", e)
-
-    # Apply decisions
+    # Process papers sequentially (local model, no need for parallel batching)
     included = 0
     excluded = 0
-    decision_map: Dict[str, str] = {title: decision for _, title, decision in all_results}
 
-    for paper in papers:
-        decision = decision_map.get(paper.title, "INCLUDE")
+    for idx, paper in enumerate(papers):
+        abstract = getattr(paper, "abstract", None) or ""
+        decision = _call_ollama(paper.title, abstract)
+
         if decision == "INCLUDE":
             paper.relevance = RelevanceDecision.KEEP
             included += 1
         else:
             paper.relevance = RelevanceDecision.REMOVE
             excluded += 1
+
+        flog.info("  #%d [%s] '%s'", idx + 1, decision, paper.title[:80])
+
+        if progress_cb and (idx + 1) % 10 == 0:
+            pct = min((idx + 1) / total * 95 + 5, 99)
+            progress_cb(pct, f"Processed {idx + 1}/{total} papers…")
 
     # Update project stats
     project.total_after_filter = included
