@@ -1,0 +1,41 @@
+2026-03-19 15:43:07 | INFO    | ======================================================================
+2026-03-19 15:43:07 | INFO    | PIPELINE STEP: COLLECTION
+2026-03-19 15:43:07 | INFO    | Project: hello
+2026-03-19 15:43:07 | INFO    | Started: 2026-03-19_15-43-07 UTC
+2026-03-19 15:43:07 | INFO    | Log file: /app/logs/collection_hello_2026-03-19_15-43-07.log
+2026-03-19 15:43:07 | INFO    | Python: 3.12.13 (main, Mar 16 2026, 23:06:54) [GCC 14.2.0]
+2026-03-19 15:43:07 | INFO    | Platform: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.41
+2026-03-19 15:43:07 | INFO    | PID: 9
+2026-03-19 15:43:07 | INFO    | ======================================================================
+2026-03-19 15:43:07 | INFO    | ======================================================================
+2026-03-19 15:43:07 | INFO    | COLLECTION STARTED
+2026-03-19 15:43:07 | INFO    |   Project name : hello
+2026-03-19 15:43:07 | INFO    |   Project ID   : ece4c45d-0d99-4bf9-acd9-ba59641e0747
+2026-03-19 15:43:07 | INFO    | ======================================================================
+2026-03-19 15:43:07 | INFO    | Configuration:
+2026-03-19 15:43:07 | INFO    |   Sources          : ACM, IEEE, SPRINGER
+2026-03-19 15:43:07 | INFO    |   Search strings   : 2
+2026-03-19 15:43:07 | INFO    |     [1] → software
+2026-03-19 15:43:07 | INFO    |     [2] → cancer
+2026-03-19 15:43:07 | INFO    |   Year range       : 2025 – 2026
+2026-03-19 15:43:07 | INFO    |   Total year span  : 2 years
+2026-03-19 15:43:07 | INFO    | Estimated task count: 12 (sources × strings × years)
+2026-03-19 15:43:08 | INFO    | --- All scrapers are API-based — no Selenium WebDriver needed ---
+2026-03-19 15:43:08 | INFO    | 
+2026-03-19 15:43:08 | INFO    | ============================================================
+2026-03-19 15:43:08 | INFO    | [1/3] SOURCE: ACM
+2026-03-19 15:43:08 | INFO    |   Scraper class: app.scrapers.acm.ACMScraper
+2026-03-19 15:43:08 | INFO    | ============================================================
+2026-03-19 15:43:08 | DEBUG   |   Scraper class imported: <class 'app.scrapers.acm.ACMScraper'>
+2026-03-19 15:43:08 | INFO    | [ACM] Scraper initialised (API-based -- no Selenium/CAPTCHA)
+2026-03-19 15:43:08 | DEBUG   |   Scraper instance created
+2026-03-19 15:43:08 | INFO    |   Calling scraper.scrape() with 2 search strings, years 2025–2026
+2026-03-19 15:43:08 | INFO    | [ACM] scrape() called -- 2 search strings, years 2025-2026
+2026-03-19 15:43:08 | INFO    | [ACM] -- 1 | year 2025 --
+2026-03-19 15:43:08 | DEBUG   | [ACM] _collect(1, 2025) -- trying OpenAlex first
+2026-03-19 15:43:08 | DEBUG   | [ACM-OA] GET page 1: https://api.openalex.org/works?search=software&filter=publication_year%3A2025%2Clocations.source.publisher%3AACM&per_page=200&cursor=*&mailto=sms-pipeline@example.com
+2026-03-19 15:43:09 | WARNING | [ACM-OA] HTTP 400 -- body: {"error":"Invalid query parameters error.","message":"locations.source.publisher is not a valid field. Valid fields are underscore or hyphenated versions of: abstract.search, abstract.search.exact, apc_list.currency, apc_list.provenance, apc_list.value, apc_list.value_usd, apc_paid.currency, apc_paid.provenance, apc_paid.value, apc_paid.value_usd, author.id, author.orcid, authors_count, authorships.affiliations.institution_ids, authorships.author.id, authorships.author.orcid, authorships.countri
+2026-03-19 15:43:09 | INFO    | [ACM-OA] Finished -- 0 papers total
+2026-03-19 15:43:09 | INFO    | [ACM] OpenAlex returned 0 -- trying CrossRef fallback
+2026-03-19 15:43:09 | DEBUG   | [ACM-CR] GET offset=0: https://api.crossref.org/prefixes/10.1145/works?query=software&filter=from-pub-date:2025,until-pub-date:2025&rows=100&offset=0&sort=relevance&order=desc
+2026-03-19 15:43:10 | INFO    | No WebDriver to shut down (API-based scrapers).

@@ -53,7 +53,7 @@ const PIPELINE_STEPS: {
     key: "deduplicate",
     label: "2. Deduplicate",
     icon: Copy,
-    desc: "Find and mark duplicates (DOI + title similarity)",
+    desc: "Find and mark duplicates (DOI + normalized title + TF-IDF similarity)",
   },
   {
     key: "automated_exclusion",
