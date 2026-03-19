@@ -61,7 +61,8 @@ export default function NewProject() {
       year_start: yearStart,
       year_end: yearEnd,
       sources: selectedSources,
-      custom_search_strings:
+      use_preset_strings: topic !== "custom",
+      search_strings:
         topic === "custom"
           ? customStrings.filter((s) => s.label && s.query)
           : undefined,

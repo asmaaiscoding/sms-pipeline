@@ -31,9 +31,8 @@ OLLAMA_MODEL = "llama3.2:3b"
 
 EXCLUSION_PROMPT = """\
 You are a strict academic paper screener for a Systematic Mapping Study focused \
-exclusively on **SOFTWARE security** — meaning security concerns that arise \
-within the SOFTWARE layer (source code, binaries, applications, libraries, \
-frameworks, APIs, software development processes).
+on SOFTWARE security at the software artifact level (source code, binaries, \
+applications, libraries, frameworks, APIs, and software pipelines).
 
 Task: Given the title and abstract of an academic paper, decide \
 whether it should be INCLUDED or EXCLUDED.
@@ -71,11 +70,13 @@ mentions "security"):
 • Any domain outside computer science (medicine, biology, finance, etc.)
 
 ── Decision rules:
-1. If the title/abstract is ambiguous, lean toward EXCLUDE — we want high precision.
-2. A paper that merely USES software but studies network/hardware/policy security \
+1. If ambiguous but there is explicit evidence of software artifact + vulnerability \
+or software-security testing, prefer INCLUDE.
+2. If ambiguity remains and software artifact evidence is missing, EXCLUDE.
+3. A paper that merely USES software but studies network/hardware/policy security \
 is still EXCLUDED.
-3. "Security testing" counts as INCLUDE only if it tests the software itself, not \
-the network or infrastructure.
+4. "Security testing" counts as INCLUDE only if it tests the software artifact itself, \
+not just network or infrastructure.
 
 Respond with ONLY one word: INCLUDE or EXCLUDE
 

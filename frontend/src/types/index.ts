@@ -66,7 +66,8 @@ export interface ProjectCreate {
   year_start?: number;
   year_end?: number;
   sources?: string;
-  custom_search_strings?: { label: string; query: string }[];
+  use_preset_strings?: boolean;
+  search_strings?: { label: string; query: string }[];
 }
 
 export interface ProjectUpdate {
