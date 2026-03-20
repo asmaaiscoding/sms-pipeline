@@ -10,7 +10,7 @@ import math
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, status
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -154,5 +154,19 @@ async def delete_project(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    project = await _get_project_or_404(project_id, user, db)
-    await db.delete(project)
+    # Lightweight ownership check without loading relationships
+    result = await db.execute(
+        select(Project.id, Project.owner_id).where(Project.id == project_id)
+    )
+    row = result.first()
+    if not row:
+        raise NotFoundError("Project not found")
+    if row.owner_id != user.id and not user.is_superuser:
+        raise ForbiddenError("Not your project")
+
+    # Raw SQL delete — DB CASCADE handles children
+    await db.execute(
+        text("DELETE FROM projects WHERE id = :pid"),
+        {"pid": str(project_id)},
+    )
+    await db.commit()

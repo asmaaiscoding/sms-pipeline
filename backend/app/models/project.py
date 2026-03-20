@@ -78,14 +78,15 @@ class Project(Base):
     owner = relationship("User", back_populates="projects")
     search_strings = relationship(
         "SearchString", back_populates="project", cascade="all, delete-orphan",
-        order_by="SearchString.label"
+        passive_deletes=True, order_by="SearchString.label"
     )
     papers = relationship(
-        "Paper", back_populates="project", cascade="all, delete-orphan"
+        "Paper", back_populates="project", cascade="all, delete-orphan",
+        passive_deletes=True
     )
     jobs = relationship(
         "Job", back_populates="project", cascade="all, delete-orphan",
-        order_by="Job.created_at.desc()"
+        passive_deletes=True, order_by="Job.created_at.desc()"
     )
 
     @property

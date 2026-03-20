@@ -32,7 +32,9 @@ def _norm_doi(doi: str) -> str:
     if not doi or not isinstance(doi, str):
         return ""
     doi = doi.strip().lower()
-    return re.sub(r"^https?://(dx\.)?doi\.org/", "", doi)
+    doi = re.sub(r"^https?://(dx\.)?doi\.org/", "", doi)
+    doi = re.sub(r"^doi:\s*", "", doi)
+    return doi
 
 
 def _norm_title(title: str) -> str:
@@ -126,6 +128,11 @@ def run_deduplication_sync(
         best = max(group, key=_completeness)
         for p in group:
             if p.id != best.id and p.id not in removed_ids:
+                # Guard: if both have DOIs and they differ, these are different papers
+                ndoi_p = _norm_doi(p.doi)
+                ndoi_best = _norm_doi(best.doi)
+                if ndoi_p and ndoi_best and ndoi_p != ndoi_best:
+                    continue
                 p.is_duplicate = True
                 p.duplicate_of_id = best.id
                 removed_ids.add(p.id)
@@ -156,6 +163,11 @@ def run_deduplication_sync(
                 if remaining[j].id in removed_ids:
                     continue
                 if sim[i, j] >= 0.85:
+                    # Guard: if both have DOIs and they differ, skip
+                    ndoi_ri = _norm_doi(remaining[i].doi)
+                    ndoi_rj = _norm_doi(remaining[j].doi)
+                    if ndoi_ri and ndoi_rj and ndoi_ri != ndoi_rj:
+                        continue
                     if _completeness(remaining[i]) >= _completeness(remaining[j]):
                         loser = remaining[j]
                         winner = remaining[i]
